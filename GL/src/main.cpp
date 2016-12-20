@@ -32,6 +32,10 @@ int main() {
 		std::cin.get();
 	}
 
+	glEnable(GL_DEPTH_TEST);
+
+	glViewport(0, 0, 800, 600);
+
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
 	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 100.f);
 
@@ -39,22 +43,42 @@ int main() {
 	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	basicShader.bind();
 
+	
+	Cube light;
+	light.position.x = 0.25;
+	light.position.z = -3;
+	light.initRenderData();
+
+	glm::vec3 lightPos = light.position;
+
 	Cube cube;
-	cube.position.x -= 0.25;
-	cube.rotation.z = 25;
+	cube.position.x -= 1.25;
+	cube.position.z = 0;
+	cube.color = {0.8, 0.4f, 0.31f};
 	cube.initRenderData();
+
+
+
+	basicShader.setUniform("lightColor", glm::vec3(1.0, 1, 1));
+	basicShader.setUniform("lightPos", light.position);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		light.position.z = sin(glfwGetTime());
+		basicShader.setUniform("lightPos", light.position);
 
+
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		basicShader.bind();
 		basicShader.setUniform("view", view);
 		basicShader.setUniform("projection", projection);
-
+		
 		cube.draw(basicShader);
-
+		light.draw(basicShader);
+		
 		glfwSwapBuffers(window);
 	}
 

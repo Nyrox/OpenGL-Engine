@@ -93,6 +93,19 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 	Uniforms
 */
 
+void Shader::setUniform(std::string name, float val) {
+	glUniform1f(glGetUniformLocation(this->id, name.c_str()), val);
+}
+
+void Shader::setUniform(std::string name, glm::vec2 val) {
+	glUniform2fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
+}
+
+void Shader::setUniform(std::string name, glm::vec3 val) {
+	glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
+}
+
 void Shader::setUniform(std::string name, glm::mat4 matrix) {
 	glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
 }
+

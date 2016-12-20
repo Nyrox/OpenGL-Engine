@@ -11,7 +11,7 @@ public:
 	void initRenderData();
 
 	glm::vec3 position;
-	glm::vec3 rotation;
+	glm::vec3 color;
 private:
 	GLuint vao;
 
