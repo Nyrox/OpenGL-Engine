@@ -62,6 +62,7 @@ int main() {
 	Cube light;
 	light.position.x = 0.25;
 	light.position.z = -3;
+	light.scale = 0.3;
 	light.initRenderData();
 
 	glm::vec3 lightPos = light.position;
@@ -69,20 +70,24 @@ int main() {
 	Cube cube;
 	cube.position.x -= 1.25;
 	cube.position.z = 0;
-	cube.color = {0.8, 0.4f, 0.31f};
+	cube.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	cube.initRenderData();
 
+	Light lightMaterial = Light({}, { 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 });
 
-
-	basicShader.setUniform("lightColor", glm::vec3(1.0, 1, 1));
-	basicShader.setUniform("lightPos", light.position);
-	basicShader.setUniform("cameraPos", { 0, 0, 3 });
+	GLfloat deltaTime = 0;
+	GLfloat lastFrame = 0;
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+
 		// Physics
-		GLfloat cameraSpeed = 0.03f;
+		GLfloat cameraSpeed = 5.f * deltaTime;
 		if (keys[GLFW_KEY_W]) {
 			camera.position += camera.forwards() * cameraSpeed;
 		}
@@ -95,19 +100,29 @@ int main() {
 		if (keys[GLFW_KEY_A]) {
 			camera.position -= camera.right() * cameraSpeed;
 		}
+		if (keys[GLFW_KEY_E]) {
+			camera.yaw += cameraSpeed * 25;
+		}
+		if (keys[GLFW_KEY_Q]) {
+			camera.yaw -= cameraSpeed * 25;
+		}
 
+		// Globals
+		basicShader.bind();
+		basicShader.setUniform("cameraPos", camera.position);
+		basicShader.setUniform("view", camera.getViewMatrix());
+		basicShader.setUniform("projection", projection);
 
+			
 		// Render
 		light.position.z = sin(glfwGetTime());
-		basicShader.setUniform("lightPos", light.position);
+		lightMaterial.position = light.position;
+		basicShader.setUniform("light", lightMaterial);
 
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		basicShader.bind();
-		basicShader.setUniform("view", camera.getViewMatrix());
-		basicShader.setUniform("projection", projection);
 		
 		cube.draw(basicShader);
 		light.draw(basicShader);

@@ -3,10 +3,14 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+Cube::Cube() {
+	scale = 1;
+}
+
 void Cube::draw(Shader& shader) {
 	shader.bind();
-	shader.setUniform("model", glm::translate(glm::mat4(), position));
-	shader.setUniform("objectColor", color);
+	shader.setUniform("model", glm::translate(glm::scale(glm::mat4(), { scale, scale, scale }), position));
+	shader.setUniform("material", material);
 
 	glBindVertexArray(this->vao);
 	glDrawArrays(GL_TRIANGLES, 0, 36);

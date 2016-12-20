@@ -109,3 +109,16 @@ void Shader::setUniform(std::string name, glm::mat4 matrix) {
 	glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
 }
 
+void Shader::setUniform(std::string name, Material material) {
+	setUniform(name + ".ambient", material.ambient);
+	setUniform(name + ".diffuse", material.diffuse);
+	setUniform(name + ".specular", material.specular);
+	setUniform(name + ".shininess", material.shininess);
+}
+
+void Shader::setUniform(std::string name, Light light) {
+	setUniform(name + ".position", light.position);
+	setUniform(name + ".ambient", light.ambient);
+	setUniform(name + ".diffuse", light.diffuse);
+	setUniform(name + ".specular", light.specular);
+}
