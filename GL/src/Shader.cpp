@@ -92,6 +92,9 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 /*
 	Uniforms
 */
+void Shader::setUniform(std::string name, int val) {
+	glUniform1i(glGetUniformLocation(this->id, name.c_str()), val);
+}
 
 void Shader::setUniform(std::string name, float val) {
 	glUniform1f(glGetUniformLocation(this->id, name.c_str()), val);
@@ -110,9 +113,8 @@ void Shader::setUniform(std::string name, glm::mat4 matrix) {
 }
 
 void Shader::setUniform(std::string name, Material material) {
-	setUniform(name + ".ambient", material.ambient);
-	setUniform(name + ".diffuse", material.diffuse);
-	setUniform(name + ".specular", material.specular);
+	setUniform(name + ".diffuse", 0);
+	setUniform(name + ".specular", 1);
 	setUniform(name + ".shininess", material.shininess);
 }
 

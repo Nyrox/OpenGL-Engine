@@ -5,6 +5,7 @@
 
 #include <Camera.h>
 #include <Shader.h>
+#include <Texture.h>
 #include <Cube.h>
 
 #include <iostream>
@@ -13,6 +14,10 @@ bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	if (action == GLFW_PRESS) {
 		keys[key] = true;
+		
+		if (key == GLFW_KEY_ESCAPE) {
+			exit(EXIT_SUCCESS);
+		}
 	}
 	else if (action == GLFW_RELEASE) {
 		keys[key] = false;
@@ -60,9 +65,9 @@ int main() {
 
 	
 	Cube light;
-	light.position.x = 0.25;
+	light.position.x = 0.5;
 	light.position.z = -3;
-	light.scale = 0.3;
+	light.scale = 0.1f;
 	light.initRenderData();
 
 	glm::vec3 lightPos = light.position;
@@ -72,6 +77,12 @@ int main() {
 	cube.position.z = 0;
 	cube.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	cube.initRenderData();
+
+	Texture texture;
+	texture.loadFromFile("assets/container2.png", GL_RGBA);
+
+	Texture specular;
+	specular.loadFromFile("assets/container2_specular.png", GL_RGBA);
 
 	Light lightMaterial = Light({}, { 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 });
 
@@ -113,16 +124,19 @@ int main() {
 		basicShader.setUniform("view", camera.getViewMatrix());
 		basicShader.setUniform("projection", projection);
 
-			
+		
+		// Bind Textures
+		texture.bind(0);
+		specular.bind(1);
+
 		// Render
-		light.position.z = sin(glfwGetTime());
+		light.position.z = sin(glfwGetTime()) * 2;
 		lightMaterial.position = light.position;
 		basicShader.setUniform("light", lightMaterial);
 
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClearColor(0.1, 0.1, 0.1, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		
 		cube.draw(basicShader);
 		light.draw(basicShader);
