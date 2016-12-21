@@ -9,7 +9,7 @@ Cube::Cube() {
 
 void Cube::draw(Shader& shader) {
 	shader.bind();
-	shader.setUniform("model", glm::translate(glm::scale(glm::mat4(), { scale, scale, scale }), position));
+	shader.setUniform("model", glm::scale(glm::translate(glm::mat4(), position), { scale, scale, scale }));
 	shader.setUniform("material", material);
 
 	glBindVertexArray(this->vao);
@@ -18,7 +18,7 @@ void Cube::draw(Shader& shader) {
 }
 
 void Cube::initRenderData() {
-	GLuint vbo, ebo;
+	GLuint vbo;
 	
 	GLfloat vertices[] = {
 		// Positions          // Normals           // Texture Coords
@@ -83,5 +83,4 @@ void Cube::initRenderData() {
 	glEnableVertexAttribArray(2);
 
 	glBindVertexArray(0);
-
 }

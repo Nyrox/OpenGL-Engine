@@ -7,8 +7,9 @@
 #include <Shader.h>
 #include <Texture.h>
 #include <Cube.h>
-
+#include <Plane.h>
 #include <iostream>
+#include <Mesh.h>
 
 bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -55,18 +56,24 @@ int main() {
 
 	Camera camera;
 	camera.position.z = 5;
+	camera.position.y = 2;
 
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
-	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 100.f);
+	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 1000.f);
 
 	Shader basicShader;
 	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	basicShader.bind();
 
-	
+	Plane floor;
+	floor.scale = 2;
+	floor.material = Material(glm::vec3(0.8, 0.4, 0.31));
+	floor.initRenderData();
+
 	Cube light;
-	light.position.x = 0.5;
+	light.position.x = 3.5;
 	light.position.z = -3;
+	light.position.y = 2;
 	light.scale = 0.1f;
 	light.initRenderData();
 
@@ -75,8 +82,24 @@ int main() {
 	Cube cube;
 	cube.position.x -= 1.25;
 	cube.position.z = 0;
+	cube.position.y = 2;
 	cube.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	cube.initRenderData();
+
+	Mesh betterCube;
+	betterCube.position.x = -1.25;
+	betterCube.position.z = 3;
+	betterCube.position.y = 2;
+
+	betterCube.material = Material(glm::vec3(0.8, 0.4, 0.31));
+	betterCube.loadFromFile("assets/cube.ply");
+
+	Mesh cross;
+	cross.position.x = -1.25;
+	cross.position.z = 6;
+	cross.position.y = 1;
+	cross.material = Material(glm::vec3(0.8, 0.4, 0.31));
+	cross.loadFromFile("assets/cross.ply");
 
 	Texture texture;
 	texture.loadFromFile("assets/container2.png", GL_RGBA);
@@ -91,6 +114,13 @@ int main() {
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
+
+		/*
+			Check for OpenGL errors
+		*/
+		for (GLenum err; (err = glGetError()) != GL_NO_ERROR;) {
+			std::cout << err;
+		}
 
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -135,12 +165,15 @@ int main() {
 		basicShader.setUniform("light", lightMaterial);
 
 
-		glClearColor(0.1, 0.1, 0.1, 1.0f);
+		glClearColor(0.05, 0.05, 0.05, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
+		floor.draw(basicShader);
 		cube.draw(basicShader);
+		betterCube.draw(basicShader);
 		light.draw(basicShader);
-		
+		cross.draw(basicShader);
+
 		glfwSwapBuffers(window);
 	}
 

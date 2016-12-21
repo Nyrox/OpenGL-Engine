@@ -123,6 +123,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\2D\Sprite.cpp" />
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\Plane.cpp" />
     <ClCompile Include="src\Camera.cpp" />
     <ClCompile Include="src\Cube.cpp" />
     <ClCompile Include="src\main.cpp" />
@@ -134,6 +137,9 @@
     <None Include="shaders\basic.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\2D\Sprite.h" />
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\Plane.h" />
     <ClInclude Include="src\Camera.h" />
     <ClInclude Include="src\Cube.h" />
     <ClInclude Include="src\Light.h" />
