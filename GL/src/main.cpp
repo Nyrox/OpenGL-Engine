@@ -10,6 +10,7 @@
 #include <Plane.h>
 #include <iostream>
 #include <Mesh.h>
+#include <2D/Sprite.h>
 
 bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -63,7 +64,10 @@ int main() {
 
 	Shader basicShader;
 	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
-	basicShader.bind();
+
+	Shader flatShader;
+	flatShader.loadFromFile("shaders/flat.vert", "shaders/flat.frag");
+
 
 	Plane floor;
 	floor.scale = 2;
@@ -78,6 +82,10 @@ int main() {
 	light.initRenderData();
 
 	glm::vec3 lightPos = light.position;
+
+	Texture lampTexture;
+	lampTexture.loadFromFile("assets/lamp_icon.png", GL_RGBA);
+	Sprite lampIcon(1, 1, &lampTexture);
 
 	Cube cube;
 	cube.position.x -= 1.25;
@@ -173,6 +181,8 @@ int main() {
 		betterCube.draw(basicShader);
 		light.draw(basicShader);
 		cross.draw(basicShader);
+
+		lampIcon.draw(flatShader);
 
 		glfwSwapBuffers(window);
 	}
