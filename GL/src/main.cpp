@@ -70,6 +70,9 @@ int main() {
 	Shader flatShader;
 	flatShader.loadFromFile("shaders/flat.vert", "shaders/flat.frag");
 
+	Shader postProcessShader;
+	postProcessShader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
+
 
 	Plane floor;
 	floor.scale = 2;
@@ -124,6 +127,63 @@ int main() {
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 
+	GLuint fbo;
+	glGenFramebuffers(1, &fbo);
+	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+	GLuint fboTexture;
+	glGenTextures(1, &fboTexture);
+
+	glBindTexture(GL_TEXTURE_2D, fboTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
+
+	GLuint fboRbo;
+	glGenRenderbuffers(1, &fboRbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, fboRbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
+	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboRbo);
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+		std::cout << "VICTOOOORY DAAANCE" << std::endl;
+	}
+
+	
+	GLuint vbo, vao;
+
+	GLfloat vertices[] = {   // Vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		1.0f, -1.0f,  1.0f, 0.0f,
+		1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	glGenVertexArrays(1, &vao);
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(vao);
+	// Positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, 0, 4 * sizeof(GLfloat), (GLvoid*)0);
+	// UVS
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, 0, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+
+	glBindVertexArray(0);
+
+
+	
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDepthFunc(GL_LESS);
+
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 
@@ -167,19 +227,21 @@ int main() {
 		basicShader.setUniform("projection", projection);
 			
 		
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+		glEnable(GL_DEPTH_TEST);
 		
 		// Bind Textures
 		texture.bind(0);
 		specular.bind(1);
 
+		
 		// Render
 		light.position.z = sin(glfwGetTime()) * 2;
 		basicShader.setUniform("pointLights", light, 0);
 		basicShader.setUniform("pointLights", light2, 1);
 
-		glClearColor(0.05, 0.05, 0.05, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
 		floor.draw(basicShader);
 		cube.draw(basicShader);
 		betterCube.draw(basicShader);
@@ -202,6 +264,23 @@ int main() {
 
 		lampIcon.draw(flatShader);
 		lampIcon2.draw(flatShader);
+
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
+		glClearColor(1.0, 1.0, 1.0, 1.0); // Essentially useless
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		glDisable(GL_DEPTH_TEST);
+
+		
+		postProcessShader.bind();
+
+		glBindVertexArray(vao);
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fboTexture);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
 
 		glfwSwapBuffers(window);
 	}

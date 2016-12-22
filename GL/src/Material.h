@@ -7,7 +7,7 @@ struct Material {
 	Material() {};
 	// Utility constructor which will set all modifiers to __color.
 	// Useful if you just want a monotone material up fast
-	Material(glm::vec3 __color, float shininess = 32) : shininess(shininess) {
+	Material(glm::vec3 __color, float shininess = 64) : shininess(shininess) {
 
 	}
 
