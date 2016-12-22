@@ -21,7 +21,7 @@ public:
 	void setUniform(std::string name, glm::mat4 matrix);
 
 	void setUniform(std::string name, Material material);
-	void setUniform(std::string name, Light light);
+	void setUniform(std::string name, PointLight light, uint32_t index = 0);
 private:
 	void checkCompileErrors(GLuint object, GLenum type);
 	std::string loadSingle(const char* shaderFile);

@@ -12,6 +12,8 @@
 #include <Mesh.h>
 #include <2D/Sprite.h>
 
+
+
 bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	if (action == GLFW_PRESS) {
@@ -73,19 +75,23 @@ int main() {
 	floor.scale = 2;
 	floor.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	floor.initRenderData();
+	
+	PointLight light;
+	light.position = { 2, 3, 2 };
+	light.ambient = { 0.2, 0.2, 0.2 };
+	light.diffuse = { 0.5, 0.5, 0.5 };
+	light.specular = { 0.5, 0.5, 0.5 };
 
-	Cube light;
-	light.position.x = 3.5;
-	light.position.z = -3;
-	light.position.y = 2;
-	light.scale = 0.1f;
-	light.initRenderData();
-
-	glm::vec3 lightPos = light.position;
+	PointLight light2;
+	light2.position = { -6, 3, -1 };
+	light2.ambient = { 0.2, 0.2, 0.2 };
+	light2.diffuse = { 0.4, 0.4, 0.8 };
+	light2.specular = { 0.4, 0.4, 0.8 };
 
 	Texture lampTexture;
 	lampTexture.loadFromFile("assets/lamp_icon.png", GL_RGBA);
 	Sprite lampIcon(1, 1, &lampTexture);
+	Sprite lampIcon2(1, 1, &lampTexture);
 
 	Cube cube;
 	cube.position.x -= 1.25;
@@ -114,8 +120,6 @@ int main() {
 
 	Texture specular;
 	specular.loadFromFile("assets/container2_specular.png", GL_RGBA);
-
-	Light lightMaterial = Light({}, { 0.2, 0.2, 0.2 }, { 0.5, 0.5, 0.5 }, { 0.5, 0.5, 0.5 });
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
@@ -170,9 +174,8 @@ int main() {
 
 		// Render
 		light.position.z = sin(glfwGetTime()) * 2;
-		lightMaterial.position = light.position;
-		basicShader.setUniform("light", lightMaterial);
-
+		basicShader.setUniform("pointLights", light, 0);
+		basicShader.setUniform("pointLights", light2, 1);
 
 		glClearColor(0.05, 0.05, 0.05, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -183,7 +186,14 @@ int main() {
 		cross.draw(basicShader);
 
 		lampIcon.position = light.position;
+		lampIcon2.position = light2.position;
 
+		/*
+			TODO: Learn this shit
+		*/
+		float adjacent = light.position.z - camera.position.z;
+		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
+		lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
 
 		flatShader.bind();
 		flatShader.setUniform("view", camera.getViewMatrix());
@@ -191,6 +201,7 @@ int main() {
 
 
 		lampIcon.draw(flatShader);
+		lampIcon2.draw(flatShader);
 
 		glfwSwapBuffers(window);
 	}

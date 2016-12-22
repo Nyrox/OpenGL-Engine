@@ -3,16 +3,19 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-using glm::vec3;
-
-struct Light {
-	Light(vec3 position = {}, vec3 ambient = {}, vec3 diffuse = {}, vec3 specular = {}) : position(position), ambient(ambient), diffuse(diffuse), specular(specular) {
-	
+struct PointLight {
+	PointLight() {
+		constant = 1.0;
+		linear = 0.07;
+		quadratic = 0.017;
 	}
-
 	vec3 position;
 
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
+
+	float constant;
+	float linear;
+	float quadratic;
 };

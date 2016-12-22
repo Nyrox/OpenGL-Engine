@@ -118,9 +118,12 @@ void Shader::setUniform(std::string name, Material material) {
 	setUniform(name + ".shininess", material.shininess);
 }
 
-void Shader::setUniform(std::string name, Light light) {
-	setUniform(name + ".position", light.position);
-	setUniform(name + ".ambient", light.ambient);
-	setUniform(name + ".diffuse", light.diffuse);
-	setUniform(name + ".specular", light.specular);
+void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
+	setUniform(name + "[" + std::to_string(index) + "]" + ".position", light.position);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".ambient", light.ambient);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".diffuse", light.diffuse);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".specular", light.specular);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".constant", light.constant);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".linear", light.linear);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".quadratic", light.quadratic);
 }

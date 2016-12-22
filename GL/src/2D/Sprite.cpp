@@ -10,7 +10,7 @@ Sprite::Sprite(uint32_t _width, uint32_t _height, Texture* texture) : width(_wid
 void Sprite::draw(Shader& shader) {
 	shader.bind();
 	
-	shader.setUniform("model", glm::translate(glm::mat4(), position));
+	shader.setUniform("model", glm::rotate(glm::translate(glm::mat4(), position), glm::radians(yaw), { 0, 1, 0 }));
 	shader.setUniform("diffuse", 0);
 
 	
