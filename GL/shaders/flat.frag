@@ -1,4 +1,4 @@
-#version 420 core;
+#version 420 core
 
 in vec3 normal;
 in vec3 fragPos;
@@ -11,8 +11,8 @@ uniform sampler2D diffuse;
 void main() {
 	vec4 diffuse = texture(diffuse, uv);
 	if(diffuse.a == 0) {
-		discard();
+		discard;
 	}
 
-	color = diffuse;
+	color = vec4(diffuse.xyz, 1);
 }

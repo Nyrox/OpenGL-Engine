@@ -16,4 +16,4 @@ public:
 
 	glm::vec3 forwards();
 	glm::vec3 right();
-};
+}; 

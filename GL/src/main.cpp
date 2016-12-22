@@ -161,7 +161,8 @@ int main() {
 		basicShader.setUniform("cameraPos", camera.position);
 		basicShader.setUniform("view", camera.getViewMatrix());
 		basicShader.setUniform("projection", projection);
-
+			
+		
 		
 		// Bind Textures
 		texture.bind(0);
@@ -179,8 +180,15 @@ int main() {
 		floor.draw(basicShader);
 		cube.draw(basicShader);
 		betterCube.draw(basicShader);
-		light.draw(basicShader);
 		cross.draw(basicShader);
+
+		lampIcon.position = light.position;
+
+
+		flatShader.bind();
+		flatShader.setUniform("view", camera.getViewMatrix());
+		flatShader.setUniform("projection", projection);
+
 
 		lampIcon.draw(flatShader);
 
