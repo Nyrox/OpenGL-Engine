@@ -11,7 +11,7 @@
 #include <iostream>
 #include <Mesh.h>
 #include <2D/Sprite.h>
-
+#include <Framebuffer.h>
 
 
 bool keys[1024];
@@ -127,31 +127,9 @@ int main() {
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 
-	GLuint fbo;
-	glGenFramebuffers(1, &fbo);
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	Framebuffer postProcessBuffer({ 800, 600 }, RGB);
+	Framebuffer shadowMap({ 800, 600 }, DEPTH);
 
-	GLuint fboTexture;
-	glGenTextures(1, &fboTexture);
-
-	glBindTexture(GL_TEXTURE_2D, fboTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 800, 600, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboTexture, 0);
-
-	GLuint fboRbo;
-	glGenRenderbuffers(1, &fboRbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, fboRbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 800, 600);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, fboRbo);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-		std::cout << "VICTOOOORY DAAANCE" << std::endl;
-	}
-
-	
 	GLuint vbo, vao;
 
 	GLfloat vertices[] = {   // Vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
@@ -227,7 +205,7 @@ int main() {
 		basicShader.setUniform("projection", projection);
 			
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		postProcessBuffer.bind();
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
 		glEnable(GL_DEPTH_TEST);
@@ -277,7 +255,7 @@ int main() {
 
 		glBindVertexArray(vao);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, fboTexture);
+		postProcessBuffer.bindTexture(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
