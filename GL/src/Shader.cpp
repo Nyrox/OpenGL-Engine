@@ -129,3 +129,10 @@ void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
 	setUniform(name + "[" + std::to_string(index) + "]" + ".linear", light.linear);
 	setUniform(name + "[" + std::to_string(index) + "]" + ".quadratic", light.quadratic);
 }
+
+void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index) {
+	setUniform(name + "[" + std::to_string(index) + "]" + ".direction", light.direction);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".ambient", light.ambient);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".diffuse", light.diffuse);
+	setUniform(name + "[" + std::to_string(index) + "]" + ".specular", light.specular);
+}

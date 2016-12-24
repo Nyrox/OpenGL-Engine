@@ -12,6 +12,13 @@
 #include <Mesh.h>
 #include <2D/Sprite.h>
 #include <Framebuffer.h>
+#include <glm/gtc/type_ptr.hpp>
+
+constexpr uint32_t CAMERA_NEAR_PLANE = 0.1f;
+constexpr uint32_t CAMERA_FAR_PLANE = 100.f;
+
+constexpr uint32_t SHADOWMAP_NEAR_PLANE = 1.f;
+constexpr uint32_t SHADOWMAP_FAR_PLANE = 100.f;
 
 
 bool keys[1024];
@@ -62,7 +69,7 @@ int main() {
 	camera.position.y = 2;
 
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
-	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 1000.f);
+	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 100.f);
 
 	Shader basicShader;
 	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
@@ -73,6 +80,8 @@ int main() {
 	Shader postProcessShader;
 	postProcessShader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
 
+	Shader shadowPassShader;
+	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag");
 
 	Plane floor;
 	floor.scale = 2;
@@ -90,6 +99,14 @@ int main() {
 	light2.ambient = { 0.2, 0.2, 0.2 };
 	light2.diffuse = { 0.4, 0.4, 0.8 };
 	light2.specular = { 0.4, 0.4, 0.8 };
+
+	DirectionalLight dirLight;
+	dirLight.direction = { -0.9f, -1.0f, -0.3f };
+	dirLight.ambient = { 0.15, 0.15, 0.15 };
+	dirLight.diffuse = { 0.6, 0.4, 0.8 };
+	dirLight.specular = { 0.4, 0.4, 0.8 };
+
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, (float)SHADOWMAP_NEAR_PLANE, (float)SHADOWMAP_FAR_PLANE);
 
 	Texture lampTexture;
 	lampTexture.loadFromFile("assets/lamp_icon.png", GL_RGBA);
@@ -128,7 +145,7 @@ int main() {
 	GLfloat lastFrame = 0;
 
 	Framebuffer postProcessBuffer({ 800, 600 }, RGB);
-	Framebuffer shadowMap({ 800, 600 }, DEPTH);
+	Framebuffer shadowMapBuffer({ 1024, 1024 }, DEPTH);
 
 	GLuint vbo, vao;
 
@@ -157,7 +174,17 @@ int main() {
 
 	glBindVertexArray(0);
 
+	auto geometry_pass = [&](Shader& shader) {
+		// Set common uniforms
 
+		shader.setUniform("cameraPos", camera.position);
+
+		// render shit
+		floor.draw(shader);
+		cube.draw(shader);
+		betterCube.draw(shader);
+		cross.draw(shader);
+	};
 	
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDepthFunc(GL_LESS);
@@ -198,32 +225,45 @@ int main() {
 			camera.yaw -= cameraSpeed * 25;
 		}
 
-		// Globals
-		basicShader.bind();
-		basicShader.setUniform("cameraPos", camera.position);
-		basicShader.setUniform("view", camera.getViewMatrix());
-		basicShader.setUniform("projection", projection);
-			
 		
+		
+		shadowMapBuffer.bind();
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+		glEnable(GL_DEPTH_TEST);
+		// Render
+		
+		glm::mat4 dirLightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 lightSpaceMatrix = lightProjection * dirLightView;
+	
+		shadowPassShader.bind();
+		shadowPassShader.setUniform("model", glm::mat4());
+		shadowPassShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
+		geometry_pass(shadowPassShader);
+
+		// Lighting pass
 		postProcessBuffer.bind();
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
 		glEnable(GL_DEPTH_TEST);
-		
-		// Bind Textures
-		texture.bind(0);
-		specular.bind(1);
 
-		
-		// Render
+		basicShader.bind();
+		basicShader.setUniform("cameraPos", camera.position);
+		basicShader.setUniform("view", camera.getViewMatrix());
+		basicShader.setUniform("projection", projection);
+		basicShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
+
 		light.position.z = sin(glfwGetTime()) * 2;
 		basicShader.setUniform("pointLights", light, 0);
 		basicShader.setUniform("pointLights", light2, 1);
+		basicShader.setUniform("directionalLights", dirLight, 0);
+		basicShader.setUniform("shadowMap", 2);
 
-		floor.draw(basicShader);
-		cube.draw(basicShader);
-		betterCube.draw(basicShader);
-		cross.draw(basicShader);
+		texture.bind(0);
+		specular.bind(1);
+		shadowMapBuffer.bindTexture(2);
+
+		geometry_pass(basicShader);
 
 		lampIcon.position = light.position;
 		lampIcon2.position = light2.position;
@@ -252,9 +292,12 @@ int main() {
 
 		
 		postProcessShader.bind();
+		postProcessShader.setUniform("near_plane", 0.1f);
+		postProcessShader.setUniform("far_plane", 100.f);
+
 
 		glBindVertexArray(vao);
-		glActiveTexture(GL_TEXTURE0);
+		//shadowMapBuffer.bindTexture(0);
 		postProcessBuffer.bindTexture(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
