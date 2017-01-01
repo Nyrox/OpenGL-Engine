@@ -23,6 +23,12 @@ public:
 	void setUniform(std::string name, Material material);
 	void setUniform(std::string name, PointLight light, uint32_t index = 0);
 	void setUniform(std::string name, DirectionalLight light, uint32_t index);
+
+
+	void setUniformArray(std::string name, glm::mat4* data, uint32_t count);
+
+	void setUniformArray(std::string name, PointLight* data, uint32_t count);
+	
 private:
 	void checkCompileErrors(GLuint object, GLenum type);
 	std::string loadSingle(const char* shaderFile);

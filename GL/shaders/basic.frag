@@ -1,29 +1,19 @@
 #version 420 core
 
-in vec3 normal;
-in vec3 fragPos;
-in vec2 uv;
-in vec4 fragPosLightSpace;
-
-out vec4 color;
-
-uniform vec3 cameraPos;
-
-
-
 struct Material {
 	sampler2D diffuse;
 	sampler2D specular;
 	float shininess;
 };
 
+/*
 struct DirectionalLight {
 	vec3 direction;
 
 	vec3 ambient; 
 	vec3 diffuse;
 	vec3 specular;
-};
+};*/
 
 struct PointLight {
 	vec3 position;
@@ -37,19 +27,43 @@ struct PointLight {
 	float quadratic;
 };
 
-uniform sampler2D shadowMap;
+in vec3 normal;
+in vec3 fragPos;
+in vec2 uv;
 
-#define POINT_LIGHT_LIMIT 8
-uniform PointLight pointLights[POINT_LIGHT_LIMIT];
-uniform int activePointLights;
-
-#define DIR_LIGHT_LIMIT 2
-uniform DirectionalLight directionalLights[DIR_LIGHT_LIMIT];
-uniform int activeDirectionalLights;
+out vec4 color;
 
 uniform Material material;
 
-vec3 addPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+
+uniform PointLight point_lights[16];
+uniform int point_light_count;
+
+uniform samplerCube shadow_maps[4];
+uniform vec3 cameraPos;
+
+uniform float far_plane;
+
+
+
+float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
+	vec3 fragToLight = fragPos - light.position; 
+    float closestDepth = texture(shadowMap, fragToLight).r;
+	//color = vec4(vec3(closestDepth), 1.0);
+
+	closestDepth *= far_plane;
+	
+	float currentDepth = length(fragToLight);
+	
+	float bias = 0.05;
+	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
+	
+	//color = vec4(vec3(closestDepth / far_plane), 1.0);
+
+	return shadow;
+}
+
+vec3 addPointLight(PointLight light, samplerCube shadowMap, vec3 normal, vec3 fragPos, vec3 viewDir) {
 	vec3 lightDir = normalize(light.position - fragPos);
 	
 	// Diffuse
@@ -65,10 +79,13 @@ vec3 addPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
 	vec3 ambient	= attenuation * light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse	= attenuation * light.diffuse * diff * vec3(texture(material.diffuse, uv));
 	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv));
-
-	return (ambient + diffuse + specular);
+	
+	float shadow = shadow(light, shadowMap, fragPos);
+	//float shadow = 0;
+	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
+	 return lighting;
 }
-
+/*
 float shadowLookup(vec4 fragPosLightSpace) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
@@ -114,7 +131,7 @@ vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3
 
 	vec3 result = (ambient + (1.f - shadow) *  (diffuse + specular));
 	return result;
-}
+}*/
 
 void main() {
 	
@@ -123,11 +140,10 @@ void main() {
 
 	vec3 result = vec3(0, 0, 0);
 
-	result += addDirectionalLight(directionalLights[0], norm, fragPos, viewDir);
+	//result += addDirectionalLight(directionalLights[0], norm, fragPos, viewDir);
 
-	for(int i = 0; i < 0; i++) {
-		result += addPointLight(pointLights[i], norm, fragPos, viewDir);
-	}
+
+	result += addPointLight(point_lights[0], shadow_maps[0], norm, fragPos, viewDir);
 
 	color = vec4(result, 1.0);
 }

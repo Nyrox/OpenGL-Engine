@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 
 enum FramebufferTypes {
-	RGB, DEPTH
+	RGB, DEPTH, CUBE_RGB, CUBE_DEPTH
 };
 
 class Framebuffer {
@@ -19,6 +19,8 @@ public:
 
 	uint32_t width;
 	uint32_t height;
+
+	FramebufferTypes type;
 private:
 
 };

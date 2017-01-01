@@ -121,13 +121,13 @@ void Shader::setUniform(std::string name, Material material) {
 }
 
 void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
-	setUniform(name + "[" + std::to_string(index) + "]" + ".position", light.position);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".ambient", light.ambient);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".diffuse", light.diffuse);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".specular", light.specular);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".constant", light.constant);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".linear", light.linear);
-	setUniform(name + "[" + std::to_string(index) + "]" + ".quadratic", light.quadratic);
+	setUniform(name + ".position", light.position);
+	setUniform(name + ".ambient", light.ambient);
+	setUniform(name + ".diffuse", light.diffuse);
+	setUniform(name + ".specular", light.specular);
+	setUniform(name + ".constant", light.constant);
+	setUniform(name + ".linear", light.linear);
+	setUniform(name + ".quadratic", light.quadratic);
 }
 
 void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index) {
@@ -135,4 +135,22 @@ void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index
 	setUniform(name + "[" + std::to_string(index) + "]" + ".ambient", light.ambient);
 	setUniform(name + "[" + std::to_string(index) + "]" + ".diffuse", light.diffuse);
 	setUniform(name + "[" + std::to_string(index) + "]" + ".specular", light.specular);
+}
+
+
+void Shader::setUniformArray(std::string name, glm::mat4* data, uint32_t count) {
+	glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), count, 0, (GLfloat*)data);
+}
+
+void Shader::setUniformArray(std::string name, PointLight* data, uint32_t count) {
+	/*
+	setUniform(name + "[" + "0" + "]" + ".position", light.position);
+	setUniform(name + "[" + "0" + "]" + ".ambient", light.ambient);
+	setUniform(name + "[" + "0" + "]" + ".diffuse", light.diffuse);
+	setUniform(name + "[" + "0" + "]" + ".specular", light.specular);
+	setUniform(name + "[" + "0" + "]" + ".constant", light.constant);
+	setUniform(name + "[" + "0" + "]" + ".linear", light.linear);
+	setUniform(name + "[" + "0" + "]" + ".quadratic", light.quadratic);
+
+	*/
 }

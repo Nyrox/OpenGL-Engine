@@ -5,11 +5,11 @@ Framebuffer::~Framebuffer() {
 	glDeleteFramebuffers(1, &fbo);
 }
 
-Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer) : width(size.x), height(size.y) {
+Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer) : width(size.x), height(size.y), type(type) {
 	glGenFramebuffers(1, &fbo);
 	this->bind();
 
-	if (type == DEPTH) depthBuffer = false;
+	if (type == DEPTH || type == CUBE_DEPTH) depthBuffer = false;
 
 	if (depthBuffer) {
 		GLuint rbo;
@@ -25,14 +25,33 @@ Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer
 
 	glGenTextures(1, &tex);
 	this->bindTexture();
-	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, tex, 0);
 
-	if (type == DEPTH) {
+	if (type == RGB) {
+		glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	}
+		
+	if (type == CUBE_DEPTH || type == CUBE_RGB) {
+		for (int32_t i = 0; i < 6; i++) {
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_FLOAT, NULL);
+		}
+
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+		glFramebufferTexture(GL_FRAMEBUFFER, attach, tex, 0);
+	}
+	else {
+		glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, tex, 0);
+	}
+	
+	if (type == DEPTH || type == CUBE_DEPTH) {
 		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
 	}
@@ -43,12 +62,11 @@ Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer
 }
 
 void Framebuffer::bind() {
-	glViewport(0, 0, width, height);
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-	
 }
 
 void Framebuffer::bindTexture(uint32_t index) {
 	glActiveTexture(GL_TEXTURE0 + index);
-	glBindTexture(GL_TEXTURE_2D, tex);
+
+	glBindTexture((type == CUBE_RGB || type == CUBE_DEPTH) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, tex);
 }

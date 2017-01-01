@@ -14,11 +14,11 @@
 #include <Framebuffer.h>
 #include <glm/gtc/type_ptr.hpp>
 
-constexpr uint32_t CAMERA_NEAR_PLANE = 0.1f;
-constexpr uint32_t CAMERA_FAR_PLANE = 100.f;
+constexpr float CAMERA_NEAR_PLANE = 0.1f;
+constexpr float CAMERA_FAR_PLANE = 100;
 
-constexpr uint32_t SHADOWMAP_NEAR_PLANE = 1.f;
-constexpr uint32_t SHADOWMAP_FAR_PLANE = 100.f;
+constexpr float SHADOWMAP_NEAR_PLANE = 0.1f;
+constexpr float SHADOWMAP_FAR_PLANE = 100.f;
 
 
 bool keys[1024];
@@ -60,8 +60,7 @@ int main() {
 		std::cin.get();
 	}
 
-	glEnable(GL_DEPTH_TEST);
-
+	
 	glViewport(0, 0, 800, 600);
 
 	Camera camera;
@@ -69,7 +68,7 @@ int main() {
 	camera.position.y = 2;
 
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
-	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, 0.1f, 100.f);
+	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
 
 	Shader basicShader;
 	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
@@ -81,7 +80,7 @@ int main() {
 	postProcessShader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
 
 	Shader shadowPassShader;
-	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag");
+	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 
 	Plane floor;
 	floor.scale = 2;
@@ -97,28 +96,28 @@ int main() {
 	PointLight light2;
 	light2.position = { -6, 3, -1 };
 	light2.ambient = { 0.2, 0.2, 0.2 };
-	light2.diffuse = { 0.4, 0.4, 0.8 };
-	light2.specular = { 0.4, 0.4, 0.8 };
+	light2.diffuse = { 0.4, 0.4, 0.4 };
+	light2.specular = { 0.4, 0.4, 0.4 };
 
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.9f, -1.0f, -0.3f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
-	dirLight.diffuse = { 0.6, 0.4, 0.8 };
-	dirLight.specular = { 0.4, 0.4, 0.8 };
+	dirLight.diffuse = { 0.6, 0.4, 0.4 };
+	dirLight.specular = { 0.4, 0.4, 0.4 };
 
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, (float)SHADOWMAP_NEAR_PLANE, (float)SHADOWMAP_FAR_PLANE);
+	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, SHADOWMAP_NEAR_PLANE, SHADOWMAP_FAR_PLANE);
 
 	Texture lampTexture;
 	lampTexture.loadFromFile("assets/lamp_icon.png", GL_RGBA);
 	Sprite lampIcon(1, 1, &lampTexture);
 	Sprite lampIcon2(1, 1, &lampTexture);
 
-	Cube cube;
+	Mesh cube;
 	cube.position.x -= 1.25;
 	cube.position.z = 0;
 	cube.position.y = 2;
 	cube.material = Material(glm::vec3(0.8, 0.4, 0.31));
-	cube.initRenderData();
+	cube.loadFromFile("assets/cube.ply");
 
 	Mesh betterCube;
 	betterCube.position.x = -1.25;
@@ -141,11 +140,17 @@ int main() {
 	Texture specular;
 	specular.loadFromFile("assets/container2_specular.png", GL_RGBA);
 
+	Texture brick_diffuse;
+	brick_diffuse.loadFromFile("assets/meshes/brick_diffuse.png", GL_RGBA);
+
+	Texture brick_specular;
+	brick_specular.loadFromFile("assets/meshes/brick_specular", GL_RGBA);
+
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 
-	Framebuffer postProcessBuffer({ 800, 600 }, RGB);
-	Framebuffer shadowMapBuffer({ 1024, 1024 }, DEPTH);
+	//Framebuffer postProcessBuffer({ 800, 600 }, RGB);
+	Framebuffer shadowMapBuffer({ 1024, 1024 }, CUBE_DEPTH);
 
 	GLuint vbo, vao;
 
@@ -174,10 +179,14 @@ int main() {
 
 	glBindVertexArray(0);
 
+	auto setCommonUniforms = [&](Shader& shader) {
+		shader.setUniform("cameraPos", camera.position);
+		
+	};
+
 	auto geometry_pass = [&](Shader& shader) {
 		// Set common uniforms
-
-		shader.setUniform("cameraPos", camera.position);
+		setCommonUniforms(shader);
 
 		// render shit
 		floor.draw(shader);
@@ -185,27 +194,17 @@ int main() {
 		betterCube.draw(shader);
 		cross.draw(shader);
 	};
-	
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDepthFunc(GL_LESS);
 
-	while (!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
-
-		/*
-			Check for OpenGL errors
-		*/
-		for (GLenum err; (err = glGetError()) != GL_NO_ERROR;) {
-			std::cout << err;
-		}
-
+	auto physics_update = [&]() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-
-		// Physics
+		/*
+			Input
+		*/
 		GLfloat cameraSpeed = 5.f * deltaTime;
+
 		if (keys[GLFW_KEY_W]) {
 			camera.position += camera.forwards() * cameraSpeed;
 		}
@@ -225,24 +224,65 @@ int main() {
 			camera.yaw -= cameraSpeed * 25;
 		}
 
-		
+		/*
+			Logic
+		*/
+		light.position.z = sin(glfwGetTime()) * 2;
+		float adjacent = light.position.z - camera.position.z;
+		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
+		lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
+
+	};
+	
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDepthFunc(GL_LESS);
+	glEnable(GL_DEPTH_TEST);
+
+	while (!glfwWindowShouldClose(window)) {
+		glfwPollEvents();
+
+		/*
+			Check for OpenGL errors
+		*/
+		for (GLenum err; (err = glGetError()) != GL_NO_ERROR;) {
+			std::cout << err;
+		}
+
+		physics_update();
+
 		
 		shadowMapBuffer.bind();
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+		glViewport(0, 0, 1024, 1024);
+		glClear(GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
 		glEnable(GL_DEPTH_TEST);
 		// Render
 		
-		glm::mat4 dirLightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 lightSpaceMatrix = lightProjection * dirLightView;
+		//glm::mat4 dirLightView = glm::lookAt(glm::vec3(-2.0f, 4.0f, -1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		//glm::mat4 lightSpaceMatrix = lightProjection * dirLightView;
 	
 		shadowPassShader.bind();
-		shadowPassShader.setUniform("model", glm::mat4());
-		shadowPassShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
+		//shadowPassShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
+		shadowPassShader.setUniform("far_plane", SHADOWMAP_FAR_PLANE);
+		shadowPassShader.setUniform("lightPos", light.position);
+
+		glm::mat4 shadowProj = glm::perspective(glm::radians(90.f), 1.f, SHADOWMAP_NEAR_PLANE, SHADOWMAP_FAR_PLANE);
+		
+		std::vector<glm::mat4> shadowTransforms;
+		shadowTransforms.push_back(shadowProj * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+		shadowPassShader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+
 		geometry_pass(shadowPassShader);
 
 		// Lighting pass
-		postProcessBuffer.bind();
+		//postProcessBuffer.bind();
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, 800, 600);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
 		glEnable(GL_DEPTH_TEST);
@@ -251,30 +291,29 @@ int main() {
 		basicShader.setUniform("cameraPos", camera.position);
 		basicShader.setUniform("view", camera.getViewMatrix());
 		basicShader.setUniform("projection", projection);
-		basicShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
+		//basicShader.setUniform("lightSpaceMatrix", lightSpaceMatrix);
 
-		light.position.z = sin(glfwGetTime()) * 2;
-		basicShader.setUniform("pointLights", light, 0);
-		basicShader.setUniform("pointLights", light2, 1);
-		basicShader.setUniform("directionalLights", dirLight, 0);
-		basicShader.setUniform("shadowMap", 2);
+		
+		//basicShader.setUniform("pointLights", light, 0);
+		//sicShader.setUniform("pointLights", light2, 1);
+		//basicShader.setUniform("directionalLights", dirLight, 0);
+		basicShader.setUniform("point_lights[0]", light);
+		basicShader.setUniform("point_lights[1]", light2);
 
-		texture.bind(0);
-		specular.bind(1);
+		basicShader.setUniform("shadow_maps[0]", 2);
+		basicShader.setUniform("far_plane", (float)SHADOWMAP_FAR_PLANE);
+		brick_diffuse.bind(0);
+		brick_specular.bind(1);
 		shadowMapBuffer.bindTexture(2);
 
 		geometry_pass(basicShader);
 
+		
 		lampIcon.position = light.position;
 		lampIcon2.position = light2.position;
 
-		/*
-			TODO: Learn this shit
-		*/
-		float adjacent = light.position.z - camera.position.z;
-		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
-		lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
 
+		
 		flatShader.bind();
 		flatShader.setUniform("view", camera.getViewMatrix());
 		flatShader.setUniform("projection", projection);
@@ -282,8 +321,8 @@ int main() {
 
 		lampIcon.draw(flatShader);
 		lampIcon2.draw(flatShader);
-
-
+		
+		/*
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);		
 		glClearColor(1.0, 1.0, 1.0, 1.0); // Essentially useless
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -301,7 +340,7 @@ int main() {
 		postProcessBuffer.bindTexture(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
-
+		*/
 
 		glfwSwapBuffers(window);
 	}
