@@ -151,6 +151,7 @@ int main() {
 
 	//Framebuffer postProcessBuffer({ 800, 600 }, RGB);
 	Framebuffer shadowMapBuffer({ 1024, 1024 }, CUBE_DEPTH);
+	Framebuffer shadowMapBuffer2({ 1024, 1024 }, CUBE_DEPTH);
 
 	GLuint vbo, vao;
 
@@ -228,6 +229,8 @@ int main() {
 			Logic
 		*/
 		light.position.z = sin(glfwGetTime()) * 2;
+		light2.position.z += sin(glfwGetTime()) / 15;
+
 		float adjacent = light.position.z - camera.position.z;
 		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
 		lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
@@ -279,6 +282,24 @@ int main() {
 
 		geometry_pass(shadowPassShader);
 
+		
+		shadowMapBuffer2.bind();
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		shadowPassShader.setUniform("lightPos", light2.position);
+		shadowTransforms.clear();
+		shadowTransforms.push_back(shadowProj * glm::lookAt(light2.position, light2.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light2.position, light2.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light2.position, light2.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light2.position, light2.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light2.position, light2.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadowProj *	glm::lookAt(light2.position, light2.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+
+		shadowPassShader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+
+		geometry_pass(shadowPassShader);
+
+
 		// Lighting pass
 		//postProcessBuffer.bind();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -300,11 +321,16 @@ int main() {
 		basicShader.setUniform("point_lights[0]", light);
 		basicShader.setUniform("point_lights[1]", light2);
 
-		basicShader.setUniform("shadow_maps[0]", 2);
+		basicShader.setUniform("point_light_count", 3);
+
+		basicShader.setUniform("shadow_map_0", 2);
+		basicShader.setUniform("shadow_map_1", 3);
+
 		basicShader.setUniform("far_plane", (float)SHADOWMAP_FAR_PLANE);
 		brick_diffuse.bind(0);
 		brick_specular.bind(1);
 		shadowMapBuffer.bindTexture(2);
+		shadowMapBuffer2.bindTexture(3);
 
 		geometry_pass(basicShader);
 
