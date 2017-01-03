@@ -1,5 +1,5 @@
 #pragma once
-#include <GL/glew.h>
+#include <gl_core_4_3.hpp>
 #include <glm/glm.hpp>
 
 enum FramebufferTypes {
@@ -9,6 +9,8 @@ enum FramebufferTypes {
 class Framebuffer {
 public:
 	Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer = true);
+	Framebuffer(Framebuffer&& other);
+
 	~Framebuffer();
 
 	void bind();

@@ -8,7 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 Shader& Shader::bind() {
-	glUseProgram(this->id);
+	gl::UseProgram(this->id);
 	return *this;
 }
 
@@ -20,36 +20,36 @@ void Shader::compile(const char* vertexSource, const char* fragmentSource, const
 	GLuint vertex, fragment, geometry;
 
 	/* Vertex */
-	vertex = glCreateShader(GL_VERTEX_SHADER);
-	glShaderSource(vertex, 1, &vertexSource, NULL);
-	glCompileShader(vertex);
-	checkCompileErrors(vertex, GL_VERTEX_SHADER);
+	vertex = gl::CreateShader(gl::VERTEX_SHADER);
+	gl::ShaderSource(vertex, 1, &vertexSource, NULL);
+	gl::CompileShader(vertex);
+	checkCompileErrors(vertex, gl::VERTEX_SHADER);
 
 	/* Fragment */
-	fragment = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragment, 1, &fragmentSource, NULL);
-	glCompileShader(fragment);
-	checkCompileErrors(fragment, GL_FRAGMENT_SHADER);
+	fragment = gl::CreateShader(gl::FRAGMENT_SHADER);
+	gl::ShaderSource(fragment, 1, &fragmentSource, NULL);
+	gl::CompileShader(fragment);
+	checkCompileErrors(fragment, gl::FRAGMENT_SHADER);
 
 	/* Geometry */
 	if (geometrySource != nullptr) {
-		geometry = glCreateShader(GL_GEOMETRY_SHADER);
-		glShaderSource(geometry, 1, &geometrySource, NULL);
-		glCompileShader(geometry);
-		checkCompileErrors(geometry, GL_GEOMETRY_SHADER);
+		geometry = gl::CreateShader(gl::GEOMETRY_SHADER);
+		gl::ShaderSource(geometry, 1, &geometrySource, NULL);
+		gl::CompileShader(geometry);
+		checkCompileErrors(geometry, gl::GEOMETRY_SHADER);
 	}
 
-	this->id = glCreateProgram();
-	glAttachShader(this->id, vertex);
-	glAttachShader(this->id, fragment);
-	geometrySource ? glAttachShader(this->id, geometry) : 0;
+	this->id = gl::CreateProgram();
+	gl::AttachShader(this->id, vertex);
+	gl::AttachShader(this->id, fragment);
+	geometrySource ? gl::AttachShader(this->id, geometry) : 0;
 
-	glLinkProgram(this->id);
-	checkCompileErrors(this->id, GL_PROGRAM);
+	gl::LinkProgram(this->id);
+	checkCompileErrors(this->id, gl::PROGRAM);
 
-	glDeleteShader(vertex);
-	glDeleteShader(fragment);
-	geometrySource ? glDeleteShader(geometry) : 0;
+	gl::DeleteShader(vertex);
+	gl::DeleteShader(fragment);
+	geometrySource ? gl::DeleteShader(geometry) : 0;
 }
 
 std::string Shader::loadSingle(const char* shaderFile) {
@@ -72,16 +72,16 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 	GLint success;
 	GLchar infoLog[1024];
 
-	if (type == GL_PROGRAM) {
-		glGetProgramiv(object, GL_LINK_STATUS, &success);
+	if (type == gl::PROGRAM) {
+		gl::GetProgramiv(object, gl::LINK_STATUS, &success);
 		if (!success) {
-			glGetProgramInfoLog(object, 1024, NULL, infoLog);
+			gl::GetProgramInfoLog(object, 1024, NULL, infoLog);
 		}
 	}
 	else {
-		glGetShaderiv(object, GL_COMPILE_STATUS, &success);
+		gl::GetShaderiv(object, gl::COMPILE_STATUS, &success);
 		if (!success) {
-			glGetShaderInfoLog(object, 1024, NULL, infoLog);
+			gl::GetShaderInfoLog(object, 1024, NULL, infoLog);
 		}
 	}
 	if (!success) {
@@ -95,23 +95,23 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 	Uniforms
 */
 void Shader::setUniform(std::string name, int val) {
-	glUniform1i(glGetUniformLocation(this->id, name.c_str()), val);
+	gl::Uniform1i(gl::GetUniformLocation(this->id, name.c_str()), val);
 }
 
 void Shader::setUniform(std::string name, float val) {
-	glUniform1f(glGetUniformLocation(this->id, name.c_str()), val);
+	gl::Uniform1f(gl::GetUniformLocation(this->id, name.c_str()), val);
 }
 
 void Shader::setUniform(std::string name, glm::vec2 val) {
-	glUniform2fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
+	gl::Uniform2fv(gl::GetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
 }
 
 void Shader::setUniform(std::string name, glm::vec3 val) {
-	glUniform3fv(glGetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
+	gl::Uniform3fv(gl::GetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
 }
 
 void Shader::setUniform(std::string name, glm::mat4 matrix) {
-	glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
+	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
 }
 
 void Shader::setUniform(std::string name, Material material) {
@@ -139,7 +139,7 @@ void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index
 
 
 void Shader::setUniformArray(std::string name, glm::mat4* data, uint32_t count) {
-	glUniformMatrix4fv(glGetUniformLocation(this->id, name.c_str()), count, 0, (GLfloat*)data);
+	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), count, 0, (GLfloat*)data);
 }
 
 void Shader::setUniformArray(std::string name, PointLight* data, uint32_t count) {

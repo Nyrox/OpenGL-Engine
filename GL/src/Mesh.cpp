@@ -33,14 +33,18 @@ std::vector<std::string> split(const std::string& haystack, char delim) {
 	return tokens;
 }
 
+Mesh::Mesh() {
+	scale = glm::vec3(1);
+}
+
 void Mesh::draw(Shader& shader) {
 	shader.bind();
-	shader.setUniform("model", glm::translate(glm::mat4(), position));
+	//shader.setUniform("model", glm::scale(glm::translate(glm::mat4(), position), scale));
 	shader.setUniform("material", material);
 
-	glBindVertexArray(this->vao);
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+	gl::BindVertexArray(this->vao);
+	gl::DrawElements(gl::TRIANGLES, indices.size(), gl::UNSIGNED_INT, 0);
+	gl::BindVertexArray(0);
 }
 
 void Mesh::loadFromFile(std::string path) {
@@ -127,28 +131,28 @@ void Mesh::loadFromFile(std::string path) {
 void Mesh::initRenderData() {
 	GLuint vbo, ebo;
 
-	glGenVertexArrays(1, &this->vao);
-	glGenBuffers(1, &vbo);
-	glGenBuffers(1, &ebo);
+	gl::GenVertexArrays(1, &this->vao);
+	gl::GenBuffers(1, &vbo);
+	gl::GenBuffers(1, &ebo);
 
-	glBindVertexArray(this->vao);
+	gl::BindVertexArray(this->vao);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+	gl::BufferData(gl::ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), gl::STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
+	gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices.size(), indices.data(), gl::STATIC_DRAW);
 
 	
 	// Positions
-	glVertexAttribPointer(0, 3, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
+	gl::VertexAttribPointer(0, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)0);
+	gl::EnableVertexAttribArray(0);
 	// Normals
-	glVertexAttribPointer(1, 3, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
+	gl::VertexAttribPointer(1, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	gl::EnableVertexAttribArray(1);
 	// Texture Coords
-	glVertexAttribPointer(2, 2, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
+	gl::VertexAttribPointer(2, 2, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	gl::EnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	gl::BindVertexArray(0);
 }

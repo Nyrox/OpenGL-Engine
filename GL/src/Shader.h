@@ -1,6 +1,5 @@
 #pragma once
-#include <GL/glew.h>
-
+#include <gl_core_4_3.hpp>
 #include <string>
 
 #include <Material.h>

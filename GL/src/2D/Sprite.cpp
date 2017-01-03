@@ -16,9 +16,9 @@ void Sprite::draw(Shader& shader) {
 	
 	texture->bind(0);
 
-	glBindVertexArray(this->vao);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	glBindVertexArray(0);
+	gl::BindVertexArray(this->vao);
+	gl::DrawArrays(gl::TRIANGLE_STRIP, 0, 4);
+	gl::BindVertexArray(0);
 }
 
 void Sprite::initRenderData() {
@@ -31,25 +31,25 @@ void Sprite::initRenderData() {
 		width, height, 0,	0, 0, 1,	1, 1
 	};
 
-	glGenVertexArrays(1, &this->vao);
-	glGenBuffers(1, &vbo);
+	gl::GenVertexArrays(1, &this->vao);
+	gl::GenBuffers(1, &vbo);
 	
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+	gl::BufferData(gl::ARRAY_BUFFER, sizeof(vertices), vertices, gl::STATIC_DRAW);
 
-	glBindVertexArray(this->vao);
+	gl::BindVertexArray(this->vao);
 
 	// Positions
-	glVertexAttribPointer(0, 3, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
+	gl::VertexAttribPointer(0, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)0);
+	gl::EnableVertexAttribArray(0);
 
 	// Normals
-	glVertexAttribPointer(1, 3, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
+	gl::VertexAttribPointer(1, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	gl::EnableVertexAttribArray(1);
 
 	// UVS
-	glVertexAttribPointer(2, 2, GL_FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
+	gl::VertexAttribPointer(2, 2, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	gl::EnableVertexAttribArray(2);
 
-	glBindVertexArray(0);
+	gl::BindVertexArray(0);
 }

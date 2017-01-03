@@ -2,71 +2,80 @@
 #include <iostream>
 
 Framebuffer::~Framebuffer() {
-	glDeleteFramebuffers(1, &fbo);
+	gl::DeleteFramebuffers(1, &fbo);
+}
+
+Framebuffer::Framebuffer(Framebuffer&& other) {
+	other.fbo = 0;
+	fbo = other.fbo;
+	tex = other.tex;
+	width = other.width;
+	height = other.height;
+	type = other.type;
 }
 
 Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer) : width(size.x), height(size.y), type(type) {
-	glGenFramebuffers(1, &fbo);
+	gl::GenFramebuffers(1, &fbo);
 	this->bind();
 
 	if (type == DEPTH || type == CUBE_DEPTH) depthBuffer = false;
 
 	if (depthBuffer) {
 		GLuint rbo;
-		glGenRenderbuffers(1, &rbo);
-		glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, size.x, size.y);
-		glBindRenderbuffer(GL_RENDERBUFFER, 0);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+		gl::GenRenderbuffers(1, &rbo);
+		gl::BindRenderbuffer(gl::RENDERBUFFER, rbo);
+		gl::RenderbufferStorage(gl::RENDERBUFFER, gl::DEPTH24_STENCIL8, size.x, size.y);
+		gl::BindRenderbuffer(gl::RENDERBUFFER, 0);
+		gl::FramebufferRenderbuffer(gl::FRAMEBUFFER, gl::DEPTH_STENCIL_ATTACHMENT, gl::RENDERBUFFER, rbo);
 	}
 
-	GLenum format = type == RGB ? GL_RGB : GL_DEPTH_COMPONENT;
-	GLenum attach = type == RGB ? GL_COLOR_ATTACHMENT0 : GL_DEPTH_ATTACHMENT;
+	GLenum format = type == RGB ? gl::RGB : gl::DEPTH_COMPONENT;
+	GLenum attach = type == RGB ? gl::COLOR_ATTACHMENT0 : gl::DEPTH_ATTACHMENT;
 
-	glGenTextures(1, &tex);
+	gl::GenTextures(1, &tex);
 	this->bindTexture();
 
 	if (type == RGB) {
-		glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, format, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		gl::TexImage2D(gl::TEXTURE_2D, 0, format, size.x, size.y, 0, format, gl::FLOAT, NULL);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::REPEAT);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT);
 	}
 		
 	if (type == CUBE_DEPTH || type == CUBE_RGB) {
 		for (int32_t i = 0; i < 6; i++) {
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, GL_FLOAT, NULL);
+			gl::TexImage2D(gl::TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, gl::FLOAT, NULL);
 		}
 
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_MAG_FILTER, gl::NEAREST);
+		gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_MIN_FILTER, gl::NEAREST);
+		gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
+		gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
+		gl::TexParameteri(gl::TEXTURE_CUBE_MAP, gl::TEXTURE_WRAP_R, gl::CLAMP_TO_EDGE);
 
-		glFramebufferTexture(GL_FRAMEBUFFER, attach, tex, 0);
+		gl::FramebufferTexture(gl::FRAMEBUFFER, attach, tex, 0);
 	}
 	else {
-		glFramebufferTexture2D(GL_FRAMEBUFFER, attach, GL_TEXTURE_2D, tex, 0);
+		gl::FramebufferTexture2D(gl::FRAMEBUFFER, attach, gl::TEXTURE_2D, tex, 0);
 	}
 	
 	if (type == DEPTH || type == CUBE_DEPTH) {
-		glDrawBuffer(GL_NONE);
-		glReadBuffer(GL_NONE);
+		gl::DrawBuffer(gl::NONE);
+		gl::ReadBuffer(gl::NONE);
 	}
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+	if (gl::CheckFramebufferStatus(gl::FRAMEBUFFER) != gl::FRAMEBUFFER_COMPLETE) {
 		std::cout << "ERROR::FRAMEBUFFER: Initializing framebuffer failed." << std::endl;
 	}
 }
 
 void Framebuffer::bind() {
-	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	gl::BindFramebuffer(gl::FRAMEBUFFER, fbo);
 }
 
 void Framebuffer::bindTexture(uint32_t index) {
-	glActiveTexture(GL_TEXTURE0 + index);
+	gl::ActiveTexture(gl::TEXTURE0 + index);
 
-	glBindTexture((type == CUBE_RGB || type == CUBE_DEPTH) ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, tex);
+	gl::BindTexture((type == CUBE_RGB || type == CUBE_DEPTH) ? gl::TEXTURE_CUBE_MAP : gl::TEXTURE_2D, tex);
 }

@@ -42,9 +42,9 @@ uniform int point_light_count;
 uniform samplerCube shadow_map_0;
 uniform samplerCube shadow_map_1;
 
-uniform vec3 cameraPos;
+uniform vec3 camera_position;
 
-uniform float far_plane;
+uniform float shadow_far_plane;
 
 
 
@@ -53,7 +53,7 @@ float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
     float closestDepth = texture(shadowMap, fragToLight).r;
 	//color = vec4(vec3(closestDepth), 1.0);
 
-	closestDepth *= far_plane;
+	closestDepth *= shadow_far_plane;
 	
 	float currentDepth = length(fragToLight);
 	
@@ -143,7 +143,7 @@ vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3
 void main() {
 	
 	vec3 norm = normalize(normal);
-	vec3 viewDir = normalize(cameraPos - fragPos);
+	vec3 viewDir = normalize(camera_position - fragPos);
 
 	vec3 result = vec3(0, 0, 0);
 

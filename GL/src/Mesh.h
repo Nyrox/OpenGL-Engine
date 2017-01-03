@@ -17,6 +17,8 @@ struct Vertex {
 
 class Mesh {
 public:
+	Mesh();
+
 	GLuint vao;
 
 	void draw(Shader& shader);
@@ -26,7 +28,7 @@ public:
 	Material material;
 
 
-
+	glm::vec3 scale;
 
 	// Trivia -- 
 	uint32_t vertexCount, faceCount;
