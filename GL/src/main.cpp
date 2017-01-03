@@ -17,6 +17,8 @@
 
 #include <Renderer.h>
 
+#include <ImmediateDraw.h>
+
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 100;
 
@@ -105,7 +107,7 @@ int main() {
 	light.specular = { 0.5, 0.5, 0.5 };
 
 	PointLight light2;
-	light2.position = { -6, 3, -1 };
+	light2.position = { -3, 3, -1 };
 	light2.ambient = { 0.2, 0.2, 0.2 };
 	light2.diffuse = { 0.4, 0.4, 0.4 };
 	light2.specular = { 0.4, 0.4, 0.4 };
@@ -122,10 +124,10 @@ int main() {
 
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, SHADOWMAP_NEAR_PLANE, SHADOWMAP_FAR_PLANE);
 
-	Texture lampTexture;
-	lampTexture.loadFromFile("assets/lamp_icon.png", gl::RGBA);
-	Sprite lampIcon(1, 1, &lampTexture);
-	Sprite lampIcon2(1, 1, &lampTexture);
+	//Texture lampTexture;
+	//lampTexture.loadFromFile("assets/lamp_icon.png", gl::RGBA);
+	//Sprite lampIcon(1, 1, &lampTexture);
+	//Sprite lampIcon2(1, 1, &lampTexture);
 
 	Mesh floor;
 	floor.material = Material(glm::vec3(0.8, 0.4, 0.31));
@@ -244,7 +246,7 @@ int main() {
 
 		float adjacent = light.position.z - camera.position.z;
 		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
-		lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
+		//lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
 
 	};
 	
@@ -260,6 +262,7 @@ int main() {
 		brick_diffuse.bind(0);
 		brick_specular.bind(1);
 		renderer.render();
+		drawPlane(100, 100);
 
 		glfwSwapBuffers(window);
 	}

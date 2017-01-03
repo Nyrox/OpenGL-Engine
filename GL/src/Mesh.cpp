@@ -39,7 +39,7 @@ Mesh::Mesh() {
 
 void Mesh::draw(Shader& shader) {
 	shader.bind();
-	//shader.setUniform("model", glm::scale(glm::translate(glm::mat4(), position), scale));
+	shader.setUniform("model", glm::scale(glm::translate(glm::mat4(), position), scale));
 	shader.setUniform("material", material);
 
 	gl::BindVertexArray(this->vao);

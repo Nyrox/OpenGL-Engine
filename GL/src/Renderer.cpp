@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
+#include <GLFW/glfw3.h>
 
 Renderer::Renderer() {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
@@ -20,6 +21,10 @@ const float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
 const float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 100.f;
 
 void Renderer::render() {
+
+	for (auto& it : point_lights) {
+		it.position.z += std::sin(glfwGetTime()) / 15;
+	}
 
 	// Render shadow maps
 	shadow_pass_shader.bind();
@@ -67,6 +72,10 @@ void Renderer::render() {
 	forward_render_shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 	
 	forward_render_shader.setUniform("point_light_count", (int)point_lights.size());
+	shadow_maps.at(0).bindTexture(7);
+	
+	//forward_render_shader.setUniform("shadow_map_2", 5);
+
 	for (int i = 0; i < point_lights.size(); i++) {
 		
 		forward_render_shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));

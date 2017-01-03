@@ -41,6 +41,8 @@ uniform int point_light_count;
 
 uniform samplerCube shadow_map_0;
 uniform samplerCube shadow_map_1;
+uniform samplerCube shadow_map_2;
+uniform samplerCube shadow_map_3;
 
 uniform vec3 camera_position;
 
@@ -68,7 +70,7 @@ float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
 vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 normal, vec3 fragPos, vec3 viewDir) {
 	// If the point light index is not actually used, just add nothing to the output
 	if(point_light_count <= index) {
-		return vec3(0);	
+		return vec3(0, 0, 0);	
 	}
 
 	vec3 lightDir = normalize(light.position - fragPos);
@@ -151,6 +153,7 @@ void main() {
 
 	result += addPointLight(0, point_lights[0], shadow_map_0, norm, fragPos, viewDir);
 	result += addPointLight(1, point_lights[1], shadow_map_1, norm, fragPos, viewDir);
+	//result += addPointLight(2, point_lights[2], shadow_map_2, norm, fragPos, viewDir);
 
 	color = vec4(result, 1.0);
 }

@@ -2,16 +2,18 @@
 #include <iostream>
 
 Framebuffer::~Framebuffer() {
-	gl::DeleteFramebuffers(1, &fbo);
+	if(fbo != 0)
+		gl::DeleteFramebuffers(1, &fbo);
 }
 
 Framebuffer::Framebuffer(Framebuffer&& other) {
-	other.fbo = 0;
 	fbo = other.fbo;
 	tex = other.tex;
 	width = other.width;
 	height = other.height;
 	type = other.type;
+
+	other.fbo = 0;
 }
 
 Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer) : width(size.x), height(size.y), type(type) {
