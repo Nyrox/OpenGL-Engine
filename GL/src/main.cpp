@@ -16,7 +16,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Renderer.h>
-
+#include <2D/GUIContext.h>
 #include <ImmediateDraw.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
@@ -43,8 +43,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	std::cout << message << std::endl;
 	
-	if (severity != gl::DEBUG_SEVERITY_NOTIFICATION) {
-
+	if (severity == gl::DEBUG_SEVERITY_HIGH || severity == gl::DEBUG_SEVERITY_MEDIUM) {
+		//std::cin.get();
 	}
 }
 
@@ -250,6 +250,8 @@ int main() {
 
 	};
 	
+	GUIContext gui_context(800, 600);
+
 	//glPolygonMode(gl::FRONT_AND_BACK, gl::LINE);
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);
@@ -262,7 +264,7 @@ int main() {
 		brick_diffuse.bind(0);
 		brick_specular.bind(1);
 		renderer.render();
-		drawPlane(100, 100);
+		gui_context.render();
 
 		glfwSwapBuffers(window);
 	}

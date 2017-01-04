@@ -6,12 +6,12 @@
 
 class GUIContext {
 public:
-	GUIContext(float width, float height);
+	GUIContext(uint32_t width, uint32_t height);
 
 	void render();
 
 	std::vector<Widget> widgets;
 
-
-	float contextWidth, contextHeight;
+	Shader shader;
+	uint32_t contextWidth, contextHeight;
 };

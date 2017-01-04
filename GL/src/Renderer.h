@@ -20,6 +20,9 @@ public:
 	Camera* camera;
 	glm::mat4 projection;
 private:
+	Framebuffer postProcessBuffer;
+
+	Shader post_process_shader;
 	Shader shadow_pass_shader;
 	Shader forward_render_shader;	
 

@@ -2,11 +2,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <ImmediateDraw.h>
 
-Renderer::Renderer() {
+Renderer::Renderer() : postProcessBuffer({ 800, 600 }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
-
+	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
 }
 
 void Renderer::addPointLight(PointLight light) {
@@ -31,6 +32,7 @@ void Renderer::render() {
 	shadow_pass_shader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
 	gl::Enable(gl::DEPTH_TEST);
+	gl::DepthFunc(gl::LESS);
 	for (int i = 0; i < point_lights.size(); i++) {
 		PointLight& light = point_lights.at(i);
 		Framebuffer& fb = shadow_maps.at(i);
@@ -60,8 +62,8 @@ void Renderer::render() {
 
 
 	// Render scene
-	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	gl::Viewport(0, 0, 800, 800);
+	postProcessBuffer.bind();
+	gl::Viewport(0, 0, 800, 600);
 	gl::ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 	
@@ -89,5 +91,16 @@ void Renderer::render() {
 		it.draw(forward_render_shader);
 	}
 
-	
+	//gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+	gl::Disable(gl::DEPTH_TEST);
+
+	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
+	post_process_shader.bind();
+	post_process_shader.setUniform("screen_capture", 0);
+	postProcessBuffer.bindTexture(0);
+
+
+	ImmediateDraw::drawPlane(2, 2);
 }

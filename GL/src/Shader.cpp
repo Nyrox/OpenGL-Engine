@@ -52,19 +52,23 @@ void Shader::compile(const char* vertexSource, const char* fragmentSource, const
 	geometrySource ? gl::DeleteShader(geometry) : 0;
 }
 
+#include <Log.h>
+
 std::string Shader::loadSingle(const char* shaderFile) {
 	std::stringstream out;
 	try {
 		std::ifstream file;
 		file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 		file.open(shaderFile);
+
 		out << file.rdbuf();
 		file.close();
 	}
 	catch (std::exception e) {
-		std::cout << "ERROR::SHADER: Failed loading file: " << shaderFile << "\n" << e.what() << std::endl;
+		Log::write("Error: Compiling shader failed. Abort ship.");
 	}
 
+	Log::write("Info: Shader Source: \n" + out.str());
 	return out.str();
 }
 

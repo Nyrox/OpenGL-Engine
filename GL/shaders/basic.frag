@@ -1,5 +1,9 @@
 #version 420 core
 
+/*
+	Main fragment shader featuring point and directional lights aswell as shadow mapping.
+*/
+
 struct Material {
 	sampler2D diffuse;
 	sampler2D specular;
@@ -10,7 +14,7 @@ struct Material {
 struct DirectionalLight {
 	vec3 direction;
 
-	vec3 ambient; 
+	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
 };*/
@@ -51,18 +55,34 @@ uniform float shadow_far_plane;
 
 
 float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
-	vec3 fragToLight = fragPos - light.position; 
-    float closestDepth = texture(shadowMap, fragToLight).r;
-	//color = vec4(vec3(closestDepth), 1.0);
+	vec3 fragToLight = fragPos - light.position;
 
-	closestDepth *= shadow_far_plane;
-	
 	float currentDepth = length(fragToLight);
-	
-	float bias = 0.05;
-	float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
-	
-	//color = vec4(vec3(closestDepth / far_plane), 1.0);
+
+	float shadow = 0.0;
+	float bias = 0.15;
+	float samples = 6;
+
+	float viewDistance = length(camera_position - fragPos);
+	float diskRadius = (1.0 + (viewDistance / shadow_far_plane)) / 25.0;  
+
+	vec3 sampleOffsetDirections[20] = vec3[] (
+		vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+		vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+		vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+		vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+		vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+	);
+
+	for(int i = 0; i < samples; ++i) {
+		float closestDepth = texture(shadowMap, fragToLight + sampleOffsetDirections[i] * diskRadius).r;
+		closestDepth *= shadow_far_plane;
+		if(currentDepth - bias > closestDepth) {
+			shadow += 1.0;
+		}
+	}
+
+	shadow /= float(samples);
 
 	return shadow;
 }
@@ -70,11 +90,11 @@ float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
 vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 normal, vec3 fragPos, vec3 viewDir) {
 	// If the point light index is not actually used, just add nothing to the output
 	if(point_light_count <= index) {
-		return vec3(0, 0, 0);	
+		return vec3(0, 0, 0);
 	}
 
 	vec3 lightDir = normalize(light.position - fragPos);
-	
+
 	// Diffuse
 	float diff = max(dot(normal, lightDir), 0.0);
 	// Specular
@@ -88,7 +108,7 @@ vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 norm
 	vec3 ambient	= attenuation * light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse	= attenuation * light.diffuse * diff * vec3(texture(material.diffuse, uv));
 	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv));
-	
+
 	float shadow = shadow(light, shadowMap, fragPos);
 	//float shadow = 0;
 	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
@@ -134,8 +154,8 @@ vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse = diff * light.diffuse * vec3(texture(material.diffuse, uv));
 	vec3 specular = spec * vec3(texture(material.specular, uv));
-	
-	
+
+
 	float shadow = shadowLookup(fragPosLightSpace);
 
 	vec3 result = (ambient + (1.f - shadow) *  (diffuse + specular));
@@ -143,7 +163,7 @@ vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3
 }*/
 
 void main() {
-	
+
 	vec3 norm = normalize(normal);
 	vec3 viewDir = normalize(camera_position - fragPos);
 
