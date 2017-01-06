@@ -48,8 +48,31 @@ void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 	}
 }
 
+#define APITRACE
+#ifdef APITRACE
+#include <Shlwapi.h>
+#include <filesystem>
+#include <direct.h>
+#include <Windows.h>
+void resetCWD() {
+	TCHAR dest[MAX_PATH];
+	DWORD length = GetModuleFileName(NULL, dest, MAX_PATH);
+	PathRemoveFileSpec(dest);
+
+	_chdir(dest);
+}
+#endif
 
 int main() {
+	/*
+	Set the working directory to the location of the executable to make debugging with APITrace possible
+	*/
+
+#ifdef APITRACE
+	resetCWD();
+#endif
+
+
 	// GLFW
 	glfwInit();
 	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
