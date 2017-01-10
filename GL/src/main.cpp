@@ -48,30 +48,8 @@ void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 	}
 }
 
-#define APITRACE
-#ifdef APITRACE
-#include <Shlwapi.h>
-#include <filesystem>
-#include <direct.h>
-#include <Windows.h>
-void resetCWD() {
-	TCHAR dest[MAX_PATH];
-	DWORD length = GetModuleFileName(NULL, dest, MAX_PATH);
-	PathRemoveFileSpec(dest);
-
-	_chdir(dest);
-}
-#endif
 
 int main() {
-	/*
-	Set the working directory to the location of the executable to make debugging with APITrace possible
-	*/
-
-#ifdef APITRACE
-	resetCWD();
-#endif
-
 
 	// GLFW
 	glfwInit();
@@ -186,16 +164,16 @@ int main() {
 	renderer.meshes.push_back(cross);
 
 	Texture texture;
-	texture.loadFromFile("assets/container2.png", gl::RGBA);
+	texture.loadFromFile("assets/container2.png", gl::SRGB_ALPHA);
 
 	Texture specular;
-	specular.loadFromFile("assets/container2_specular.png", gl::RGBA);
+	specular.loadFromFile("assets/container2_specular.png", gl::SRGB_ALPHA);
 
 	Texture brick_diffuse;
-	brick_diffuse.loadFromFile("assets/meshes/brick_diffuse.png", gl::RGBA);
+	brick_diffuse.loadFromFile("assets/meshes/brick_diffuse.png", gl::SRGB_ALPHA);
 
 	Texture brick_specular;
-	brick_specular.loadFromFile("assets/meshes/brick_specular", gl::RGBA);
+	brick_specular.loadFromFile("assets/meshes/brick_specular", gl::SRGB_ALPHA);
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;

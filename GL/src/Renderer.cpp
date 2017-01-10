@@ -39,6 +39,7 @@ void Renderer::render() {
 
 		fb.bind();
 		gl::Viewport(0, 0, fb.width, fb.height);
+		gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		gl::Clear(gl::DEPTH_BUFFER_BIT);
 	
 		shadow_pass_shader.setUniform("light_position", light.position);
@@ -63,6 +64,7 @@ void Renderer::render() {
 
 	// Render scene
 	postProcessBuffer.bind();
+	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
 	gl::Viewport(0, 0, 800, 600);
 	gl::ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -95,7 +97,8 @@ void Renderer::render() {
 	gl::Disable(gl::DEPTH_TEST);
 
 	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	gl::Clear(gl::COLOR_BUFFER_BIT);
 
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
@@ -103,4 +106,5 @@ void Renderer::render() {
 
 
 	ImmediateDraw::drawPlane(2, 2);
+	
 }

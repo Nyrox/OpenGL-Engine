@@ -6,12 +6,14 @@ Texture::Texture() {
 	gl::GenTextures(1, &id);
 }
 
-void Texture::loadFromFile(std::string filename, GLenum format) {
+void Texture::loadFromFile(std::string filename, GLenum internal_format) {
 	bind(0);
+
+	GLenum format = internal_format == gl::SRGB ? gl::RGB : gl::RGBA;
 
 	int32_t n;
 	unsigned char* data = stbi_load(filename.c_str(), &width, &height, &n, 0);
-	gl::TexImage2D(gl::TEXTURE_2D, 0, format, width, height, 0, format, gl::UNSIGNED_BYTE, data);
+	gl::TexImage2D(gl::TEXTURE_2D, 0, internal_format, width, height, 0, format, gl::UNSIGNED_BYTE, data);
 	gl::GenerateMipmap(gl::TEXTURE_2D);
 	gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
 	gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR);

@@ -7,8 +7,8 @@ uniform sampler2D screen_capture;
 void main() {
 	vec3 result = texture(screen_capture, uv).rgb;
 
-	color = vec4(result, 1.0);
 
 
-	//color = visualizeDepth();
+	float gamma = 2.2;
+    color.rgb = pow(result, vec3(1.0/gamma));
 }
