@@ -128,6 +128,13 @@ void Mesh::loadFromFile(std::string path) {
 	initRenderData();
 }
 
+void Mesh::loadFromMemory(std::vector<Vertex> t_vertices, std::vector<uint32_t> t_indices) {
+	vertices = t_vertices;
+	indices = t_indices;
+
+	initRenderData();
+}
+
 void Mesh::initRenderData() {
 	GLuint vbo, ebo;
 

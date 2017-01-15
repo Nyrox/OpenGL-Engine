@@ -176,4 +176,6 @@ void main() {
 	//result += addPointLight(2, point_lights[2], shadow_map_2, norm, fragPos, viewDir);
 
 	color = vec4(result, 1.0);
+	//color = vec4(uv.x, uv.y, 0.0, 1.0);
+
 }

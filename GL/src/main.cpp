@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <Camera.h>
+#include <Core/Camera.h>
 #include <Shader.h>
 #include <Texture.h>
 #include <Cube.h>
@@ -15,9 +15,10 @@
 #include <Framebuffer.h>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <Renderer.h>
+#include <Core/Renderer.h>
 #include <2D/GUIContext.h>
 #include <ImmediateDraw.h>
+#include <Terrain.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 100;
@@ -48,8 +49,12 @@ void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 	}
 }
 
+#include <Editor\Editor.h>
+#include <time.h>
 
 int main() {
+
+	srand(time(0));
 
 	// GLFW
 	glfwInit();
@@ -61,7 +66,7 @@ int main() {
 
 	
 	// Context
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Hi", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(1280, 720, "Hi", nullptr, nullptr);
 	if (window == nullptr) {
 		std::cout << "Failed to create window." << std::endl;
 	}
@@ -70,9 +75,18 @@ int main() {
 
 	gl::sys::LoadFunctions();
 
-
 	gl::Enable(gl::DEBUG_OUTPUT);
 	gl::DebugMessageCallback(reinterpret_cast<GLDEBUGPROC>(&ErrorCallback), NULL);
+
+#ifdef _CUSTOM_EDITOR
+	Editor editor(window);
+	editor.run();
+
+	glfwTerminate();
+	return EXIT_SUCCESS;
+#else
+
+#endif
 
 	gl::Viewport(0, 0, 800, 600);
 
@@ -80,7 +94,7 @@ int main() {
 	camera.position.z = 5;
 	camera.position.y = 2;
 
-	Renderer renderer;
+	Renderer renderer({ 1280, 720 });
 	renderer.camera = &camera;
 
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
@@ -158,7 +172,7 @@ int main() {
 	cross.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	cross.loadFromFile("assets/cross.ply");
 
-	renderer.meshes.push_back(floor);
+	//renderer.meshes.push_back(floor);
 	renderer.meshes.push_back(cube);
 	renderer.meshes.push_back(betterCube);
 	renderer.meshes.push_back(cross);
@@ -253,7 +267,16 @@ int main() {
 	
 	GUIContext gui_context(800, 600);
 
-	//glPolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+	Terrain terrain;
+	terrain.generateMeshFromFunction([]() -> float {
+		return (rand() % 200) / 100 - 10;
+	});
+	terrain.mesh.material = Material(glm::vec3(0.8, 0.4, 0.31));
+	terrain.mesh.position = glm::vec3(-40, 10, -40);
+
+	renderer.meshes.push_back(terrain.mesh);
+
+	
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);
 

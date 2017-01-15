@@ -1,6 +1,6 @@
 #pragma once
 #include <Framebuffer.h>
-#include <Camera.h>
+#include <Core/Camera.h>
 #include <Shader.h>
 #include <Mesh.h>
 #include <Light.h>
@@ -10,7 +10,7 @@
 
 class Renderer {
 public:
-	Renderer();
+	Renderer(float backbuffer_width, float backbuffer_height);
 	
 	void render();
 

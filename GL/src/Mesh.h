@@ -23,6 +23,7 @@ public:
 
 	void draw(Shader& shader);
 	void loadFromFile(std::string path);
+	void loadFromMemory(std::vector<Vertex> vertices, std::vector<uint32_t> indices);
 
 	glm::vec3 position;
 	Material material;
@@ -34,6 +35,7 @@ public:
 	uint32_t vertexCount, faceCount;
 
 private:
+	
 	void initRenderData();
 
 	std::vector<Vertex> vertices;

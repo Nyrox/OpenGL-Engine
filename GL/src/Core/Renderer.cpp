@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <ImmediateDraw.h>
 
-Renderer::Renderer() : postProcessBuffer({ 800, 600 }, RGB) {
+Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ backbuffer_width, backbuffer_height }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
@@ -17,9 +17,10 @@ void Renderer::addPointLight(PointLight light) {
 }
 
 // Far and near planes for point lights.
-// Should eventually be tight to light range for performance reasons
-const float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
-const float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 100.f;
+constexpr float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
+constexpr float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 100.f;
+
+//#define GL_WIREFRAME
 
 void Renderer::render() {
 
@@ -62,6 +63,9 @@ void Renderer::render() {
 	}
 
 
+#ifdef GL_WIREFRAME
+	gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+#endif
 	// Render scene
 	postProcessBuffer.bind();
 	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
@@ -93,7 +97,9 @@ void Renderer::render() {
 		it.draw(forward_render_shader);
 	}
 
-	//gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
+#ifdef GL_WIREFRAME
+	gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
+#endif
 	gl::Disable(gl::DEPTH_TEST);
 
 	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
