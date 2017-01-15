@@ -70,7 +70,7 @@ void Renderer::render() {
 	postProcessBuffer.bind();
 	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
 	gl::Viewport(0, 0, 1280, 720);
-	gl::ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+	gl::ClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 	
 	forward_render_shader.bind();

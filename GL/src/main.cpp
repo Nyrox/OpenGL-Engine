@@ -22,7 +22,7 @@
 #include <RessourceManager.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
-constexpr float CAMERA_FAR_PLANE = 100;
+constexpr float CAMERA_FAR_PLANE = 10000;
 
 constexpr float SHADOWMAP_NEAR_PLANE = 0.1f;
 constexpr float SHADOWMAP_FAR_PLANE = 100.f;
@@ -41,6 +41,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 		keys[key] = false;
 	}
 }
+
 
 void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	std::cout << message << std::endl;
@@ -93,7 +94,7 @@ int main() {
 
 	Camera camera;
 	camera.position.z = 5;
-	camera.position.y = 2;
+	camera.position.y = 10;
 
 	Renderer renderer({ 1280, 720 });
 	renderer.camera = &camera;
@@ -195,6 +196,9 @@ int main() {
 		
 	};
 
+	bool rightMouseButtonIsDown = false;
+	glm::vec2 cursorLastFrame;
+
 	auto physics_update = [&]() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -223,6 +227,34 @@ int main() {
 		if (keys[GLFW_KEY_Q]) {
 			camera.yaw -= cameraSpeed * 25;
 		}
+		if (keys[GLFW_KEY_SPACE]) {
+			camera.position.y += cameraSpeed;
+		}
+		if (keys[GLFW_KEY_LEFT_SHIFT]) {
+			camera.position.y -= cameraSpeed;
+		}
+
+
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
+			if (rightMouseButtonIsDown == false) { 
+				rightMouseButtonIsDown = true; 
+				double tmpx, tmpy;
+				glfwGetCursorPos(window, &tmpx, &tmpy);
+				cursorLastFrame = { tmpx, tmpy };
+			}
+			else {
+				double tmpx, tmpy;
+				glfwGetCursorPos(window, &tmpx, &tmpy);
+				camera.yaw += (cursorLastFrame.x - tmpx) / -3;
+				camera.pitch += (cursorLastFrame.y - tmpy) / 4;
+				cursorLastFrame = { tmpx, tmpy };
+			}
+		}
+		else {
+			rightMouseButtonIsDown = false;
+		}
+
+
 
 		/*
 			Logic
