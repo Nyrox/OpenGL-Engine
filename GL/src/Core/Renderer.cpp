@@ -69,7 +69,7 @@ void Renderer::render() {
 	// Render scene
 	postProcessBuffer.bind();
 	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	gl::Viewport(0, 0, 800, 600);
+	gl::Viewport(0, 0, 1280, 720);
 	gl::ClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 	
@@ -94,6 +94,9 @@ void Renderer::render() {
 	
 	// TODO: Add texture binding
 	for (auto& it : meshes) {
+		it.material.diffuse.bind(0);
+		it.material.specular.bind(1);
+
 		it.draw(forward_render_shader);
 	}
 

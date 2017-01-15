@@ -19,6 +19,7 @@
 #include <2D/GUIContext.h>
 #include <ImmediateDraw.h>
 #include <Terrain.h>
+#include <RessourceManager.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 100;
@@ -88,7 +89,7 @@ int main() {
 
 #endif
 
-	gl::Viewport(0, 0, 800, 600);
+	gl::Viewport(0, 0, 1280, 720);
 
 	Camera camera;
 	camera.position.z = 5;
@@ -98,23 +99,10 @@ int main() {
 	renderer.camera = &camera;
 
 	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
-	glm::mat4 projection = glm::perspective(45.0f, 800.f / 600.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
+	glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.f / 720.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
 
 	renderer.projection = projection;
 
-	Shader basicShader;
-	basicShader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
-
-	//Shader flatShader;
-	//flatShader.loadFromFile("shaders/flat.vert", "shaders/flat.frag");
-
-	//Shader postProcessShader;
-	//postProcessShader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
-
-	Shader shadowPassShader;
-	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
-
-	
 	PointLight light;
 	light.position = { 2, 3, 2 };
 	light.ambient = { 0.2, 0.2, 0.2 };
@@ -130,7 +118,6 @@ int main() {
 	renderer.addPointLight(light);
 	renderer.addPointLight(light2);
 
-
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.9f, -1.0f, -0.3f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
@@ -144,51 +131,35 @@ int main() {
 	//Sprite lampIcon(1, 1, &lampTexture);
 	//Sprite lampIcon2(1, 1, &lampTexture);
 
-	Mesh floor;
-	floor.material = Material(glm::vec3(0.8, 0.4, 0.31));
-	//floor.scale = glm::vec3(15, 1, 15);
-
-	floor.loadFromFile("assets/plane.ply");
+	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
+	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
 
 	Mesh cube;
 	cube.position.x -= 1.25;
 	cube.position.z = 0;
-	cube.position.y = 2;
-	cube.material = Material(glm::vec3(0.8, 0.4, 0.31));
+	cube.position.y = 2;;
 	cube.loadFromFile("assets/cube.ply");
-
+	cube.material.diffuse = texture;
+	
 	Mesh betterCube;
 	betterCube.position.x = -1.25;
 	betterCube.position.z = 3;
 	betterCube.position.y = 2;
-
-	betterCube.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	betterCube.loadFromFile("assets/cube.ply");
+	betterCube.material.diffuse = texture;
 
 	Mesh cross;
 	cross.position.x = -1.25;
 	cross.position.z = 6;
 	cross.position.y = 1;
-	cross.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	cross.loadFromFile("assets/cross.ply");
+	cross.material.diffuse = texture;
 
-	//renderer.meshes.push_back(floor);
 	renderer.meshes.push_back(cube);
 	renderer.meshes.push_back(betterCube);
 	renderer.meshes.push_back(cross);
 
-	Texture texture;
-	texture.loadFromFile("assets/container2.png", gl::SRGB_ALPHA);
-
-	Texture specular;
-	specular.loadFromFile("assets/container2_specular.png", gl::SRGB_ALPHA);
-
-	Texture brick_diffuse;
-	brick_diffuse.loadFromFile("assets/meshes/brick_diffuse.png", gl::SRGB_ALPHA);
-
-	Texture brick_specular;
-	brick_specular.loadFromFile("assets/meshes/brick_specular", gl::SRGB_ALPHA);
-
+	
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 
@@ -265,14 +236,14 @@ int main() {
 
 	};
 	
-	GUIContext gui_context(800, 600);
+	GUIContext gui_context(1280, 720);
 
 	Terrain terrain;
 	terrain.generateMeshFromFunction([]() -> float {
 		return (rand() % 200) / 100 - 10;
 	});
-	terrain.mesh.material = Material(glm::vec3(0.8, 0.4, 0.31));
 	terrain.mesh.position = glm::vec3(-40, 10, -40);
+	terrain.mesh.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
 
 	renderer.meshes.push_back(terrain.mesh);
 
@@ -285,8 +256,9 @@ int main() {
 
 		physics_update();
 
-		brick_diffuse.bind(0);
-		brick_specular.bind(1);
+		texture.bind(0);
+		specular.bind(1);
+			
 		renderer.render();
 		gui_context.render();
 
