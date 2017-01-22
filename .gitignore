@@ -256,3 +256,4 @@ paket-files/
 *.idb
 scene_sketch.json
 usage_sketch.cpp
+enc_temp_folder/

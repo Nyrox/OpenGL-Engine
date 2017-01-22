@@ -3,6 +3,7 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
 #include <ImmediateDraw.h>
+#include <algorithm>
 
 Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ backbuffer_width, backbuffer_height }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
@@ -78,6 +79,9 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
+	gl::Enable(gl::CULL_FACE);
+	gl::CullFace(gl::CCW);
+
 	forward_render_shader.bind();
 	forward_render_shader.setUniform("camera_position", camera->position);
 	forward_render_shader.setUniform("view", camera->getViewMatrix());
@@ -97,8 +101,21 @@ void Renderer::render() {
 		shadow_maps.at(i).bindTexture(5 + i);
 	}
 	
-	// TODO: Add texture binding
+	// Draw opagues
 	for (auto& it : meshes) {
+		it.material.diffuse.bind(0);
+		it.material.specular.bind(1);
+
+		it.draw(forward_render_shader);
+	}
+
+
+	transparent.sort([&](const Mesh& a, const Mesh& b) {
+		return glm::distance(camera->position, a.position) > glm::distance(camera->position, b.position);
+	});
+
+	// Draw transparents
+	for (auto& it : transparent) {
 		it.material.diffuse.bind(0);
 		it.material.specular.bind(1);
 

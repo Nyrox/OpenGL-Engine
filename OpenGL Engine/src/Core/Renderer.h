@@ -17,6 +17,8 @@ public:
 	void addPointLight(PointLight light);
 
 	std::list<Mesh> meshes;
+	std::list<Mesh> transparent;
+
 	Camera* camera;
 	glm::mat4 projection;
 private:

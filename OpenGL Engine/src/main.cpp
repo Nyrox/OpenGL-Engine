@@ -178,8 +178,9 @@ int main() {
 	renderer.meshes.push_back(cube);
 	renderer.meshes.push_back(betterCube);
 	renderer.meshes.push_back(cross);
-	renderer.meshes.push_back(reflectiveSphere);
-	renderer.meshes.push_back(reflectiveCube);
+
+	renderer.transparent.push_back(reflectiveSphere);
+	renderer.transparent.push_back(reflectiveCube);
 
 	
 	GLfloat deltaTime = 0;
