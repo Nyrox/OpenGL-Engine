@@ -33,6 +33,8 @@ void Renderer::render() {
 	shadow_pass_shader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
 	gl::Enable(gl::DEPTH_TEST);
+	gl::Disable(gl::BLEND);
+
 	gl::DepthFunc(gl::LESS);
 	for (int i = 0; i < point_lights.size(); i++) {
 		PointLight& light = point_lights.at(i);
@@ -73,6 +75,9 @@ void Renderer::render() {
 	gl::ClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 	
+	gl::Enable(gl::BLEND);
+	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
 	forward_render_shader.bind();
 	forward_render_shader.setUniform("camera_position", camera->position);
 	forward_render_shader.setUniform("view", camera->getViewMatrix());

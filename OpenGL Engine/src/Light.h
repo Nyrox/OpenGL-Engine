@@ -9,11 +9,11 @@ struct PointLight {
 		linear = 0.07;
 		quadratic = 0.017;
 	}
-	vec3 position;
+	glm::vec3 position;
 
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
 
 	float constant;
 	float linear;
@@ -22,9 +22,8 @@ struct PointLight {
 
 struct DirectionalLight {
 
-	vec3 direction;
-
-	vec3 ambient;
-	vec3 diffuse;
-	vec3 specular;
+	glm::vec3 direction;
+	glm::vec3 ambient;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
 };

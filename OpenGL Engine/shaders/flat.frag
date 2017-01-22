@@ -14,5 +14,5 @@ void main() {
 		discard;
 	}
 
-	color = vec4(diffuse.xyz, 1);
+	color = vec4(diffuse.xyz, 1.0);
 }

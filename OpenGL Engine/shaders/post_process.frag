@@ -11,4 +11,6 @@ void main() {
 
 	float gamma = 2.2;
     color.rgb = pow(result, vec3(1.0/gamma));
+	color.a = 1.0;
+
 }

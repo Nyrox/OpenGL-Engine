@@ -20,6 +20,7 @@
 #include <ImmediateDraw.h>
 #include <Terrain.h>
 #include <RessourceManager.h>
+#include <ft2build.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
@@ -156,9 +157,29 @@ int main() {
 	cross.loadFromFile("assets/cross.ply");
 	cross.material.diffuse = texture;
 
+	RessourceManager::loadTexture("transparent", "assets/transparent.png", gl::SRGB_ALPHA);
+
+	Mesh reflectiveCube;
+	reflectiveCube.position.x = 3;
+	reflectiveCube.position.z = 2;
+	reflectiveCube.position.y = 2;
+
+	reflectiveCube.loadFromFile("assets/cube.ply");
+	reflectiveCube.material.diffuse = RessourceManager::getTexture("transparent");
+	
+	Mesh reflectiveSphere;
+	reflectiveSphere.position.x = -4;
+	reflectiveSphere.position.y = 2;
+
+	reflectiveSphere.position.z = 3;
+	reflectiveSphere.loadFromFile("assets/sphere.ply");
+	reflectiveSphere.material.diffuse = RessourceManager::getTexture("transparent");
+
 	renderer.meshes.push_back(cube);
 	renderer.meshes.push_back(betterCube);
 	renderer.meshes.push_back(cross);
+	renderer.meshes.push_back(reflectiveSphere);
+	renderer.meshes.push_back(reflectiveCube);
 
 	
 	GLfloat deltaTime = 0;
@@ -204,6 +225,7 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		
 		/*
 			Input
 		*/
@@ -270,7 +292,7 @@ int main() {
 	
 	GUIContext gui_context(1280, 720);
 
-	Terrain terrain;
+	Terrain terrain(100, 100);
 	terrain.generateMeshFromFunction([]() -> float {
 		return (rand() % 200) / 100 - 10;
 	});
