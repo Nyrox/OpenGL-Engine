@@ -20,7 +20,7 @@
 #include <ImmediateDraw.h>
 #include <Terrain.h>
 #include <RessourceManager.h>
-#include <ft2build.h>
+#include <Core\Image.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
@@ -47,8 +47,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
 	std::cout << message << std::endl;
 	
-	if (severity == gl::DEBUG_SEVERITY_HIGH || severity == gl::DEBUG_SEVERITY_MEDIUM) {
-		//std::cin.get();
+	if (severity == gl::DEBUG_SEVERITY_HIGH) {
+		std::cin.get();
 	}
 }
 
@@ -293,15 +293,19 @@ int main() {
 	
 	GUIContext gui_context(1280, 720);
 
+	Shader terrainShader;
+	terrainShader.loadFromFile("shaders/terrain.vert", "shaders/basic.frag");
+
+	Image heightmap;
+	heightmap.loadFromFile("assets/heightmap.png");
+
 	Terrain terrain(100, 100);
-	terrain.generateMeshFromFunction([]() -> float {
-		return (rand() % 200) / 100 - 10;
-	});
+	terrain.generateMeshFromHeightmap(heightmap, 0.12);
+
 	terrain.mesh.position = glm::vec3(-40, 10, -40);
 	terrain.mesh.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
 
 	renderer.meshes.push_back(terrain.mesh);
-
 	
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);

@@ -29,6 +29,7 @@ void Renderer::render() {
 		it.position.z += std::sin(glfwGetTime()) / 15;
 	}
 
+
 	// Render shadow maps
 	shadow_pass_shader.bind();
 	shadow_pass_shader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
@@ -45,7 +46,7 @@ void Renderer::render() {
 		gl::Viewport(0, 0, fb.width, fb.height);
 		gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		gl::Clear(gl::DEPTH_BUFFER_BIT);
-	
+
 		shadow_pass_shader.setUniform("light_position", light.position);
 
 		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
@@ -75,38 +76,51 @@ void Renderer::render() {
 	gl::Viewport(0, 0, 1280, 720);
 	gl::ClearColor(0.4f, 0.4f, 0.4f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-	
+
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
 	gl::Enable(gl::CULL_FACE);
-	gl::CullFace(gl::CCW);
+	gl::CullFace(gl::FRONT);
+	gl::FrontFace(gl::CW);
+
+	auto setUniforms = [&](Shader& shader) {
+		shader.setUniform("camera_position", camera->position);
+		shader.setUniform("view", camera->getViewMatrix());
+		shader.setUniform("projection", projection);
+		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
+
+		shader.setUniform("point_light_count", (int)point_lights.size());
+		for (int i = 0; i < point_lights.size(); i++) {
+			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
+			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
+			shadow_maps.at(i).bindTexture(5 + i);
+		}
+	};
 
 	forward_render_shader.bind();
-	forward_render_shader.setUniform("camera_position", camera->position);
-	forward_render_shader.setUniform("view", camera->getViewMatrix());
-	forward_render_shader.setUniform("projection", projection);
-	forward_render_shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-	
-	forward_render_shader.setUniform("point_light_count", (int)point_lights.size());
-	shadow_maps.at(0).bindTexture(7);
-	
-	//forward_render_shader.setUniform("shadow_map_2", 5);
-
-	for (int i = 0; i < point_lights.size(); i++) {
-		
-		forward_render_shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
-		// Reserve 4 texture units for materials
-		forward_render_shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
-		shadow_maps.at(i).bindTexture(5 + i);
-	}
+	setUniforms(forward_render_shader);
 	
 	// Draw opagues
 	for (auto& it : meshes) {
 		it.material.diffuse.bind(0);
 		it.material.specular.bind(1);
 
-		it.draw(forward_render_shader);
+		if (it.material.forward_pass_override != nullptr) {
+			it.material.forward_pass_override->bind();
+			setUniforms(*it.material.forward_pass_override);
+			
+			if (it.material.heightmap != nullptr) {
+				it.material.forward_pass_override->setUniform("heightmap", 2);
+				it.material.heightmap->bind(2);
+			}
+
+			it.draw(*it.material.forward_pass_override);
+		}
+		else {
+			forward_render_shader.bind();
+			it.draw(forward_render_shader);
+		}
 	}
 
 
