@@ -105,6 +105,8 @@ vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 norm
 	float distance = length(light.position - fragPos);
 	float attenuation = 1.0f / (light.constant + light.linear * distance + light.quadratic * (distance * distance));
 
+	//attenuation = 1.0f;
+
 	vec3 ambient	= attenuation * light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse	= attenuation * light.diffuse * diff * vec3(texture(material.diffuse, uv));
 	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv));

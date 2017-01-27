@@ -21,6 +21,7 @@
 #include <Terrain.h>
 #include <RessourceManager.h>
 #include <Core\Image.h>
+#include <Core\Skybox.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
@@ -293,16 +294,14 @@ int main() {
 	
 	GUIContext gui_context(1280, 720);
 
-	Shader terrainShader;
-	terrainShader.loadFromFile("shaders/terrain.vert", "shaders/basic.frag");
-
+	
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
 
-	Terrain terrain(100, 100);
+	Terrain terrain(1000, 1000);
 	terrain.generateMeshFromHeightmap(heightmap, 0.12);
 
-	terrain.mesh.position = glm::vec3(-40, 10, -40);
+	terrain.mesh.position = glm::vec3(-500, 10, -500);
 	terrain.mesh.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
 
 	renderer.meshes.push_back(terrain.mesh);
@@ -317,7 +316,7 @@ int main() {
 
 		texture.bind(0);
 		specular.bind(1);
-			
+
 		renderer.render();
 		gui_context.render();
 

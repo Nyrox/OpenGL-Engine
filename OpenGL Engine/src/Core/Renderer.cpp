@@ -9,6 +9,15 @@ Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProces
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
+
+	skybox.loadFromFiles({
+		"assets/skybox/blue_rt.tga",
+		"assets/skybox/blue_lf.tga",
+		"assets/skybox/blue_up.tga",
+		"assets/skybox/blue_dn.tga",
+		"assets/skybox/blue_bk.tga",
+		"assets/skybox/blue_ft.tga"
+	});
 }
 
 void Renderer::addPointLight(PointLight light) {
@@ -80,9 +89,11 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
-	gl::Enable(gl::CULL_FACE);
+	//gl::Enable(gl::CULL_FACE);
 	gl::CullFace(gl::FRONT);
 	gl::FrontFace(gl::CW);
+
+	skybox.render(projection, camera->getViewMatrix());
 
 	auto setUniforms = [&](Shader& shader) {
 		shader.setUniform("camera_position", camera->position);
@@ -100,7 +111,7 @@ void Renderer::render() {
 
 	forward_render_shader.bind();
 	setUniforms(forward_render_shader);
-	
+
 	// Draw opagues
 	for (auto& it : meshes) {
 		it.material.diffuse.bind(0);

@@ -7,6 +7,7 @@
 
 #include <list>
 #include <vector>
+#include <Core\Skybox.h>
 
 class Renderer {
 public:
@@ -22,6 +23,7 @@ public:
 	Camera* camera;
 	glm::mat4 projection;
 private:
+	Skybox skybox;
 	Framebuffer postProcessBuffer;
 
 	Shader post_process_shader;
