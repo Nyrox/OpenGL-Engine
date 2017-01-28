@@ -16,6 +16,7 @@ public:
 	void render();
 
 	void addPointLight(PointLight light);
+	void addDirectionalLight(DirectionalLight light);
 
 	std::list<Mesh> meshes;
 	std::list<Mesh> transparent;
@@ -28,9 +29,14 @@ private:
 
 	Shader post_process_shader;
 	Shader shadow_pass_shader;
+	Shader dirLightShadowPassShader;
+
 	Shader forward_render_shader;	
 
 	std::vector<PointLight> point_lights;
 	std::vector<Framebuffer> shadow_maps;
-		
+	
+	std::vector<DirectionalLight> directional_lights;
+	std::vector<Framebuffer> directional_shadow_maps;
+
 };

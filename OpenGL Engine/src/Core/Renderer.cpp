@@ -7,6 +7,7 @@
 
 Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ backbuffer_width, backbuffer_height }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
+	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
 
@@ -26,9 +27,17 @@ void Renderer::addPointLight(PointLight light) {
 
 }
 
+void Renderer::addDirectionalLight(DirectionalLight light) {
+	this->directional_lights.push_back(light);
+	this->directional_shadow_maps.emplace_back(glm::vec2(1024, 1024), DEPTH);
+}
+
 // Far and near planes for point lights.
 constexpr float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
 constexpr float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 100.f;
+
+constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE = 10.f;
+constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE = 300.f;
 
 //#define GL_WIREFRAME
 
@@ -75,6 +84,25 @@ void Renderer::render() {
 		}
 	}
 
+	dirLightShadowPassShader.bind();
+	dirLightShadowPassShader.setUniform("far_plane", DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
+	for (int i = 0; i < directional_lights.size(); i++) {
+		DirectionalLight& light = directional_lights.at(i);
+		Framebuffer& fb = directional_shadow_maps.at(i);
+
+		fb.bind();
+		gl::Viewport(0, 0, fb.width, fb.height);
+		gl::Clear(gl::DEPTH_BUFFER_BIT);
+
+		glm::mat4 shadow_projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE, DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
+		glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
+
+		dirLightShadowPassShader.setUniform("lightSpaceMatrix", shadow_projection * shadow_view);
+
+		for (auto& it : meshes) {
+			it.draw(dirLightShadowPassShader);
+		}
+	}
 
 #ifdef GL_WIREFRAME
 	gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
@@ -89,7 +117,7 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
-	//gl::Enable(gl::CULL_FACE);
+	gl::Enable(gl::CULL_FACE);
 	gl::CullFace(gl::FRONT);
 	gl::FrontFace(gl::CW);
 
@@ -106,6 +134,21 @@ void Renderer::render() {
 			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
 			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
 			shadow_maps.at(i).bindTexture(5 + i);
+		}
+
+		shader.setUniform("directional_light_count", (int)directional_lights.size());
+		for (int i = 0; i < directional_lights.size(); i++) {
+			shader.setUniform("directional_lights[" + std::to_string(i) + "]", directional_lights.at(i));
+			shader.setUniform("dir_shadow_map_" + std::to_string(i), 21 + i);
+			directional_shadow_maps.at(i).bindTexture(21 + i);
+			
+			Framebuffer& fb = directional_shadow_maps.at(i);
+			DirectionalLight& light = directional_lights.at(i);
+
+			glm::mat4 shadow_projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE, DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
+			glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
+
+			shader.setUniform("dir_light_space_matrix_" + std::to_string(i), shadow_projection * shadow_view);
 		}
 	};
 
@@ -160,6 +203,7 @@ void Renderer::render() {
 	post_process_shader.setUniform("screen_capture", 0);
 	postProcessBuffer.bindTexture(0);
 
+	//directional_shadow_maps.at(0).bindTexture(0);
 
 	ImmediateDraw::drawPlane(2, 2);
 	

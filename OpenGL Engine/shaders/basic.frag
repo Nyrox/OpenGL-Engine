@@ -10,14 +10,14 @@ struct Material {
 	float shininess;
 };
 
-/*
+
 struct DirectionalLight {
 	vec3 direction;
 
 	vec3 ambient;
 	vec3 diffuse;
 	vec3 specular;
-};*/
+};
 
 struct PointLight {
 	vec3 position;
@@ -43,10 +43,16 @@ uniform Material material;
 uniform PointLight point_lights[16];
 uniform int point_light_count;
 
+uniform DirectionalLight directional_lights[4];
+uniform int directional_light_count;
+
 uniform samplerCube shadow_map_0;
 uniform samplerCube shadow_map_1;
 uniform samplerCube shadow_map_2;
 uniform samplerCube shadow_map_3;
+
+uniform sampler2D dir_shadow_map_0;
+uniform sampler2D dir_shadow_map_1;
 
 uniform vec3 camera_position;
 
@@ -112,12 +118,12 @@ vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 norm
 	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv));
 
 	float shadow = shadow(light, shadowMap, fragPos);
-	//float shadow = 0;
+	
 	vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular));
 	 return lighting;
 }
-/*
-float shadowLookup(vec4 fragPosLightSpace) {
+
+float shadowLookup(sampler2D shadowMap, vec4 fragPosLightSpace) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
 
 	projCoords = projCoords * 0.5 + 0.5;
@@ -144,7 +150,7 @@ float shadowLookup(vec4 fragPosLightSpace) {
 	return shadow;
 }
 
-vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+vec3 addDirectionalLight(int index, DirectionalLight light, sampler2D shadow_map, vec3 normal, vec4 fragPos, vec3 viewDir) {
 	vec3 lightDir = normalize(-light.direction);
 
 	// Diffuse
@@ -158,11 +164,13 @@ vec3 addDirectionalLight(DirectionalLight light, vec3 normal, vec3 fragPos, vec3
 	vec3 specular = spec * vec3(texture(material.specular, uv));
 
 
-	float shadow = shadowLookup(fragPosLightSpace);
-
+	float shadow = shadowLookup(shadow_map, fragPos);
+	
 	vec3 result = (ambient + (1.f - shadow) *  (diffuse + specular));
 	return result;
-}*/
+}
+
+in vec4 frag_pos_dir_light_space_0;
 
 void main() {
 
@@ -171,7 +179,7 @@ void main() {
 
 	vec3 result = vec3(0, 0, 0);
 
-	//result += addDirectionalLight(directionalLights[0], norm, fragPos, viewDir);
+	result += addDirectionalLight(0, directional_lights[0], dir_shadow_map_0, norm, frag_pos_dir_light_space_0, viewDir);
 
 	result += addPointLight(0, point_lights[0], shadow_map_0, norm, fragPos, viewDir);
 	result += addPointLight(1, point_lights[1], shadow_map_1, norm, fragPos, viewDir);

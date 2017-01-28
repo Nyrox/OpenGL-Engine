@@ -45,6 +45,16 @@ Framebuffer::Framebuffer(glm::vec2 size, FramebufferTypes type, bool depthBuffer
 		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::REPEAT);
 	}
 		
+	if (type == DEPTH) {
+		gl::TexImage2D(gl::TEXTURE_2D, 0, format, size.x, size.y, 0, format, gl::FLOAT, NULL);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_BORDER);
+		gl::TexParameteri(gl::TEXTURE_2D, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_BORDER);
+		GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
+		gl::TexParameterfv(gl::TEXTURE_2D, gl::TEXTURE_BORDER_COLOR, borderColor);
+	}
+
 	if (type == CUBE_DEPTH || type == CUBE_RGB) {
 		for (int32_t i = 0; i < 6; i++) {
 			gl::TexImage2D(gl::TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height, 0, format, gl::FLOAT, NULL);

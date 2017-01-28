@@ -122,10 +122,12 @@ int main() {
 	renderer.addPointLight(light2);
 
 	DirectionalLight dirLight;
-	dirLight.direction = { -0.9f, -1.0f, -0.3f };
+	dirLight.direction = { -0.2f, -1.0f, -0.2f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
 	dirLight.diffuse = { 0.6, 0.4, 0.4 };
 	dirLight.specular = { 0.4, 0.4, 0.4 };
+
+	renderer.addDirectionalLight(dirLight);
 
 	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, SHADOWMAP_NEAR_PLANE, SHADOWMAP_FAR_PLANE);
 

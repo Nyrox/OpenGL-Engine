@@ -21,7 +21,7 @@ public:
 
 	void setUniform(std::string name, Material material);
 	void setUniform(std::string name, PointLight light, uint32_t index = 0);
-	void setUniform(std::string name, DirectionalLight light, uint32_t index);
+	void setUniform(std::string name, DirectionalLight light, uint32_t index = 0);
 
 
 	void setUniformArray(std::string name, glm::mat4* data, uint32_t count);

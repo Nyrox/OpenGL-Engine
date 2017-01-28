@@ -16,10 +16,13 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
+uniform mat4 dir_light_space_matrix_0;
+out vec4 frag_pos_dir_light_space_0;
+
 void main() {
 	gl_Position = projection * view * model * vec4(position.xyz, 1.0);
 	normal = mat3(transpose(inverse(model))) * Normal;
 	fragPos = vec3(model * vec4(position, 1.0));
 	uv = UV;
-	//fragPosLightSpace = lightSpaceMatrix * vec4(fragPos, 1.0);
+	frag_pos_dir_light_space_0 = dir_light_space_matrix_0 * vec4(fragPos, 1.0);	
 }
