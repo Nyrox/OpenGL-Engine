@@ -4,7 +4,7 @@
 #include <vector>
 
 Terrain::Terrain(float t_width, float t_height) : width(t_width), height(t_height) { 
-
+	model.mesh = std::make_shared<Mesh>();
 }
 
 void Terrain::generateMeshFromHeightmap(const Image& heightmap, float heightmapIntensity) {
@@ -44,5 +44,5 @@ void Terrain::generateMeshFromFunction(std::function<float(const Terrain&, uint3
 		}
 	}
 
-	mesh.loadFromMemory(vertices, indices);
+	model.mesh->initRenderData(vertices, indices);
 }

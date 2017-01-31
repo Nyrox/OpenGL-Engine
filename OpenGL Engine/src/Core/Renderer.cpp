@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <GLFW/glfw3.h>
-#include <ImmediateDraw.h>
+#include <Core/ImmediateDraw.h>
 #include <algorithm>
 
 Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ backbuffer_width, backbuffer_height }, RGB) {
@@ -79,8 +79,11 @@ void Renderer::render() {
 
 		shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
 
-		for (auto& it : meshes) {
-			it.draw(shadow_pass_shader);
+		for (auto& it : models) {
+			shadow_pass_shader.setUniform("model", it.transform.getModelMatrix());
+			shadow_pass_shader.setUniform("material", it.material);
+
+			it.mesh->draw();
 		}
 	}
 
@@ -99,8 +102,11 @@ void Renderer::render() {
 
 		dirLightShadowPassShader.setUniform("lightSpaceMatrix", shadow_projection * shadow_view);
 
-		for (auto& it : meshes) {
-			it.draw(dirLightShadowPassShader);
+		for (auto& it : models) {
+			dirLightShadowPassShader.setUniform("model", it.transform.getModelMatrix());
+			dirLightShadowPassShader.setUniform("material", it.material);
+
+			it.mesh->draw();
 		}
 	}
 
@@ -117,6 +123,7 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
+	
 	gl::Enable(gl::CULL_FACE);
 	gl::CullFace(gl::FRONT);
 	gl::FrontFace(gl::CW);
@@ -156,7 +163,7 @@ void Renderer::render() {
 	setUniforms(forward_render_shader);
 
 	// Draw opagues
-	for (auto& it : meshes) {
+	for (auto& it : models) {
 		it.material.diffuse.bind(0);
 		it.material.specular.bind(1);
 
@@ -169,25 +176,35 @@ void Renderer::render() {
 				it.material.heightmap->bind(2);
 			}
 
-			it.draw(*it.material.forward_pass_override);
+			it.material.forward_pass_override->setUniform("model", it.transform.getModelMatrix());
+			it.material.forward_pass_override->setUniform("material", it.material);
+			
+			it.mesh->draw();
 		}
 		else {
 			forward_render_shader.bind();
-			it.draw(forward_render_shader);
+			forward_render_shader.setUniform("model", it.transform.getModelMatrix());
+			forward_render_shader.setUniform("material", it.material);
+
+			it.mesh->draw();
 		}
 	}
 
 
-	transparent.sort([&](const Mesh& a, const Mesh& b) {
-		return glm::distance(camera->position, a.position) > glm::distance(camera->position, b.position);
+	transparents.sort([&](const Model& a, const Model& b) {
+		return glm::distance(camera->position, a.transform.position) > glm::distance(camera->position, b.transform.position);
 	});
 
 	// Draw transparents
-	for (auto& it : transparent) {
+	for (auto& it : transparents) {
 		it.material.diffuse.bind(0);
 		it.material.specular.bind(1);
-
-		it.draw(forward_render_shader);
+		
+		forward_render_shader.bind();
+		forward_render_shader.setUniform("model", it.transform.getModelMatrix());
+		forward_render_shader.setUniform("material", it.material);
+		
+		it.mesh->draw();
 	}
 
 #ifdef GL_WIREFRAME

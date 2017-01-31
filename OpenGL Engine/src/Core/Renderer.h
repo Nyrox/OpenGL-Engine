@@ -2,7 +2,7 @@
 #include <Framebuffer.h>
 #include <Core/Camera.h>
 #include <Shader.h>
-#include <Mesh.h>
+#include <Core/Model.h>
 #include <Light.h>
 
 #include <list>
@@ -18,8 +18,8 @@ public:
 	void addPointLight(PointLight light);
 	void addDirectionalLight(DirectionalLight light);
 
-	std::list<Mesh> meshes;
-	std::list<Mesh> transparent;
+	std::list<Model> models;
+	std::list<Model> transparents;
 
 	Camera* camera;
 	glm::mat4 projection;

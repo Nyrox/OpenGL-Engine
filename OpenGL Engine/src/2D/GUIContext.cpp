@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <ImmediateDraw.h>
+#include <Core/ImmediateDraw.h>
 
 GUIContext::GUIContext(uint32_t width, uint32_t height) : contextWidth(width), contextHeight(height) {
 	shader.loadFromFile("shaders/stdgui.vert", "shaders/stdgui.frag");

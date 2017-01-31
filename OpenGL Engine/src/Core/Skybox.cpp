@@ -1,6 +1,6 @@
 #include "Skybox.h"
 #include <stb_image.h>
-#include <ImmediateDraw.h>
+#include <Core/ImmediateDraw.h>
 #include <glm\gtx\transform.hpp>
 
 Skybox::Skybox() {

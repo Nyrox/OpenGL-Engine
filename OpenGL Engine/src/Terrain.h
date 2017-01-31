@@ -1,5 +1,5 @@
 #pragma once
-#include <Mesh.h>
+#include <Core/Model.h>
 #include <functional>
 
 
@@ -12,7 +12,7 @@ public:
 	void generateMeshFromFunction(std::function<float(const Terrain&, uint32_t, uint32_t)> generator);
 	void generateMeshFromHeightmap(const Image& heightmap, float heightmapIntensity = 0.25);
 
-	Mesh mesh;
+	Model model;
 
 	float width, height;
 	uint32_t segments_x, segments_y;

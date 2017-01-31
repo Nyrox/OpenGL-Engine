@@ -2,7 +2,7 @@
 #include <gl_core_4_3.hpp>
 #include <string>
 
-#include <Material.h>
+#include <Core/Material.h>
 #include <Light.h>
 
 class Shader {

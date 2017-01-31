@@ -10,18 +10,19 @@
 #include <Cube.h>
 #include <Plane.h>
 #include <iostream>
-#include <Mesh.h>
+#include <Core/Mesh.h>
 #include <2D/Sprite.h>
 #include <Framebuffer.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Core/Renderer.h>
 #include <2D/GUIContext.h>
-#include <ImmediateDraw.h>
+#include <Core/ImmediateDraw.h>
 #include <Terrain.h>
 #include <RessourceManager.h>
 #include <Core\Image.h>
 #include <Core\Skybox.h>
+#include <Core\Debug.h>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
@@ -29,6 +30,11 @@ constexpr float CAMERA_FAR_PLANE = 10000;
 constexpr float SHADOWMAP_NEAR_PLANE = 0.1f;
 constexpr float SHADOWMAP_FAR_PLANE = 100.f;
 
+
+std::function<void(GLFWwindow*, int, int, int)> mouse_callback = nullptr;
+void glfw_mouse_callback(GLFWwindow* window, int button, int action, int mods) {
+	if (mouse_callback != nullptr) mouse_callback(window, button, action, mods);
+}
 
 bool keys[1024];
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -55,6 +61,7 @@ void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severi
 
 #include <Editor\Editor.h>
 #include <time.h>
+#include <functional>
 
 int main() {
 
@@ -139,51 +146,54 @@ int main() {
 	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
 	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
 
-	Mesh cube;
-	cube.position.x -= 1.25;
-	cube.position.z = 0;
-	cube.position.y = 2;;
-	cube.loadFromFile("assets/cube.ply");
+	Model cube;
+	cube.transform.position.x -= 1.25;
+	cube.transform.position.z = 0;
+	cube.transform.position.y = 2;;
+	cube.mesh = std::make_shared<Mesh>();
+	cube.mesh->loadFromFile("assets/cube.ply");
 	cube.material.diffuse = texture;
 	
-	Mesh betterCube;
-	betterCube.position.x = -1.25;
-	betterCube.position.z = 3;
-	betterCube.position.y = 2;
-	betterCube.loadFromFile("assets/cube.ply");
+	Model betterCube;
+	betterCube.transform.position.x = -1.25;
+	betterCube.transform.position.z = 3;
+	betterCube.transform.position.y = 2;
+	betterCube.mesh = std::make_shared<Mesh>();
+	betterCube.mesh->loadFromFile("assets/cube.ply");
 	betterCube.material.diffuse = texture;
 
-	Mesh cross;
-	cross.position.x = -1.25;
-	cross.position.z = 6;
-	cross.position.y = 1;
-	cross.loadFromFile("assets/cross.ply");
+	Model cross;
+	cross.transform.position.x = -1.25;
+	cross.transform.position.z = 6;
+	cross.transform.position.y = 1;
+	cross.mesh = std::make_shared<Mesh>();
+	cross.mesh->loadFromFile("assets/cross.ply");
 	cross.material.diffuse = texture;
 
 	RessourceManager::loadTexture("transparent", "assets/transparent.png", gl::SRGB_ALPHA);
 
-	Mesh reflectiveCube;
-	reflectiveCube.position.x = 3;
-	reflectiveCube.position.z = 2;
-	reflectiveCube.position.y = 2;
-
-	reflectiveCube.loadFromFile("assets/cube.ply");
+	Model reflectiveCube;
+	reflectiveCube.transform.position.x = 3;
+	reflectiveCube.transform.position.z = 2;
+	reflectiveCube.transform.position.y = 2;
+	reflectiveCube.mesh = std::make_shared<Mesh>();
+	reflectiveCube.mesh->loadFromFile("assets/cube.ply");
 	reflectiveCube.material.diffuse = RessourceManager::getTexture("transparent");
 	
-	Mesh reflectiveSphere;
-	reflectiveSphere.position.x = -4;
-	reflectiveSphere.position.y = 2;
-
-	reflectiveSphere.position.z = 3;
-	reflectiveSphere.loadFromFile("assets/sphere.ply");
+	Model reflectiveSphere;
+	reflectiveSphere.transform.position.x = -4;
+	reflectiveSphere.transform.position.y = 2;
+	reflectiveSphere.transform.position.z = 3;
+	reflectiveSphere.mesh = std::make_shared<Mesh>();
+	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
 	reflectiveSphere.material.diffuse = RessourceManager::getTexture("transparent");
 
-	renderer.meshes.push_back(cube);
-	renderer.meshes.push_back(betterCube);
-	renderer.meshes.push_back(cross);
+	renderer.models.push_back(cube);
+	renderer.models.push_back(betterCube);
+	renderer.models.push_back(cross);
 
-	renderer.transparent.push_back(reflectiveSphere);
-	renderer.transparent.push_back(reflectiveCube);
+	renderer.transparents.push_back(reflectiveSphere);
+	renderer.transparents.push_back(reflectiveCube);
 
 	
 	GLfloat deltaTime = 0;
@@ -281,6 +291,30 @@ int main() {
 		}
 
 
+		mouse_callback = [&](GLFWwindow* window, int button, int action, int mods) {
+			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
+				double mouse_x, mouse_y;
+				glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
+				glm::vec3 ray;
+				// 3d normalized device coords
+				ray.x = (2.0f / mouse_x) / 1280 - 1.0f;
+				ray.y = 1.0f - (2.0f / mouse_y) / 720.f;
+				ray.z = 1.0f;
+				// Homogenous Clip coords
+				glm::vec4 ray_clip = glm::vec4(ray.x, ray.y, -1.0, 1.0);
+				// View space
+				glm::vec4 ray_view = glm::inverse(renderer.projection) * ray_clip;
+				ray_view = glm::vec4(ray_view.x, ray_view.y, -1.0, 0.0);
+				// World space
+				glm::vec3 ray_world = glm::vec3((glm::inverse(renderer.camera->getViewMatrix()) * ray_view));
+				ray_world = glm::normalize(ray_world);
+
+				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 5.f);
+				std::cout << ray_world.x << " - " << ray_world.y << " - " << ray_world.z << "\n";
+			}
+		};
+		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
 
 		/*
 			Logic
@@ -303,10 +337,10 @@ int main() {
 	Terrain terrain(1000, 1000);
 	terrain.generateMeshFromHeightmap(heightmap, 0.12);
 
-	terrain.mesh.position = glm::vec3(-500, 10, -500);
-	terrain.mesh.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
+	terrain.model.transform.position = glm::vec3(-500, 10, -500);
+	terrain.model.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
 
-	renderer.meshes.push_back(terrain.mesh);
+	renderer.models.push_back(terrain.model);
 	
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);
@@ -320,7 +354,10 @@ int main() {
 		specular.bind(1);
 
 		renderer.render();
+		Debug::render(renderer.camera->getViewMatrix(), renderer.projection);
+
 		gui_context.render();
+		
 
 		glfwSwapBuffers(window);
 	}

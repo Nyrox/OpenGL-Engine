@@ -5,8 +5,6 @@
 #include <map>
 #include <unordered_map>
 
-
-
 class ImmediateDraw {
 public:
 	
