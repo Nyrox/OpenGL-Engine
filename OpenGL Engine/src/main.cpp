@@ -325,7 +325,7 @@ int main() {
 				};
 
 				Ray ray(camera.position, ray_world);
-				AABB box({ -5, -3, -7 }, glm::vec3(-5, -3, -7) + glm::vec3(1));
+				AABB box(cube.transform.position - glm::vec3(1), cube.transform.position + glm::vec3(1));
 
 				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 				std::cout << "Ray intersected test cube: " << box.intersects(ray) << std::endl;

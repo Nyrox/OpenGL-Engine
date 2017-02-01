@@ -47,3 +47,72 @@ void Mesh::initRenderData(std::vector<Vertex> vertices, std::vector<uint32_t> in
 
 	gl::BindVertexArray(0);
 }
+
+// STATIC
+Mesh Mesh::generatePlane(glm::vec2 size) {
+	Mesh mesh;
+
+	std::vector<Vertex> vertices = {
+		Vertex({ 0, 0, 0 }, { 0, 0, -1, }, { 0, 0 }),
+		Vertex({ size.x, 0, 0, }, { 0, 0, -1, }, { 1, 0 }),
+		Vertex({ 0, size.y, 0, }, { 0, 0, -1, }, { 0, 1 }),
+		Vertex({ size.x, size.y, 0,	}, { 0, 0, -1, }, { 1, 1 })
+	};
+
+	std::vector<uint32_t> indices = {
+		0, 1, 2,
+		2, 1, 3
+	};
+
+	mesh.initRenderData(vertices, indices);
+	return mesh;
+};
+
+// STATIC
+Mesh Mesh::generateCube(glm::vec3 size) {
+	Mesh mesh;
+
+	std::vector<Vertex> vertices = {
+		Vertex({ 0, 0, 0 },					{ 0, 0, -1 },	{ 0, 0 }),
+		Vertex({ size.x, 0, 0 },			{ 0, 0, -1 },	{ 1, 0 }),
+		Vertex({ 0, size.y, 0 },			{ 0, 0, -1 },	{ 0, 1 }),
+		Vertex({ size.x, size.y, 0.0 },		{ 0, 0, -1 },	{ 1, 1 }),
+
+		Vertex({ 0, 0, size.z },			{ -1, 0, 0 }, 	{ 0, 0 }),
+		Vertex({ 0, 0, 0 },					{ -1, 0, 0 }, 	{ 1, 0 }),
+		Vertex({ 0, size.y, size.z },		{ -1, 0, 0 }, 	{ 0, 1 }),
+		Vertex({ 0, size.y, 0 },			{ -1, 0, 0 }, 	{ 1, 1 }),
+
+		Vertex({ 0, size.y, size.z },		{ 0, 1, 0 }, 	{ 0, 0 }),
+		Vertex({ size.x, size.y, size.z },	{ 0, 1, 0 }, 	{ 1, 0 }),
+		Vertex({ 0, size.y, 0.0 },			{ 0, 1, 0 }, 	{ 0, 1 }),
+		Vertex({ size.x, size.y, 0.0 },		{ 0, 1, 0 }, 	{ 1, 1 }),
+
+		Vertex({ 0, 0, size.z },			{ 0, -1, 0 }, 	{ 0, 0 }),
+		Vertex({ size.x, 0.0, size.z },		{ 0, -1, 0 }, 	{ 1, 0 }),
+		Vertex({ 0, 0, 0 },					{ 0, -1, 0 }, 	{ 0, 1 }),
+		Vertex({ size.x, 0, 0 },			{ 0, -1, 0 }, 	{ 1, 1 }),
+
+		Vertex({ size.x, 0, 0 },			{ 1, 0, 0 }, 	{ 0, 0 }),
+		Vertex({ size.x, 0, size.z },		{ 1, 0, 0 }, 	{ 1, 0 }),
+		Vertex({ size.x, size.y, 0 },		{ 1, 0, 0 }, 	{ 0, 1 }),
+		Vertex({ size.x, size.y, size.z },	{ 1, 0, 0 }, 	{ 1, 1 }),
+
+		Vertex({ size.x, 0, size.z },		{ 0, 0, 1 }, 	{ 0, 0 }),
+		Vertex({ 0, 0, size.z },			{ 0, 0, 1 }, 	{ 1, 0 }),
+		Vertex({ size.x, size.y, size.z },	{ 0, 0, 1 }, 	{ 0, 1 }),
+		Vertex({ 0, size.y, size.z },		{ 0, 0, 1 }, 	{ 1, 1 })
+	};
+
+	std::vector<uint32_t> indices = {
+		0, 1, 2, 2, 1, 3,
+		4, 5, 6, 6, 5, 7,
+		8, 9, 10, 10, 9, 11,
+		12, 13, 14, 14, 13, 15,
+		16, 17, 18, 18, 17, 19,
+		20, 21, 22, 22, 21, 23
+	};
+
+	mesh.initRenderData(vertices, indices);
+	return mesh;
+}

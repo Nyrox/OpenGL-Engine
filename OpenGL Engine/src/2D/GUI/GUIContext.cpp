@@ -2,8 +2,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <Core/ImmediateDraw.h>
-
 GUIContext::GUIContext(uint32_t width, uint32_t height) : contextWidth(width), contextHeight(height) {
 	shader.loadFromFile("shaders/stdgui.vert", "shaders/stdgui.frag");
 }
@@ -16,6 +14,4 @@ void GUIContext::render() {
 	shader.setUniform("view", view_matrix);
 	gl::Viewport(0, 0, 800, 600);
 
-
-	//ImmediateDraw::drawPlane(600, 400);
 }

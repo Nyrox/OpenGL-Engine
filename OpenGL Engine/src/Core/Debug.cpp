@@ -1,5 +1,4 @@
 #include "Debug.h"
-#include <Core/ImmediateDraw.h>
 #include <GLFW\glfw3.h>
 #include <glm\gtx\transform.hpp>
 #include <iostream>

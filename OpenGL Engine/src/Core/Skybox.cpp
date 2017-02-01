@@ -1,6 +1,7 @@
 #include "Skybox.h"
+#include <Core\Mesh.h>
+
 #include <stb_image.h>
-#include <Core/ImmediateDraw.h>
 #include <glm\gtx\transform.hpp>
 
 Skybox::Skybox() {
@@ -32,6 +33,8 @@ void Skybox::loadFromFiles(const std::array<std::string, 6>& paths) {
 void Skybox::render(glm::mat4 projection, glm::mat4 view) {
 
 	gl::DepthMask(false);
+	gl::Disable(gl::CULL_FACE);
+
 	shader.bind();
 	shader.setUniform("model", glm::translate(glm::mat4(), { -50, -50, -50 }));
 	shader.setUniform("projection", projection);
@@ -39,7 +42,9 @@ void Skybox::render(glm::mat4 projection, glm::mat4 view) {
 
 	gl::ActiveTexture(gl::TEXTURE0);
 	gl::BindTexture(gl::TEXTURE_CUBE_MAP, id);
-	ImmediateDraw::drawCube({ 100, 100, 100 });
+	
+	Mesh skybox = Mesh::generateCube(glm::vec3(100));
+	skybox.draw();
 
 	gl::DepthMask(true);
 

@@ -1,6 +1,4 @@
 #include "Renderer.h"
-#include <Core/ImmediateDraw.h>
-
 #include <GLFW\glfw3.h>
 
 #include <algorithm>
@@ -192,7 +190,6 @@ void Renderer::render() {
 	}
 	forward_render_shader.bind();
 	forward_render_shader.setUniform("model", glm::translate(glm::vec3{ -5, -3, -7 }));
-	ImmediateDraw::drawCube(glm::vec3{ 1.f });
 
 	transparents.sort([&](const Model& a, const Model& b) {
 		return glm::distance(camera->position, a.transform.position) > glm::distance(camera->position, b.transform.position);
@@ -222,9 +219,7 @@ void Renderer::render() {
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
 	postProcessBuffer.bindTexture(0);
-
-	//directional_shadow_maps.at(0).bindTexture(0);
-
-	ImmediateDraw::drawPlane(2, 2);
 	
+	Mesh canvas = Mesh::generatePlane({ 2, 2 });
+	canvas.draw();
 }
