@@ -3,10 +3,10 @@
 
 #include <iostream>
 
-
 void Mesh::draw() {
 	if (vao == 0) {
-		throw std::exception("lol kys");
+		std::cout << "Error::Mesh::draw: Tried to draw mesh without a valid VAO" << std::endl;
+		return;
 	}
 
 	gl::BindVertexArray(vao);

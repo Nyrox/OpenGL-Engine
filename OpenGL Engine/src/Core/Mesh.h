@@ -23,7 +23,9 @@ public:
 	// @indices: Array of indices
 	void initRenderData(std::vector<Vertex> vertices, std::vector<uint32_t> indices);
 
+	static Mesh generateCube(glm::vec3 size);
+	static Mesh generatePlane(glm::vec2 size);
 
-	uint32_t vertex_count, face_count, index_count;
+	uint32_t vertex_count, index_count;
 	GLuint vao, vbo, ebo;
 };

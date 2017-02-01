@@ -146,26 +146,21 @@ int main() {
 	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
 	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
 
+	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
+	cube_mesh->loadFromFile("assets/cube.ply");
+
 	Model cube;
-	cube.transform.position.x -= 1.25;
-	cube.transform.position.z = 0;
-	cube.transform.position.y = 2;;
-	cube.mesh = std::make_shared<Mesh>();
-	cube.mesh->loadFromFile("assets/cube.ply");
+	cube.transform.position = glm::vec3(1.25, 2, 0);
+	cube.mesh = cube_mesh;
 	cube.material.diffuse = texture;
 	
 	Model betterCube;
-	betterCube.transform.position.x = -1.25;
-	betterCube.transform.position.z = 3;
-	betterCube.transform.position.y = 2;
-	betterCube.mesh = std::make_shared<Mesh>();
-	betterCube.mesh->loadFromFile("assets/cube.ply");
+	betterCube.transform.position = glm::vec3(-1.25, 2, 3);
+	betterCube.mesh = cube_mesh;
 	betterCube.material.diffuse = texture;
 
 	Model cross;
-	cross.transform.position.x = -1.25;
-	cross.transform.position.z = 6;
-	cross.transform.position.y = 1;
+	cross.transform.position = glm::vec3(-1.25, 1, 6);
 	cross.mesh = std::make_shared<Mesh>();
 	cross.mesh->loadFromFile("assets/cross.ply");
 	cross.material.diffuse = texture;
@@ -173,17 +168,12 @@ int main() {
 	RessourceManager::loadTexture("transparent", "assets/transparent.png", gl::SRGB_ALPHA);
 
 	Model reflectiveCube;
-	reflectiveCube.transform.position.x = 3;
-	reflectiveCube.transform.position.z = 2;
-	reflectiveCube.transform.position.y = 2;
-	reflectiveCube.mesh = std::make_shared<Mesh>();
-	reflectiveCube.mesh->loadFromFile("assets/cube.ply");
+	reflectiveCube.transform.position = glm::vec3(3, 2, 2);
+	reflectiveCube.mesh = cube_mesh;
 	reflectiveCube.material.diffuse = RessourceManager::getTexture("transparent");
 	
 	Model reflectiveSphere;
-	reflectiveSphere.transform.position.x = -4;
-	reflectiveSphere.transform.position.y = 2;
-	reflectiveSphere.transform.position.z = 3;
+	reflectiveSphere.transform.position = glm::vec3(-4, 2, 3);
 	reflectiveSphere.mesh = std::make_shared<Mesh>();
 	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
 	reflectiveSphere.material.diffuse = RessourceManager::getTexture("transparent");
@@ -298,8 +288,8 @@ int main() {
 
 				glm::vec3 ray;
 				// 3d normalized device coords
-				ray.x = (2.0f / mouse_x) / 1280 - 1.0f;
-				ray.y = 1.0f - (2.0f / mouse_y) / 720.f;
+				ray.x = (2.0f * mouse_x) / 1280 - 1.0f;
+				ray.y = 1.0f - (2.0f * mouse_y) / 720.f;
 				ray.z = 1.0f;
 				// Homogenous Clip coords
 				glm::vec4 ray_clip = glm::vec4(ray.x, ray.y, -1.0, 1.0);
@@ -310,7 +300,8 @@ int main() {
 				glm::vec3 ray_world = glm::vec3((glm::inverse(renderer.camera->getViewMatrix()) * ray_view));
 				ray_world = glm::normalize(ray_world);
 
-				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 5.f);
+
+				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 				std::cout << ray_world.x << " - " << ray_world.y << " - " << ray_world.z << "\n";
 			}
 		};

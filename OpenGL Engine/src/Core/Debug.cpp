@@ -9,11 +9,34 @@ struct Line {
 	Line(glm::vec3 t_start, glm::vec3 t_end, float t_duration) : start(t_start), end(t_end) {
 		begin_time = glfwGetTime();
 		end_time = begin_time + t_duration;
+
+		generateVao();
 	}
 	glm::vec3 start;
 	glm::vec3 end;
 	double end_time;
 	double begin_time;
+
+	GLuint vao;
+
+private:
+	void generateVao() {
+		GLfloat vertices[] = {
+			0, 0, 0,
+			end.x, end.y, end.z
+		};
+
+		GLuint vbo;
+		gl::GenVertexArrays(1, &vao);
+		gl::GenBuffers(1, &vbo);
+
+		gl::BindVertexArray(vao);
+		gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
+		gl::BufferData(gl::ARRAY_BUFFER, sizeof(vertices), vertices, gl::STATIC_DRAW);
+
+		gl::VertexAttribPointer(0, 3, gl::FLOAT, 0, 3 * sizeof(GLfloat), (GLvoid*)0);
+		gl::EnableVertexAttribArray(0);
+	};
 };
 
 Debug::Debug() {
@@ -58,8 +81,11 @@ void Debug::internal_renderLine(const Line& line, glm::mat4 view, glm::mat4 proj
 	line_shader.setUniform("view", view);
 	line_shader.setUniform("projection", projection);
 
-	// Draw a cached line using the offset from start to end
-	//ImmediateDraw::drawLine(line.end - line.start);
+	
+	gl::BindVertexArray(line.vao);
+	gl::LineWidth(2);
+	gl::DrawArrays(gl::LINES, 0, 2);
+	gl::BindVertexArray(0);
 
 	gl::UseProgram(0);
 }

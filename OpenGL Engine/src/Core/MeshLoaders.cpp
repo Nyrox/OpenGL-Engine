@@ -53,9 +53,6 @@ namespace MeshLoaders {
 				if (tokens[1] == "vertex") {
 					mesh.vertex_count = std::stoi(tokens[2]);
 				} 
-				else if (tokens[1] == "face") {
-					mesh.face_count = std::stoi(tokens[2]);
-				}
 				continue;
 			}
 
@@ -102,6 +99,11 @@ namespace MeshLoaders {
 			switch (values[0]) {
 			case 3:
 				// TODO: Implement parsing triangles
+				indices.reserve(indices.size() + 3);
+
+				indices.push_back(values[1]);
+				indices.push_back(values[2]);
+				indices.push_back(values[3]);
 				break;
 			case 4:
 				// TODO: Benchmark how much this reserve helps, if at all
