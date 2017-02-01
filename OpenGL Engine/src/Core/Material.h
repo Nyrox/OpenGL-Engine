@@ -6,6 +6,9 @@ using glm::vec3;
 
 class Shader;
 
+/*
+	Stores all the data neccessary to render a mesh
+*/
 struct Material {
 	Material(float shininess = 64) : shininess(shininess) {
 		forward_pass_override = nullptr;

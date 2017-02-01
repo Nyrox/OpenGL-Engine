@@ -2,6 +2,9 @@
 #include <Core/Shader.h>
 #include <vector>
 
+/*
+	Provides various utilities for debugging applications at runtime.
+*/
 class Debug {
 public:
 

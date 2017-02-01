@@ -5,6 +5,9 @@
 
 #include <memory>
 
+/*
+	Represents a model that can be rendered using the standard shader.
+*/
 class Model {
 public:
 

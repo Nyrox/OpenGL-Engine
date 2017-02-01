@@ -4,10 +4,9 @@
 #include <Core/Shader.h>
 #include <Core/Model.h>
 #include <Core/Light.h>
+#include <Core\Skybox.h>
 
 #include <list>
-#include <vector>
-#include <Core\Skybox.h>
 
 class Renderer {
 public:

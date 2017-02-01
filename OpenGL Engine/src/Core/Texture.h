@@ -1,9 +1,12 @@
 #pragma once
-
 #include <gl_core_4_3.hpp>
 #include <string>
 
 
+/*
+	Responsible for loading 2D textures.
+	TODO: Rethink the purpose and implementation of this class.
+*/
 class Texture {
 public:
 	Texture();
