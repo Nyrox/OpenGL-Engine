@@ -286,13 +286,13 @@ int main() {
 				double mouse_x, mouse_y;
 				glfwGetCursorPos(window, &mouse_x, &mouse_y);
 
-				glm::vec3 ray;
+				glm::vec3 ray_screen;
 				// 3d normalized device coords
-				ray.x = (2.0f * mouse_x) / 1280 - 1.0f;
-				ray.y = 1.0f - (2.0f * mouse_y) / 720.f;
-				ray.z = 1.0f;
+				ray_screen.x = (2.0f * mouse_x) / 1280 - 1.0f;
+				ray_screen.y = 1.0f - (2.0f * mouse_y) / 720.f;
+				ray_screen.z = 1.0f;
 				// Homogenous Clip coords
-				glm::vec4 ray_clip = glm::vec4(ray.x, ray.y, -1.0, 1.0);
+				glm::vec4 ray_clip = glm::vec4(ray_screen.x, ray_screen.y, -1.0, 1.0);
 				// View space
 				glm::vec4 ray_view = glm::inverse(renderer.projection) * ray_clip;
 				ray_view = glm::vec4(ray_view.x, ray_view.y, -1.0, 0.0);
@@ -300,9 +300,62 @@ int main() {
 				glm::vec3 ray_world = glm::vec3((glm::inverse(renderer.camera->getViewMatrix()) * ray_view));
 				ray_world = glm::normalize(ray_world);
 
+				
+				struct Ray {
+					Ray(glm::vec3 t_origin, glm::vec3 t_direction) : origin(t_origin), direction(t_direction) {
+						inverse_direction = 1.f / t_direction;
+					};
+
+					glm::vec3 origin, direction, inverse_direction;
+				};
+
+				struct AABB {
+					AABB(glm::vec3 t_min, glm::vec3 t_max) : min(t_min), max(t_max) {
+
+					};
+
+					glm::vec3 min, max;
+
+					bool intersects(const Ray& ray) {
+
+						float txmin, txmax;
+						float tymin, tymax;
+						
+						// Convenience, because *this is ugli
+						AABB& bounds = *this;
+
+						txmin = (bounds[ray.inverse_direction.x < 0].x - ray.origin.x) * ray.inverse_direction.x;
+						txmax = (bounds[1 - ray.inverse_direction.x < 0].x - ray.origin.x) * ray.inverse_direction.x;
+						tymin = (bounds[ray.inverse_direction.y < 0].y - ray.origin.y) * ray.inverse_direction.y;
+						tymax = (bounds[1 - ray.inverse_direction.y < 0].y - ray.origin.y) * ray.inverse_direction.y;
+
+						if ((txmin > tymax) || (tymin > txmax)) return false;
+						if (tymin > txmin) txmin = tymin;
+						if (tymax < txmax) txmax = tymax;
+
+						float tzmin, tzmax;
+
+						tzmin = (bounds[ray.inverse_direction.z < 0].z - ray.origin.z) * ray.inverse_direction.z;
+						tzmax = (bounds[1 - ray.inverse_direction.z < 0].z - ray.origin.z) * ray.inverse_direction.z;
+
+						if ((txmin > tzmax) || (tzmin > txmax)) return false;
+						
+
+						return true;
+					};
+
+					// Very ugly hack at incredibly low grace
+					glm::vec3 operator[](std::size_t i){
+						if (i > 1) { throw std::out_of_range("Tried to access AABB bounds out of range"); }
+						return i == 0 ? min : max;
+					};
+				};
+
+				Ray ray(camera.position, ray_world);
+				AABB box({ -5, -3, -7 }, glm::vec3(-5, -3, -7) + glm::vec3(1));
 
 				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
-				std::cout << ray_world.x << " - " << ray_world.y << " - " << ray_world.z << "\n";
+				std::cout << "\nRay intersected test cube: " << box.intersects(ray) << "\n\n";
 			}
 		};
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);

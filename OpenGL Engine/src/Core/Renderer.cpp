@@ -189,7 +189,9 @@ void Renderer::render() {
 			it.mesh->draw();
 		}
 	}
-
+	forward_render_shader.bind();
+	forward_render_shader.setUniform("model", glm::translate(glm::vec3{ -5, -3, -7 }));
+	ImmediateDraw::drawCube(glm::vec3{ 1.f });
 
 	transparents.sort([&](const Model& a, const Model& b) {
 		return glm::distance(camera->position, a.transform.position) > glm::distance(camera->position, b.transform.position);
