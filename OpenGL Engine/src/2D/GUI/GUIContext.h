@@ -1,6 +1,6 @@
 #pragma once
-#include <Shader.h>
-#include <2D/Widget.h>
+#include <Core/Shader.h>
+#include <2D/GUI/Widget.h>
 
 #include <vector>
 

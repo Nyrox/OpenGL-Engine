@@ -1,5 +1,5 @@
 #pragma once
-#include <Shader.h>
+#include <Core/Shader.h>
 #include <vector>
 
 class Debug {

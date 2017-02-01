@@ -1,6 +1,6 @@
 #pragma once
-#include <2D/Widget.h>
-#include <2D/Sprite.h>
+#include <2D/GUI/Widget.h>
+#include <2D/GUI/Sprite.h>
 
 
 class Button : public Widget {

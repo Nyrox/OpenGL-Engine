@@ -3,7 +3,7 @@
 #include <string>
 
 #include <Core/Material.h>
-#include <Light.h>
+#include <Core/Light.h>
 
 class Shader {
 public:

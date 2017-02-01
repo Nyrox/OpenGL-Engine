@@ -1,9 +1,9 @@
 #pragma once
-#include <Framebuffer.h>
+#include <Core/Framebuffer.h>
 #include <Core/Camera.h>
-#include <Shader.h>
+#include <Core/Shader.h>
 #include <Core/Model.h>
-#include <Light.h>
+#include <Core/Light.h>
 
 #include <list>
 #include <vector>

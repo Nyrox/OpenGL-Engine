@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Shader.h>
-#include <Texture.h>
+#include <Core/Shader.h>
+#include <Core/Texture.h>
 
 /*
 	Defines a sprite in § dimensional space

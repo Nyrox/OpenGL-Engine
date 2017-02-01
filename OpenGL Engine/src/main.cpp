@@ -1,35 +1,19 @@
 #include <gl_core_4_3.hpp>
 #include <GLFW/glfw3.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <Core/Camera.h>
-#include <Shader.h>
-#include <Texture.h>
-#include <Cube.h>
-#include <Plane.h>
-#include <iostream>
-#include <Core/Mesh.h>
-#include <2D/Sprite.h>
-#include <Framebuffer.h>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <Core/Renderer.h>
-#include <2D/GUIContext.h>
-#include <Core/ImmediateDraw.h>
-#include <Terrain.h>
-#include <RessourceManager.h>
-#include <Core\Image.h>
-#include <Core\Skybox.h>
+#include <Core\Renderer.h>
+#include <Core\RessourceManager.h>
 #include <Core\Debug.h>
+#include <Core\Terrain.h>
+#include <Core\Image.h>
+
+#include <2D\GUI\GUIContext.h>
+
+#include <iostream>
+#include <functional>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
-
-constexpr float SHADOWMAP_NEAR_PLANE = 0.1f;
-constexpr float SHADOWMAP_FAR_PLANE = 100.f;
-
 
 std::function<void(GLFWwindow*, int, int, int)> mouse_callback = nullptr;
 void glfw_mouse_callback(GLFWwindow* window, int button, int action, int mods) {
@@ -51,12 +35,41 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 
-void CALLBACK ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) {
-	std::cout << message << std::endl;
-	
-	if (severity == gl::DEBUG_SEVERITY_HIGH) {
-		std::cin.get();
-	}
+void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, void *userParam) {
+	// ignore non-significant error/warning codes
+	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
+
+	std::cout << "---------------" << std::endl;
+	std::cout << "Debug message (" << id << "): " << message << std::endl;
+
+	switch (source)	{
+		case gl::DEBUG_SOURCE_API:             std::cout << "Source: API"; break;
+		case gl::DEBUG_SOURCE_WINDOW_SYSTEM:   std::cout << "Source: Window System"; break;
+		case gl::DEBUG_SOURCE_SHADER_COMPILER: std::cout << "Source: Shader Compiler"; break;
+		case gl::DEBUG_SOURCE_THIRD_PARTY:     std::cout << "Source: Third Party"; break;
+		case gl::DEBUG_SOURCE_APPLICATION:     std::cout << "Source: Application"; break;
+		case gl::DEBUG_SOURCE_OTHER:           std::cout << "Source: Other"; break;
+	} std::cout << std::endl;
+
+	switch (type) {
+		case gl::DEBUG_TYPE_ERROR:               std::cout << "Type: Error"; break;
+		case gl::DEBUG_TYPE_DEPRECATED_BEHAVIOR: std::cout << "Type: Deprecated Behaviour"; break;
+		case gl::DEBUG_TYPE_UNDEFINED_BEHAVIOR:  std::cout << "Type: Undefined Behaviour"; break;
+		case gl::DEBUG_TYPE_PORTABILITY:         std::cout << "Type: Portability"; break;
+		case gl::DEBUG_TYPE_PERFORMANCE:         std::cout << "Type: Performance"; break;
+		case gl::DEBUG_TYPE_MARKER:              std::cout << "Type: Marker"; break;
+		case gl::DEBUG_TYPE_PUSH_GROUP:          std::cout << "Type: Push Group"; break;
+		case gl::DEBUG_TYPE_POP_GROUP:           std::cout << "Type: Pop Group"; break;
+		case gl::DEBUG_TYPE_OTHER:               std::cout << "Type: Other"; break;
+	} std::cout << std::endl;
+
+	switch (severity) {
+		case gl::DEBUG_SEVERITY_HIGH:         std::cout << "Severity: high"; break;
+		case gl::DEBUG_SEVERITY_MEDIUM:       std::cout << "Severity: medium"; break;
+		case gl::DEBUG_SEVERITY_LOW:          std::cout << "Severity: low"; break;
+		case gl::DEBUG_SEVERITY_NOTIFICATION: std::cout << "Severity: notification"; break;
+	} std::cout << std::endl;
+	std::cout << std::endl;
 }
 
 #include <Editor\Editor.h>
@@ -108,7 +121,6 @@ int main() {
 	Renderer renderer({ 1280, 720 });
 	renderer.camera = &camera;
 
-	glm::mat4 view = glm::translate(glm::mat4(), { 0, 0, -3 });
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.f / 720.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
 
 	renderer.projection = projection;
@@ -135,13 +147,6 @@ int main() {
 	dirLight.specular = { 0.4, 0.4, 0.4 };
 
 	renderer.addDirectionalLight(dirLight);
-
-	glm::mat4 lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, SHADOWMAP_NEAR_PLANE, SHADOWMAP_FAR_PLANE);
-
-	//Texture lampTexture;
-	//lampTexture.loadFromFile("assets/lamp_icon.png", gl::RGBA);
-	//Sprite lampIcon(1, 1, &lampTexture);
-	//Sprite lampIcon2(1, 1, &lampTexture);
 
 	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
 	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
@@ -188,38 +193,6 @@ int main() {
 	
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
-
-	GLuint vbo, vao;
-
-	GLfloat vertices[] = {   // Vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	gl::GenVertexArrays(1, &vao);
-	gl::GenBuffers(1, &vbo);
-	gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-	gl::BufferData(gl::ARRAY_BUFFER, sizeof(vertices), &vertices, gl::STATIC_DRAW);
-	  
-	gl::BindVertexArray(vao);
-	// Positions
-	gl::EnableVertexAttribArray(0);
-	gl::VertexAttribPointer(0, 2, gl::FLOAT, 0, 4 * sizeof(GLfloat), (GLvoid*)0);
-	// UVS
-	gl::EnableVertexAttribArray(1);
-	gl::VertexAttribPointer(1, 2, gl::FLOAT, 0, 4 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-
-	gl::BindVertexArray(0);
-
-	auto setCommonUniforms = [&](Shader& shader) {
-		shader.setUniform("cameraPos", camera.position);
-		
-	};
 
 	bool rightMouseButtonIsDown = false;
 	glm::vec2 cursorLastFrame;
@@ -355,25 +328,13 @@ int main() {
 				AABB box({ -5, -3, -7 }, glm::vec3(-5, -3, -7) + glm::vec3(1));
 
 				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
-				std::cout << "\nRay intersected test cube: " << box.intersects(ray) << "\n\n";
+				std::cout << "Ray intersected test cube: " << box.intersects(ray) << std::endl;
 			}
 		};
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
-
-		/*
-			Logic
-		*/
-		light.position.z = sin(glfwGetTime()) * 2;
-		light2.position.z += sin(glfwGetTime()) / 15;
-
-		float adjacent = light.position.z - camera.position.z;
-		float hypotenuse = std::sqrt(std::pow(adjacent, 2) + std::pow(light.position.x - camera.position.x, 2));
-		//lampIcon.yaw = glm::degrees(std::atan2(adjacent, hypotenuse)) + 45;
-
 	};
 	
 	GUIContext gui_context(1280, 720);
-
 	
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
@@ -400,12 +361,10 @@ int main() {
 		renderer.render();
 		Debug::render(renderer.camera->getViewMatrix(), renderer.projection);
 
-		gui_context.render();
-		
+		gui_context.render();		
 
 		glfwSwapBuffers(window);
 	}
-
 
 	glfwTerminate();
 }

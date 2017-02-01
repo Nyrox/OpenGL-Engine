@@ -1,9 +1,10 @@
 #include "Renderer.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <iostream>
-#include <GLFW/glfw3.h>
 #include <Core/ImmediateDraw.h>
+
+#include <GLFW\glfw3.h>
+
 #include <algorithm>
+#include <iostream>
 
 Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ backbuffer_width, backbuffer_height }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
