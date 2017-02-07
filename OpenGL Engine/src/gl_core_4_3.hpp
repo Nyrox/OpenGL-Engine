@@ -174,11 +174,26 @@ namespace gl
 			int m_numMissing;
 		};
 		
+		extern LoadTest var_ARB_direct_state_access;
 		extern LoadTest var_KHR_debug;
 		
 	} //namespace exts
 	enum
 	{
+		QUERY_TARGET                     = 0x82EA,
+		TEXTURE_BINDING_1D               = 0x8068,
+		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
+		TEXTURE_BINDING_2D               = 0x8069,
+		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
+		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
+		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
+		TEXTURE_BINDING_3D               = 0x806A,
+		TEXTURE_BINDING_BUFFER           = 0x8C2C,
+		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
+		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
+		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
+		TEXTURE_TARGET                   = 0x1006,
+		
 		BUFFER                           = 0x82E0,
 		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
 		DEBUG_CALLBACK_FUNCTION          = 0x8244,
@@ -393,8 +408,8 @@ namespace gl
 		TEXTURE_1D                       = 0x0DE0,
 		TEXTURE_2D                       = 0x0DE1,
 		TEXTURE_ALPHA_SIZE               = 0x805F,
-		TEXTURE_BINDING_1D               = 0x8068,
-		TEXTURE_BINDING_2D               = 0x8069,
+		//TEXTURE_BINDING_1D taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D taken from ext: ARB_direct_state_access
 		TEXTURE_BLUE_SIZE                = 0x805E,
 		TEXTURE_BORDER_COLOR             = 0x1004,
 		TEXTURE_GREEN_SIZE               = 0x805D,
@@ -442,7 +457,7 @@ namespace gl
 		SMOOTH_POINT_SIZE_RANGE          = 0x0B12,
 		TEXTURE_3D                       = 0x806F,
 		TEXTURE_BASE_LEVEL               = 0x813C,
-		TEXTURE_BINDING_3D               = 0x806A,
+		//TEXTURE_BINDING_3D taken from ext: ARB_direct_state_access
 		TEXTURE_DEPTH                    = 0x8071,
 		TEXTURE_MAX_LEVEL                = 0x813D,
 		TEXTURE_MAX_LOD                  = 0x813B,
@@ -511,7 +526,7 @@ namespace gl
 		TEXTURE7                         = 0x84C7,
 		TEXTURE8                         = 0x84C8,
 		TEXTURE9                         = 0x84C9,
-		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
+		//TEXTURE_BINDING_CUBE_MAP taken from ext: ARB_direct_state_access
 		TEXTURE_COMPRESSED               = 0x86A1,
 		TEXTURE_COMPRESSED_IMAGE_SIZE    = 0x86A0,
 		TEXTURE_COMPRESSION_HINT         = 0x84EF,
@@ -877,8 +892,8 @@ namespace gl
 		TEXTURE_1D_ARRAY                 = 0x8C18,
 		TEXTURE_2D_ARRAY                 = 0x8C1A,
 		TEXTURE_ALPHA_TYPE               = 0x8C13,
-		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
-		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
+		//TEXTURE_BINDING_1D_ARRAY taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D_ARRAY taken from ext: ARB_direct_state_access
 		TEXTURE_BLUE_TYPE                = 0x8C12,
 		TEXTURE_DEPTH_TYPE               = 0x8C16,
 		TEXTURE_GREEN_TYPE               = 0x8C11,
@@ -942,8 +957,8 @@ namespace gl
 		SAMPLER_2D_RECT_SHADOW           = 0x8B64,
 		SAMPLER_BUFFER                   = 0x8DC2,
 		SIGNED_NORMALIZED                = 0x8F9C,
-		TEXTURE_BINDING_BUFFER           = 0x8C2C,
-		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
+		//TEXTURE_BINDING_BUFFER taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_RECTANGLE taken from ext: ARB_direct_state_access
 		TEXTURE_BUFFER                   = 0x8C2A,
 		TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D,
 		TEXTURE_RECTANGLE                = 0x84F5,
@@ -1022,8 +1037,8 @@ namespace gl
 		SYNC_STATUS                      = 0x9114,
 		TEXTURE_2D_MULTISAMPLE           = 0x9100,
 		TEXTURE_2D_MULTISAMPLE_ARRAY     = 0x9102,
-		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
-		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
+		//TEXTURE_BINDING_2D_MULTISAMPLE taken from ext: ARB_direct_state_access
+		//TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY taken from ext: ARB_direct_state_access
 		TEXTURE_CUBE_MAP_SEAMLESS        = 0x884F,
 		TEXTURE_FIXED_SAMPLE_LOCATIONS   = 0x9107,
 		TEXTURE_SAMPLES                  = 0x9106,
@@ -1121,7 +1136,7 @@ namespace gl
 		TESS_GEN_POINT_MODE              = 0x8E79,
 		TESS_GEN_SPACING                 = 0x8E77,
 		TESS_GEN_VERTEX_ORDER            = 0x8E78,
-		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
+		//TEXTURE_BINDING_CUBE_MAP_ARRAY taken from ext: ARB_direct_state_access
 		TEXTURE_CUBE_MAP_ARRAY           = 0x9009,
 		TRANSFORM_FEEDBACK               = 0x8E22,
 		TRANSFORM_FEEDBACK_BINDING       = 0x8E25,
@@ -1540,6 +1555,104 @@ namespace gl
 		VIEW_COMPATIBILITY_CLASS         = 0x82B6,
 		
 	};
+	extern void (CODEGEN_FUNCPTR *BindTextureUnit)(GLuint unit, GLuint texture);
+	extern void (CODEGEN_FUNCPTR *BlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+	extern GLenum (CODEGEN_FUNCPTR *CheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
+	extern void (CODEGEN_FUNCPTR *ClearNamedBufferData)(GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void * data);
+	extern void (CODEGEN_FUNCPTR *ClearNamedBufferSubData)(GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void * data);
+	extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfi)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat depth, GLint stencil);
+	extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferfv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat * value);
+	extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint * value);
+	extern void (CODEGEN_FUNCPTR *ClearNamedFramebufferuiv)(GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint * value);
+	extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void * data);
+	extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLsizei imageSize, const void * data);
+	extern void (CODEGEN_FUNCPTR *CompressedTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLsizei imageSize, const void * data);
+	extern void (CODEGEN_FUNCPTR *CopyNamedBufferSubData)(GLuint readBuffer, GLuint writeBuffer, GLintptr readOffset, GLintptr writeOffset, GLsizeiptr size);
+	extern void (CODEGEN_FUNCPTR *CopyTextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+	extern void (CODEGEN_FUNCPTR *CopyTextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+	extern void (CODEGEN_FUNCPTR *CopyTextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+	extern void (CODEGEN_FUNCPTR *CreateBuffers)(GLsizei n, GLuint * buffers);
+	extern void (CODEGEN_FUNCPTR *CreateFramebuffers)(GLsizei n, GLuint * framebuffers);
+	extern void (CODEGEN_FUNCPTR *CreateProgramPipelines)(GLsizei n, GLuint * pipelines);
+	extern void (CODEGEN_FUNCPTR *CreateQueries)(GLenum target, GLsizei n, GLuint * ids);
+	extern void (CODEGEN_FUNCPTR *CreateRenderbuffers)(GLsizei n, GLuint * renderbuffers);
+	extern void (CODEGEN_FUNCPTR *CreateSamplers)(GLsizei n, GLuint * samplers);
+	extern void (CODEGEN_FUNCPTR *CreateTextures)(GLenum target, GLsizei n, GLuint * textures);
+	extern void (CODEGEN_FUNCPTR *CreateTransformFeedbacks)(GLsizei n, GLuint * ids);
+	extern void (CODEGEN_FUNCPTR *CreateVertexArrays)(GLsizei n, GLuint * arrays);
+	extern void (CODEGEN_FUNCPTR *DisableVertexArrayAttrib)(GLuint vaobj, GLuint index);
+	extern void (CODEGEN_FUNCPTR *EnableVertexArrayAttrib)(GLuint vaobj, GLuint index);
+	extern void (CODEGEN_FUNCPTR *FlushMappedNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length);
+	extern void (CODEGEN_FUNCPTR *GenerateTextureMipmap)(GLuint texture);
+	extern void (CODEGEN_FUNCPTR *GetCompressedTextureImage)(GLuint texture, GLint level, GLsizei bufSize, void * pixels);
+	extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteri64v)(GLuint buffer, GLenum pname, GLint64 * params);
+	extern void (CODEGEN_FUNCPTR *GetNamedBufferParameteriv)(GLuint buffer, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetNamedBufferPointerv)(GLuint buffer, GLenum pname, void ** params);
+	extern void (CODEGEN_FUNCPTR *GetNamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, void * data);
+	extern void (CODEGEN_FUNCPTR *GetNamedFramebufferAttachmentParameteriv)(GLuint framebuffer, GLenum attachment, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetNamedFramebufferParameteriv)(GLuint framebuffer, GLenum pname, GLint * param);
+	extern void (CODEGEN_FUNCPTR *GetNamedRenderbufferParameteriv)(GLuint renderbuffer, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetQueryBufferObjecti64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+	extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+	extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectui64v)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+	extern void (CODEGEN_FUNCPTR *GetQueryBufferObjectuiv)(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+	extern void (CODEGEN_FUNCPTR *GetTextureImage)(GLuint texture, GLint level, GLenum format, GLenum type, GLsizei bufSize, void * pixels);
+	extern void (CODEGEN_FUNCPTR *GetTextureLevelParameterfv)(GLuint texture, GLint level, GLenum pname, GLfloat * params);
+	extern void (CODEGEN_FUNCPTR *GetTextureLevelParameteriv)(GLuint texture, GLint level, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetTextureParameterIiv)(GLuint texture, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetTextureParameterIuiv)(GLuint texture, GLenum pname, GLuint * params);
+	extern void (CODEGEN_FUNCPTR *GetTextureParameterfv)(GLuint texture, GLenum pname, GLfloat * params);
+	extern void (CODEGEN_FUNCPTR *GetTextureParameteriv)(GLuint texture, GLenum pname, GLint * params);
+	extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki64_v)(GLuint xfb, GLenum pname, GLuint index, GLint64 * param);
+	extern void (CODEGEN_FUNCPTR *GetTransformFeedbacki_v)(GLuint xfb, GLenum pname, GLuint index, GLint * param);
+	extern void (CODEGEN_FUNCPTR *GetTransformFeedbackiv)(GLuint xfb, GLenum pname, GLint * param);
+	extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexed64iv)(GLuint vaobj, GLuint index, GLenum pname, GLint64 * param);
+	extern void (CODEGEN_FUNCPTR *GetVertexArrayIndexediv)(GLuint vaobj, GLuint index, GLenum pname, GLint * param);
+	extern void (CODEGEN_FUNCPTR *GetVertexArrayiv)(GLuint vaobj, GLenum pname, GLint * param);
+	extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments);
+	extern void (CODEGEN_FUNCPTR *InvalidateNamedFramebufferSubData)(GLuint framebuffer, GLsizei numAttachments, const GLenum * attachments, GLint x, GLint y, GLsizei width, GLsizei height);
+	extern void * (CODEGEN_FUNCPTR *MapNamedBuffer)(GLuint buffer, GLenum access);
+	extern void * (CODEGEN_FUNCPTR *MapNamedBufferRange)(GLuint buffer, GLintptr offset, GLsizeiptr length, GLbitfield access);
+	extern void (CODEGEN_FUNCPTR *NamedBufferData)(GLuint buffer, GLsizeiptr size, const void * data, GLenum usage);
+	extern void (CODEGEN_FUNCPTR *NamedBufferStorage)(GLuint buffer, GLsizeiptr size, const void * data, GLbitfield flags);
+	extern void (CODEGEN_FUNCPTR *NamedBufferSubData)(GLuint buffer, GLintptr offset, GLsizeiptr size, const void * data);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffer)(GLuint framebuffer, GLenum buf);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferDrawBuffers)(GLuint framebuffer, GLsizei n, const GLenum * bufs);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferParameteri)(GLuint framebuffer, GLenum pname, GLint param);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferReadBuffer)(GLuint framebuffer, GLenum src);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferRenderbuffer)(GLuint framebuffer, GLenum attachment, GLenum renderbuffertarget, GLuint renderbuffer);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferTexture)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level);
+	extern void (CODEGEN_FUNCPTR *NamedFramebufferTextureLayer)(GLuint framebuffer, GLenum attachment, GLuint texture, GLint level, GLint layer);
+	extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorage)(GLuint renderbuffer, GLenum internalformat, GLsizei width, GLsizei height);
+	extern void (CODEGEN_FUNCPTR *NamedRenderbufferStorageMultisample)(GLuint renderbuffer, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height);
+	extern void (CODEGEN_FUNCPTR *TextureBuffer)(GLuint texture, GLenum internalformat, GLuint buffer);
+	extern void (CODEGEN_FUNCPTR *TextureBufferRange)(GLuint texture, GLenum internalformat, GLuint buffer, GLintptr offset, GLsizeiptr size);
+	extern void (CODEGEN_FUNCPTR *TextureParameterIiv)(GLuint texture, GLenum pname, const GLint * params);
+	extern void (CODEGEN_FUNCPTR *TextureParameterIuiv)(GLuint texture, GLenum pname, const GLuint * params);
+	extern void (CODEGEN_FUNCPTR *TextureParameterf)(GLuint texture, GLenum pname, GLfloat param);
+	extern void (CODEGEN_FUNCPTR *TextureParameterfv)(GLuint texture, GLenum pname, const GLfloat * param);
+	extern void (CODEGEN_FUNCPTR *TextureParameteri)(GLuint texture, GLenum pname, GLint param);
+	extern void (CODEGEN_FUNCPTR *TextureParameteriv)(GLuint texture, GLenum pname, const GLint * param);
+	extern void (CODEGEN_FUNCPTR *TextureStorage1D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width);
+	extern void (CODEGEN_FUNCPTR *TextureStorage2D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height);
+	extern void (CODEGEN_FUNCPTR *TextureStorage2DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLboolean fixedsamplelocations);
+	extern void (CODEGEN_FUNCPTR *TextureStorage3D)(GLuint texture, GLsizei levels, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth);
+	extern void (CODEGEN_FUNCPTR *TextureStorage3DMultisample)(GLuint texture, GLsizei samples, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
+	extern void (CODEGEN_FUNCPTR *TextureSubImage1D)(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const void * pixels);
+	extern void (CODEGEN_FUNCPTR *TextureSubImage2D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void * pixels);
+	extern void (CODEGEN_FUNCPTR *TextureSubImage3D)(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint zoffset, GLsizei width, GLsizei height, GLsizei depth, GLenum format, GLenum type, const void * pixels);
+	extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferBase)(GLuint xfb, GLuint index, GLuint buffer);
+	extern void (CODEGEN_FUNCPTR *TransformFeedbackBufferRange)(GLuint xfb, GLuint index, GLuint buffer, GLintptr offset, GLsizeiptr size);
+	extern GLboolean (CODEGEN_FUNCPTR *UnmapNamedBuffer)(GLuint buffer);
+	extern void (CODEGEN_FUNCPTR *VertexArrayAttribBinding)(GLuint vaobj, GLuint attribindex, GLuint bindingindex);
+	extern void (CODEGEN_FUNCPTR *VertexArrayAttribFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLboolean normalized, GLuint relativeoffset);
+	extern void (CODEGEN_FUNCPTR *VertexArrayAttribIFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+	extern void (CODEGEN_FUNCPTR *VertexArrayAttribLFormat)(GLuint vaobj, GLuint attribindex, GLint size, GLenum type, GLuint relativeoffset);
+	extern void (CODEGEN_FUNCPTR *VertexArrayBindingDivisor)(GLuint vaobj, GLuint bindingindex, GLuint divisor);
+	extern void (CODEGEN_FUNCPTR *VertexArrayElementBuffer)(GLuint vaobj, GLuint buffer);
+	extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffer)(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
+	extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffers)(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides);
+	
 	extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
 	extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
 	extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);

@@ -1,5 +1,30 @@
 #include "Framebuffer.h"
+#include <Core\Texture.h>
+
+
 #include <iostream>
+
+namespace Refactor {
+	
+	Framebuffer::Framebuffer() {
+		gl::CreateFramebuffers(1, &handle);
+	}
+	
+	Framebuffer::~Framebuffer() {
+		gl::DeleteFramebuffers(1, &handle);
+	}
+
+
+	void Framebuffer::bind() {
+		gl::BindFramebuffer(gl::FRAMEBUFFER, handle);
+	}
+
+	void Framebuffer::attach(GLenum attach, const Texture2D& texture) {
+		gl::NamedFramebufferTexture(handle, attach, texture.handle, 0);
+	}
+
+}
+
 
 Framebuffer::~Framebuffer() {
 	if(fbo != 0)

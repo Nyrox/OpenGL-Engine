@@ -2,6 +2,8 @@
 #include <gl_core_4_3.hpp>
 #include <glm/glm.hpp>
 
+
+
 enum FramebufferTypes {
 	RGB, DEPTH, CUBE_RGB, CUBE_DEPTH
 };
@@ -27,3 +29,23 @@ private:
 
 };
 
+
+/*
+	Refactored version of Framebuffer for transition purpose
+*/
+namespace Refactor {
+
+	class Texture2D;
+
+	class Framebuffer {
+	public:
+		Framebuffer(); 
+		~Framebuffer();
+
+		void attach(GLenum attach, const Texture2D& texture);
+
+		void bind();
+
+		GLuint handle;
+	};
+}

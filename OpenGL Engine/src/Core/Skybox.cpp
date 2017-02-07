@@ -10,10 +10,8 @@ Skybox::Skybox() {
 
 
 void Skybox::loadFromFiles(const std::array<std::string, 6>& paths) {
-
 	gl::GenTextures(1, &id);
 	gl::BindTexture(gl::TEXTURE_CUBE_MAP, id);
-
 
 	int32_t width, height, channels;
 	unsigned char* data;
@@ -47,5 +45,4 @@ void Skybox::render(glm::mat4 projection, glm::mat4 view) {
 	skybox.draw();
 
 	gl::DepthMask(true);
-
 }

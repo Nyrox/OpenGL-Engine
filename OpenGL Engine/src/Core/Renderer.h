@@ -4,8 +4,8 @@
 #include <Core/Shader.h>
 #include <Core/Model.h>
 #include <Core/Light.h>
-#include <Core\Skybox.h>
-
+#include <Core/Skybox.h>
+#include <Core/Texture.h>
 #include <list>
 
 class Renderer {
@@ -24,7 +24,8 @@ public:
 	glm::mat4 projection;
 private:
 	Skybox skybox;
-	Framebuffer postProcessBuffer;
+	Refactor::Framebuffer postProcessBuffer;
+	Refactor::Texture2D postProcessTexture;
 
 	Shader post_process_shader;
 	Shader shadow_pass_shader;
