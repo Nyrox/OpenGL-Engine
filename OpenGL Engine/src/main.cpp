@@ -39,6 +39,11 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 	// ignore non-significant error/warning codes
 	if (id == 131169 || id == 131185 || id == 131218 || id == 131204) return;
 
+	// ignore | --investigate later
+	// Usage warning: Generic vertex attribute array 1 uses a pointer with a small value (0x0000000C). Is this intended to be used as an offset into a buffer object?
+	if (id == 131076) return;
+
+
 	std::cout << "---------------" << std::endl;
 	std::cout << "Debug message (" << id << "): " << message << std::endl;
 
@@ -152,6 +157,8 @@ int main() {
 
 	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
 	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
+
+	auto new_texture = RessourceManager::create<Refactor::Texture2D>("new_texture");
 
 	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
 	cube_mesh->loadFromFile("assets/cube.ply");

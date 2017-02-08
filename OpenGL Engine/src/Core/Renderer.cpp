@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 
-Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessTexture(false) {
+Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ 1280, 720 }, RGB) {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
@@ -19,8 +19,8 @@ Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProces
 		"assets/skybox/blue_ft.tga"
 	});
 
-	postProcessTexture.allocate(gl::RGB8, { 1280, 720 });
-	postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
+	//postProcessTexture.allocate(gl::RGB8, { 1280, 720 });
+	//postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
 }
 
 void Renderer::addPointLight(PointLight light) {
@@ -221,8 +221,9 @@ void Renderer::render() {
 
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
-	postProcessTexture.bind(0);
-	
+	//postProcessTexture.bind(0);
+	postProcessBuffer.bindTexture(0);
+
 	Mesh canvas = Mesh::generatePlane({ 2, 2 });
 	canvas.draw();
 }
