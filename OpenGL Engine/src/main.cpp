@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 
 #include <Core\Renderer.h>
-#include <Core\RessourceManager.h>
 #include <Core\Debug.h>
 #include <Core\Terrain.h>
 #include <Core\Image.h>
@@ -155,10 +154,17 @@ int main() {
 
 	renderer.addDirectionalLight(dirLight);
 
-	Texture& texture = RessourceManager::loadTexture("container_diffuse", "assets/container2.png", gl::SRGB_ALPHA);
-	Texture& specular = RessourceManager::loadTexture("container_specular", "assets/container2_specular.png", gl::SRGB_ALPHA);
+	Texture2D texture;
+	texture.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
+	texture.loadFromFile("assets/container2.png", gl::RGBA);
 
-	auto new_texture = RessourceManager::create<Refactor::Texture2D>("new_texture");
+	Texture2D transparent;
+	transparent.allocate(gl::SRGB8_ALPHA8, { 1, 1 });
+	transparent.loadFromFile("assets/transparent.png", gl::RGBA);
+
+	Texture2D specular;
+	specular.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
+	specular.loadFromFile("assets/container2_specular.png", gl::RGBA);
 
 	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
 	cube_mesh->loadFromFile("assets/cube.ply");
@@ -166,31 +172,29 @@ int main() {
 	Model cube;
 	cube.transform.position = glm::vec3(1.25, 2, 0);
 	cube.mesh = cube_mesh;
-	cube.material.diffuse = texture;
+	cube.material.diffuse = &texture;
 	
 	Model betterCube;
 	betterCube.transform.position = glm::vec3(-1.25, 2, 3);
 	betterCube.mesh = cube_mesh;
-	betterCube.material.diffuse = texture;
+	betterCube.material.diffuse = &texture;
 
 	Model cross;
 	cross.transform.position = glm::vec3(-1.25, 1, 6);
 	cross.mesh = std::make_shared<Mesh>();
 	cross.mesh->loadFromFile("assets/cross.ply");
-	cross.material.diffuse = texture;
-
-	RessourceManager::loadTexture("transparent", "assets/transparent.png", gl::SRGB_ALPHA);
+	cross.material.diffuse = &texture;
 
 	Model reflectiveCube;
 	reflectiveCube.transform.position = glm::vec3(3, 2, 2);
 	reflectiveCube.mesh = cube_mesh;
-	reflectiveCube.material.diffuse = RessourceManager::getTexture("transparent");
+	reflectiveCube.material.diffuse = &transparent;
 	
 	Model reflectiveSphere;
 	reflectiveSphere.transform.position = glm::vec3(-4, 2, 3);
 	reflectiveSphere.mesh = std::make_shared<Mesh>();
 	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
-	reflectiveSphere.material.diffuse = RessourceManager::getTexture("transparent");
+	reflectiveSphere.material.diffuse = &transparent;
 
 	renderer.models.push_back(cube);
 	renderer.models.push_back(betterCube);
@@ -351,8 +355,12 @@ int main() {
 	Terrain terrain(1000, 1000);
 	terrain.generateMeshFromHeightmap(heightmap, 0.12);
 
+	Texture2D snowDiffuse;
+	snowDiffuse.allocate(gl::SRGB8, { 900, 600 });
+	snowDiffuse.loadFromFile("assets/snow_diffuse.jpg", gl::RGB);
+
 	terrain.model.transform.position = glm::vec3(-500, 10, -500);
-	terrain.model.material.diffuse = RessourceManager::loadTexture("snow_diffuse", "assets/snow_diffuse.jpg", gl::SRGB);
+	terrain.model.material.diffuse = &snowDiffuse;
 
 	renderer.models.push_back(terrain.model);
 	
@@ -364,7 +372,6 @@ int main() {
 
 		physics_update();
 
-		texture.bind(0);
 		specular.bind(1);
 
 		renderer.render();

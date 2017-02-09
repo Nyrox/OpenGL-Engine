@@ -19,10 +19,10 @@ struct Material {
 	Shader* shadow_pass_override;
 
 
-	Texture diffuse;
-	Texture specular;
+	Texture2D* diffuse;
+	Texture2D* specular;
 
-	Texture* heightmap;
+	Texture2D* heightmap;
 
 	float shininess;
 };

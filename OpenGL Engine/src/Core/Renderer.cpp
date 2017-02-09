@@ -166,8 +166,8 @@ void Renderer::render() {
 
 	// Draw opagues
 	for (auto& it : models) {
-		it.material.diffuse.bind(0);
-		it.material.specular.bind(1);
+		it.material.diffuse->bind(0);
+		//it.material.specular.bind(1);
 
 		if (it.material.forward_pass_override != nullptr) {
 			it.material.forward_pass_override->bind();
@@ -200,8 +200,8 @@ void Renderer::render() {
 
 	// Draw transparents
 	for (auto& it : transparents) {
-		it.material.diffuse.bind(0);
-		it.material.specular.bind(1);
+		it.material.diffuse->bind(0);
+		//it.material.specular.bind(1);
 		
 		forward_render_shader.bind();
 		forward_render_shader.setUniform("model", it.transform.getModelMatrix());

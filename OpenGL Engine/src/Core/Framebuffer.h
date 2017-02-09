@@ -29,14 +29,14 @@ private:
 
 };
 
+class Texture2D;
 
 /*
 	Refactored version of Framebuffer for transition purpose
 */
 namespace Refactor {
 
-	class Texture2D;
-
+	
 	class Framebuffer {
 	public:
 		Framebuffer(); 

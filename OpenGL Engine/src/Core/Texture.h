@@ -4,38 +4,33 @@
 #include <string>
 
 
-/*
-	Responsible for loading 2D textures.
-	TODO: Rethink the purpose and implementation of this class.
-*/
-class Texture {
+class Texture2D {
 public:
-	Texture();
+	Texture2D(bool mipmaps = true, GLenum texture_wrap = gl::REPEAT, GLenum filtering = gl::LINEAR);
+	Texture2D(Texture2D&& other);
 
-	GLuint id;
+	~Texture2D();
+
+	void bind(uint32_t texture_unit);
+	void allocate(GLenum format, glm::vec2 size);
+
+	/*
+		Loads a texture from file
+		Calling this without calling allocate first will result in a crash
+	*/
+	void loadFromFile(const std::string& file, GLenum pixelFormat = 0);
+
+	bool mipmaps;
+	GLenum texture_wrap;
+	GLenum filtering;
+	GLenum internalFormat;
+
+	GLuint handle;
 	int32_t width, height;
 
-	void loadFromFile(std::string filename, GLenum format);
-	void bind(int tu);
+private:
+	Texture2D(const Texture2D& other) = delete;
+
 };
 
-namespace Refactor {
-	
-	class Texture2D {
-	public:
-		Texture2D(bool mipmaps = true, GLenum texture_wrap = gl::REPEAT, GLenum filtering = gl::LINEAR);
-		~Texture2D();
 
-		void bind(uint32_t texture_unit);
-		void allocate(GLenum format, glm::vec2 size);
-
-
-		bool mipmaps;
-		GLenum texture_wrap;
-		GLenum filtering;
-
-		GLuint handle;
-		int32_t width, height;
-	};
-
-}
