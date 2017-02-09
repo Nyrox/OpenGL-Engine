@@ -13,6 +13,7 @@ public:
 
 	void bind(uint32_t texture_unit);
 	void allocate(GLenum format, glm::vec2 size);
+	void updateParameters();
 
 	/*
 		Loads a texture from file

@@ -7,6 +7,7 @@ Texture2D::Texture2D(bool t_mipmaps, GLenum t_texture_wrap, GLenum t_filtering)
 	: mipmaps(t_mipmaps), texture_wrap(t_texture_wrap), filtering(t_filtering)
 {
 	gl::CreateTextures(gl::TEXTURE_2D, 1, &handle);
+	updateParameters();
 }
 
 Texture2D::Texture2D(Texture2D&& other) {
@@ -20,6 +21,13 @@ Texture2D::~Texture2D() {
 void Texture2D::bind(uint32_t texture_unit) {
 	gl::ActiveTexture(gl::TEXTURE0 + texture_unit);
 	gl::BindTexture(gl::TEXTURE_2D, handle);
+}
+
+void Texture2D::updateParameters() {
+	gl::TextureParameteri(handle, gl::TEXTURE_WRAP_S, texture_wrap);
+	gl::TextureParameteri(handle, gl::TEXTURE_WRAP_T, texture_wrap);
+	gl::TextureParameteri(handle, gl::TEXTURE_MIN_FILTER, filtering);
+	gl::TextureParameteri(handle, gl::TEXTURE_MAG_FILTER, filtering);
 }
 
 void Texture2D::allocate(GLenum format, glm::vec2 size) {
