@@ -47,5 +47,8 @@ namespace Refactor {
 		void bind();
 
 		GLuint handle;
+
+	private:
+		Framebuffer(const Framebuffer& other) = delete;
 	};
 }

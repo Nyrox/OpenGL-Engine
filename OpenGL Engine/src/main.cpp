@@ -146,6 +146,7 @@ int main() {
 	renderer.addPointLight(light);
 	renderer.addPointLight(light2);
 
+
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.2f, -1.0f, -0.2f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
@@ -210,6 +211,14 @@ int main() {
 	bool rightMouseButtonIsDown = false;
 	glm::vec2 cursorLastFrame;
 
+	GUIContext gui_context(1280, 720);
+	Button* exitButton = gui_context.createWidget<Button>(200, 100);
+	exitButton->position = { 0, 0 };
+	exitButton->click_callback = [&]() {
+		glfwTerminate();
+		exit(EXIT_SUCCESS);
+	};
+
 	auto physics_update = [&]() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -266,11 +275,17 @@ int main() {
 			rightMouseButtonIsDown = false;
 		}
 
-
 		mouse_callback = [&](GLFWwindow* window, int button, int action, int mods) {
 			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
+				
 				double mouse_x, mouse_y;
 				glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
+				Event event;
+				event.click.x = mouse_x;
+				event.click.y = mouse_y;
+				event.type = Event::Click;
+				gui_context.handleEvent(event);
 
 				glm::vec3 ray_screen;
 				// 3d normalized device coords
@@ -347,8 +362,8 @@ int main() {
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
 	};
 	
-	GUIContext gui_context(1280, 720);
 	
+
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
 
@@ -369,15 +384,13 @@ int main() {
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
-
 		physics_update();
 
 		specular.bind(1);
 
 		renderer.render();
 		Debug::render(renderer.camera->getViewMatrix(), renderer.projection);
-
-		gui_context.render();		
+		gui_context.render();	
 
 		glfwSwapBuffers(window);
 	}

@@ -25,7 +25,7 @@ public:
 private:
 	Skybox skybox;
 	Framebuffer postProcessBuffer;
-	//Refactor::Texture2D postProcessTexture;
+	Texture2D postProcessTexture;
 
 	Shader post_process_shader;
 	Shader shadow_pass_shader;

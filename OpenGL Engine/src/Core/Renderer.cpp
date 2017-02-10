@@ -20,6 +20,7 @@ Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProces
 	});
 
 	//postProcessTexture.allocate(gl::RGB8, { 1280, 720 });
+	//postProcessBuffer.bind();
 	//postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
 }
 
@@ -115,8 +116,9 @@ void Renderer::render() {
 #ifdef GL_WIREFRAME
 	gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
 #endif
-	// Render scene
+	// Render scene	
 	postProcessBuffer.bind();
+
 	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
 	gl::Viewport(0, 0, 1280, 720);
 	gl::ClearColor(0.4f, 0.4f, 0.4f, 1.0f);
@@ -125,13 +127,14 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
-	
-	gl::Enable(gl::CULL_FACE);
-	gl::CullFace(gl::FRONT);
-	gl::FrontFace(gl::CW);
-
 	skybox.render(projection, camera->getViewMatrix());
 
+
+	gl::Enable(gl::CULL_FACE);
+	gl::CullFace(gl::BACK);
+	gl::FrontFace(gl::CCW);
+
+	
 	auto setUniforms = [&](Shader& shader) {
 		shader.setUniform("camera_position", camera->position);
 		shader.setUniform("view", camera->getViewMatrix());
@@ -217,12 +220,12 @@ void Renderer::render() {
 
 	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
 	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	gl::Clear(gl::COLOR_BUFFER_BIT);
+	//gl::Clear(gl::COLOR_BUFFER_BIT);
 
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
-	//postProcessTexture.bind(0);
 	postProcessBuffer.bindTexture(0);
+	//postProcessTexture.bind(0);
 
 	Mesh canvas = Mesh::generatePlane({ 2, 2 });
 	canvas.draw();

@@ -1,6 +1,6 @@
 #include "Mesh.h"
 #include <Core\MeshLoaders.h>
-
+#include <glm\gtx\transform.hpp>
 #include <iostream>
 
 void Mesh::draw() {
@@ -19,7 +19,7 @@ void Mesh::loadFromFile(const std::string& path) {
 }
 
 void Mesh::initRenderData(std::vector<Vertex> vertices, std::vector<uint32_t> indices) {
-
+	vertex_count = vertices.size();
 	index_count = indices.size();
 
 	gl::GenVertexArrays(1, &this->vao);
