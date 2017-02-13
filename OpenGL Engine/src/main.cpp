@@ -5,8 +5,8 @@
 #include <Core\Debug.h>
 #include <Core\Terrain.h>
 #include <Core\Image.h>
-
 #include <2D\GUI\GUIContext.h>
+#include <2D\Text.h>
 
 #include <iostream>
 #include <functional>
@@ -117,7 +117,10 @@ int main() {
 #else
 
 #endif
-
+	Font arial("assets/fonts/arial.ttf", 48);
+	Text fpsCounter;
+	fpsCounter.setFont(&arial);
+	fpsCounter.setString("Foobar492ax85");
 	gl::Viewport(0, 0, 1280, 720);
 
 	Camera camera;
@@ -390,7 +393,10 @@ int main() {
 
 		renderer.render();
 		Debug::render(renderer.camera->getViewMatrix(), renderer.projection);
-		gui_context.render();	
+		gui_context.render();
+
+
+		fpsCounter.render();
 
 		glfwSwapBuffers(window);
 	}

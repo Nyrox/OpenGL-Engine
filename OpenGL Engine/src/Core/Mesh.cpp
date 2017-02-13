@@ -22,17 +22,17 @@ void Mesh::initRenderData(std::vector<Vertex> vertices, std::vector<uint32_t> in
 	vertex_count = vertices.size();
 	index_count = indices.size();
 
-	gl::GenVertexArrays(1, &this->vao);
-	gl::GenBuffers(1, &vbo);
-	gl::GenBuffers(1, &ebo);
+	gl::CreateVertexArrays(1, &this->vao);
+	gl::CreateBuffers(1, &vbo);
+	gl::CreateBuffers(1, &ebo);
 
 	gl::BindVertexArray(this->vao);
 
 	gl::BindBuffer(gl::ARRAY_BUFFER, vbo);
-	gl::BufferData(gl::ARRAY_BUFFER, sizeof(Vertex) * vertices.size(), vertices.data(), gl::STATIC_DRAW);
+	gl::NamedBufferData(vbo, sizeof(Vertex) * vertices.size(), vertices.data(), gl::STATIC_DRAW);
 
 	gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
-	gl::BufferData(gl::ELEMENT_ARRAY_BUFFER, sizeof(uint32_t) * indices.size(), indices.data(), gl::STATIC_DRAW);
+	gl::NamedBufferData(ebo, sizeof(uint32_t) * indices.size(), indices.data(), gl::STATIC_DRAW);
 
 	
 	// Positions
