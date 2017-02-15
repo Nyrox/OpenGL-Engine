@@ -80,6 +80,64 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 #include <time.h>
 #include <functional>
 
+struct Ray {
+	Ray(glm::vec3 t_origin, glm::vec3 t_direction) : origin(t_origin), direction(t_direction) {
+		inverse_direction = 1.f / t_direction;
+	};
+
+	glm::vec3 origin, direction, inverse_direction;
+};
+
+struct AABB {
+	AABB(glm::vec3 t_min = glm::vec3(), glm::vec3 t_max = glm::vec3()) : min(t_min), max(t_max) {
+
+	};
+
+	glm::vec3 min, max;
+
+	bool intersects(const Ray& ray, float* tmin, glm::vec3* q) {
+		*tmin = 0.f;  // set to -FLT_MAX to get first hit on line
+		float tmax = std::numeric_limits<float>::max(); // max distance ray can travel
+								// for all 3 slabs
+		for (int i = 0; i < 3; i++)
+		{
+			if (abs(ray.direction[i]) < 0.0001) {
+				// Ray is parallel to slab. No hit if origin not within slab
+				if (ray.origin[i]  < this->min[i] || ray.origin[i] > this->max[i]) return false;
+			}
+			else
+			{
+				// Compute intersection t value of ray with near and far plane of slab
+				float ood = 1.f / ray.direction[i];
+				float t1 = (this->min[i] - ray.origin[i]) * ood;
+				float t2 = (this->max[i] - ray.origin[i]) * ood;
+				// make t1 be intersection with near plane, t2 with far plane
+				if (t1 > t2) std::swap(t1, t2);
+				// compute the intersection of slab intersection intervals
+				*tmin = std::max(*tmin, t1);
+				tmax = std::min(tmax, t2);
+				// Exit with no collision as soon as slab intersection becomes empty
+				if (*tmin > tmax) return false;
+			}
+		}
+		// Ray intersects all 3 slabs. Return point (q) and intersection t value  (tmin)
+		*q = ray.origin + ray.direction * *tmin;
+		return true;
+	};
+
+	// Very ugly hack at incredibly low grace
+	glm::vec3 operator[](std::size_t i) {
+		if (i > 1) { throw std::out_of_range("Tried to access AABB bounds out of range"); }
+		return i == 0 ? min : max;
+	};
+};
+
+struct House {
+	Model model;
+	AABB collision;
+};
+
+
 int main() {
 
 	srand(time(0));
@@ -208,6 +266,15 @@ int main() {
 	renderer.transparents.push_back(reflectiveCube);
 
 	
+	House house;
+	house.model.transform.position.x = 20;
+	house.model.mesh = cube_mesh;
+	house.model.material.diffuse = &texture;
+
+	renderer.models.push_back(house.model);
+
+
+
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 
@@ -305,61 +372,17 @@ int main() {
 				ray_world = glm::normalize(ray_world);
 
 				
-				struct Ray {
-					Ray(glm::vec3 t_origin, glm::vec3 t_direction) : origin(t_origin), direction(t_direction) {
-						inverse_direction = 1.f / t_direction;
-					};
-
-					glm::vec3 origin, direction, inverse_direction;
-				};
-
-				struct AABB {
-					AABB(glm::vec3 t_min, glm::vec3 t_max) : min(t_min), max(t_max) {
-
-					};
-
-					glm::vec3 min, max;
-
-					bool intersects(const Ray& ray) {
-
-						float txmin, txmax;
-						float tymin, tymax;
-						
-						// Convenience, because *this is ugli
-						AABB& bounds = *this;
-
-						txmin = (bounds[ray.inverse_direction.x < 0].x - ray.origin.x) * ray.inverse_direction.x;
-						txmax = (bounds[1 - ray.inverse_direction.x < 0].x - ray.origin.x) * ray.inverse_direction.x;
-						tymin = (bounds[ray.inverse_direction.y < 0].y - ray.origin.y) * ray.inverse_direction.y;
-						tymax = (bounds[1 - ray.inverse_direction.y < 0].y - ray.origin.y) * ray.inverse_direction.y;
-
-						if ((txmin > tymax) || (tymin > txmax)) return false;
-						if (tymin > txmin) txmin = tymin;
-						if (tymax < txmax) txmax = tymax;
-
-						float tzmin, tzmax;
-
-						tzmin = (bounds[ray.inverse_direction.z < 0].z - ray.origin.z) * ray.inverse_direction.z;
-						tzmax = (bounds[1 - ray.inverse_direction.z < 0].z - ray.origin.z) * ray.inverse_direction.z;
-
-						if ((txmin > tzmax) || (tzmin > txmax)) return false;
-						
-
-						return true;
-					};
-
-					// Very ugly hack at incredibly low grace
-					glm::vec3 operator[](std::size_t i){
-						if (i > 1) { throw std::out_of_range("Tried to access AABB bounds out of range"); }
-						return i == 0 ? min : max;
-					};
-				};
+				
 
 				Ray ray(camera.position, ray_world);
-				AABB box(cube.transform.position - glm::vec3(1), cube.transform.position + glm::vec3(1));
+				house.collision = AABB(house.model.transform.position - glm::vec3(1), house.model.transform.position + glm::vec3(1));
+				float min;
+				glm::vec3 q;
+				std::cout << house.collision.intersects(ray, &min, &q) << std::endl;
+
 
 				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
-				std::cout << "Ray intersected test cube: " << box.intersects(ray) << std::endl;
+				
 			}
 		};
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
