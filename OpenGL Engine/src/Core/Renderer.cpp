@@ -170,7 +170,9 @@ void Renderer::render() {
 	// Draw opagues
 	for (auto& it : models) {
 		it.material.diffuse->bind(0);
-		//it.material.specular.bind(1);
+		if		(std::holds_alternative<glm::vec3>(it.material.specular))  { std::get<glm::vec3>(it.material.specular); }
+		else if (std::holds_alternative<Texture2D*>(it.material.specular)) { std::get<Texture2D*>(it.material.specular)->bind(1); }
+
 
 		if (it.material.forward_pass_override != nullptr) {
 			it.material.forward_pass_override->bind();

@@ -174,26 +174,13 @@ namespace gl
 			int m_numMissing;
 		};
 		
-		extern LoadTest var_ARB_direct_state_access;
 		extern LoadTest var_KHR_debug;
+		extern LoadTest var_ARB_direct_state_access;
+		extern LoadTest var_EXT_texture_filter_anisotropic;
 		
 	} //namespace exts
 	enum
 	{
-		QUERY_TARGET                     = 0x82EA,
-		TEXTURE_BINDING_1D               = 0x8068,
-		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
-		TEXTURE_BINDING_2D               = 0x8069,
-		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
-		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
-		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
-		TEXTURE_BINDING_3D               = 0x806A,
-		TEXTURE_BINDING_BUFFER           = 0x8C2C,
-		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
-		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
-		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
-		TEXTURE_TARGET                   = 0x1006,
-		
 		BUFFER                           = 0x82E0,
 		CONTEXT_FLAG_DEBUG_BIT           = 0x00000002,
 		DEBUG_CALLBACK_FUNCTION          = 0x8244,
@@ -235,6 +222,23 @@ namespace gl
 		STACK_OVERFLOW                   = 0x0503,
 		STACK_UNDERFLOW                  = 0x0504,
 		VERTEX_ARRAY                     = 0x8074,
+		
+		QUERY_TARGET                     = 0x82EA,
+		TEXTURE_BINDING_1D               = 0x8068,
+		TEXTURE_BINDING_1D_ARRAY         = 0x8C1C,
+		TEXTURE_BINDING_2D               = 0x8069,
+		TEXTURE_BINDING_2D_ARRAY         = 0x8C1D,
+		TEXTURE_BINDING_2D_MULTISAMPLE   = 0x9104,
+		TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = 0x9105,
+		TEXTURE_BINDING_3D               = 0x806A,
+		TEXTURE_BINDING_BUFFER           = 0x8C2C,
+		TEXTURE_BINDING_CUBE_MAP         = 0x8514,
+		TEXTURE_BINDING_CUBE_MAP_ARRAY   = 0x900A,
+		TEXTURE_BINDING_RECTANGLE        = 0x84F6,
+		TEXTURE_TARGET                   = 0x1006,
+		
+		MAX_TEXTURE_MAX_ANISOTROPY_EXT   = 0x84FF,
+		TEXTURE_MAX_ANISOTROPY_EXT       = 0x84FE,
 		
 		ALPHA                            = 0x1906,
 		ALWAYS                           = 0x0207,
@@ -1555,6 +1559,18 @@ namespace gl
 		VIEW_COMPATIBILITY_CLASS         = 0x82B6,
 		
 	};
+	extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
+	extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
+	extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
+	extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
+	extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
+	extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
+	extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, void ** params);
+	extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
+	extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
+	extern void (CODEGEN_FUNCPTR *PopDebugGroup)(void);
+	extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
+	
 	extern void (CODEGEN_FUNCPTR *BindTextureUnit)(GLuint unit, GLuint texture);
 	extern void (CODEGEN_FUNCPTR *BlitNamedFramebuffer)(GLuint readFramebuffer, GLuint drawFramebuffer, GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 	extern GLenum (CODEGEN_FUNCPTR *CheckNamedFramebufferStatus)(GLuint framebuffer, GLenum target);
@@ -1653,17 +1669,6 @@ namespace gl
 	extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffer)(GLuint vaobj, GLuint bindingindex, GLuint buffer, GLintptr offset, GLsizei stride);
 	extern void (CODEGEN_FUNCPTR *VertexArrayVertexBuffers)(GLuint vaobj, GLuint first, GLsizei count, const GLuint * buffers, const GLintptr * offsets, const GLsizei * strides);
 	
-	extern void (CODEGEN_FUNCPTR *DebugMessageCallback)(GLDEBUGPROC callback, const void * userParam);
-	extern void (CODEGEN_FUNCPTR *DebugMessageControl)(GLenum source, GLenum type, GLenum severity, GLsizei count, const GLuint * ids, GLboolean enabled);
-	extern void (CODEGEN_FUNCPTR *DebugMessageInsert)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar * buf);
-	extern GLuint (CODEGEN_FUNCPTR *GetDebugMessageLog)(GLuint count, GLsizei bufSize, GLenum * sources, GLenum * types, GLuint * ids, GLenum * severities, GLsizei * lengths, GLchar * messageLog);
-	extern void (CODEGEN_FUNCPTR *GetObjectLabel)(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei * length, GLchar * label);
-	extern void (CODEGEN_FUNCPTR *GetObjectPtrLabel)(const void * ptr, GLsizei bufSize, GLsizei * length, GLchar * label);
-	extern void (CODEGEN_FUNCPTR *GetPointerv)(GLenum pname, void ** params);
-	extern void (CODEGEN_FUNCPTR *ObjectLabel)(GLenum identifier, GLuint name, GLsizei length, const GLchar * label);
-	extern void (CODEGEN_FUNCPTR *ObjectPtrLabel)(const void * ptr, GLsizei length, const GLchar * label);
-	extern void (CODEGEN_FUNCPTR *PopDebugGroup)(void);
-	extern void (CODEGEN_FUNCPTR *PushDebugGroup)(GLenum source, GLuint id, GLsizei length, const GLchar * message);
 	
 	extern void (CODEGEN_FUNCPTR *BlendFunc)(GLenum sfactor, GLenum dfactor);
 	extern void (CODEGEN_FUNCPTR *Clear)(GLbitfield mask);

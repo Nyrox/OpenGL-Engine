@@ -6,7 +6,7 @@
 
 class Texture2D {
 public:
-	Texture2D(bool mipmaps = true, GLenum texture_wrap = gl::REPEAT, GLenum filtering = gl::LINEAR);
+	Texture2D(bool mipmaps = true, GLenum texture_wrap = gl::REPEAT, GLenum filtering = gl::LINEAR_MIPMAP_LINEAR);
 	Texture2D(Texture2D&& other);
 
 	~Texture2D();

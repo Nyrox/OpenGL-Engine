@@ -90,10 +90,62 @@ namespace gl
 {
 	namespace exts
 	{
-		LoadTest var_ARB_direct_state_access;
 		LoadTest var_KHR_debug;
+		LoadTest var_ARB_direct_state_access;
+		LoadTest var_EXT_texture_filter_anisotropic;
 		
 	} //namespace exts
+	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECALLBACK)(GLDEBUGPROC, const void *);
+	PFNDEBUGMESSAGECALLBACK DebugMessageCallback = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECONTROL)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean);
+	PFNDEBUGMESSAGECONTROL DebugMessageControl = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGEINSERT)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *);
+	PFNDEBUGMESSAGEINSERT DebugMessageInsert = 0;
+	typedef GLuint (CODEGEN_FUNCPTR *PFNGETDEBUGMESSAGELOG)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *);
+	PFNGETDEBUGMESSAGELOG GetDebugMessageLog = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTLABEL)(GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
+	PFNGETOBJECTLABEL GetObjectLabel = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTPTRLABEL)(const void *, GLsizei, GLsizei *, GLchar *);
+	PFNGETOBJECTPTRLABEL GetObjectPtrLabel = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNGETPOINTERV)(GLenum, void **);
+	PFNGETPOINTERV GetPointerv = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNOBJECTLABEL)(GLenum, GLuint, GLsizei, const GLchar *);
+	PFNOBJECTLABEL ObjectLabel = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNOBJECTPTRLABEL)(const void *, GLsizei, const GLchar *);
+	PFNOBJECTPTRLABEL ObjectPtrLabel = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNPOPDEBUGGROUP)(void);
+	PFNPOPDEBUGGROUP PopDebugGroup = 0;
+	typedef void (CODEGEN_FUNCPTR *PFNPUSHDEBUGGROUP)(GLenum, GLuint, GLsizei, const GLchar *);
+	PFNPUSHDEBUGGROUP PushDebugGroup = 0;
+	
+	static int Load_KHR_debug()
+	{
+		int numFailed = 0;
+		DebugMessageCallback = reinterpret_cast<PFNDEBUGMESSAGECALLBACK>(IntGetProcAddress("glDebugMessageCallback"));
+		if(!DebugMessageCallback) ++numFailed;
+		DebugMessageControl = reinterpret_cast<PFNDEBUGMESSAGECONTROL>(IntGetProcAddress("glDebugMessageControl"));
+		if(!DebugMessageControl) ++numFailed;
+		DebugMessageInsert = reinterpret_cast<PFNDEBUGMESSAGEINSERT>(IntGetProcAddress("glDebugMessageInsert"));
+		if(!DebugMessageInsert) ++numFailed;
+		GetDebugMessageLog = reinterpret_cast<PFNGETDEBUGMESSAGELOG>(IntGetProcAddress("glGetDebugMessageLog"));
+		if(!GetDebugMessageLog) ++numFailed;
+		GetObjectLabel = reinterpret_cast<PFNGETOBJECTLABEL>(IntGetProcAddress("glGetObjectLabel"));
+		if(!GetObjectLabel) ++numFailed;
+		GetObjectPtrLabel = reinterpret_cast<PFNGETOBJECTPTRLABEL>(IntGetProcAddress("glGetObjectPtrLabel"));
+		if(!GetObjectPtrLabel) ++numFailed;
+		GetPointerv = reinterpret_cast<PFNGETPOINTERV>(IntGetProcAddress("glGetPointerv"));
+		if(!GetPointerv) ++numFailed;
+		ObjectLabel = reinterpret_cast<PFNOBJECTLABEL>(IntGetProcAddress("glObjectLabel"));
+		if(!ObjectLabel) ++numFailed;
+		ObjectPtrLabel = reinterpret_cast<PFNOBJECTPTRLABEL>(IntGetProcAddress("glObjectPtrLabel"));
+		if(!ObjectPtrLabel) ++numFailed;
+		PopDebugGroup = reinterpret_cast<PFNPOPDEBUGGROUP>(IntGetProcAddress("glPopDebugGroup"));
+		if(!PopDebugGroup) ++numFailed;
+		PushDebugGroup = reinterpret_cast<PFNPUSHDEBUGGROUP>(IntGetProcAddress("glPushDebugGroup"));
+		if(!PushDebugGroup) ++numFailed;
+		return numFailed;
+	}
+	
 	typedef void (CODEGEN_FUNCPTR *PFNBINDTEXTUREUNIT)(GLuint, GLuint);
 	PFNBINDTEXTUREUNIT BindTextureUnit = 0;
 	typedef void (CODEGEN_FUNCPTR *PFNBLITNAMEDFRAMEBUFFER)(GLuint, GLuint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum);
@@ -486,57 +538,6 @@ namespace gl
 		if(!VertexArrayVertexBuffer) ++numFailed;
 		VertexArrayVertexBuffers = reinterpret_cast<PFNVERTEXARRAYVERTEXBUFFERS>(IntGetProcAddress("glVertexArrayVertexBuffers"));
 		if(!VertexArrayVertexBuffers) ++numFailed;
-		return numFailed;
-	}
-	
-	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECALLBACK)(GLDEBUGPROC, const void *);
-	PFNDEBUGMESSAGECALLBACK DebugMessageCallback = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGECONTROL)(GLenum, GLenum, GLenum, GLsizei, const GLuint *, GLboolean);
-	PFNDEBUGMESSAGECONTROL DebugMessageControl = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNDEBUGMESSAGEINSERT)(GLenum, GLenum, GLuint, GLenum, GLsizei, const GLchar *);
-	PFNDEBUGMESSAGEINSERT DebugMessageInsert = 0;
-	typedef GLuint (CODEGEN_FUNCPTR *PFNGETDEBUGMESSAGELOG)(GLuint, GLsizei, GLenum *, GLenum *, GLuint *, GLenum *, GLsizei *, GLchar *);
-	PFNGETDEBUGMESSAGELOG GetDebugMessageLog = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTLABEL)(GLenum, GLuint, GLsizei, GLsizei *, GLchar *);
-	PFNGETOBJECTLABEL GetObjectLabel = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNGETOBJECTPTRLABEL)(const void *, GLsizei, GLsizei *, GLchar *);
-	PFNGETOBJECTPTRLABEL GetObjectPtrLabel = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNGETPOINTERV)(GLenum, void **);
-	PFNGETPOINTERV GetPointerv = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNOBJECTLABEL)(GLenum, GLuint, GLsizei, const GLchar *);
-	PFNOBJECTLABEL ObjectLabel = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNOBJECTPTRLABEL)(const void *, GLsizei, const GLchar *);
-	PFNOBJECTPTRLABEL ObjectPtrLabel = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNPOPDEBUGGROUP)(void);
-	PFNPOPDEBUGGROUP PopDebugGroup = 0;
-	typedef void (CODEGEN_FUNCPTR *PFNPUSHDEBUGGROUP)(GLenum, GLuint, GLsizei, const GLchar *);
-	PFNPUSHDEBUGGROUP PushDebugGroup = 0;
-	
-	static int Load_KHR_debug()
-	{
-		int numFailed = 0;
-		DebugMessageCallback = reinterpret_cast<PFNDEBUGMESSAGECALLBACK>(IntGetProcAddress("glDebugMessageCallback"));
-		if(!DebugMessageCallback) ++numFailed;
-		DebugMessageControl = reinterpret_cast<PFNDEBUGMESSAGECONTROL>(IntGetProcAddress("glDebugMessageControl"));
-		if(!DebugMessageControl) ++numFailed;
-		DebugMessageInsert = reinterpret_cast<PFNDEBUGMESSAGEINSERT>(IntGetProcAddress("glDebugMessageInsert"));
-		if(!DebugMessageInsert) ++numFailed;
-		GetDebugMessageLog = reinterpret_cast<PFNGETDEBUGMESSAGELOG>(IntGetProcAddress("glGetDebugMessageLog"));
-		if(!GetDebugMessageLog) ++numFailed;
-		GetObjectLabel = reinterpret_cast<PFNGETOBJECTLABEL>(IntGetProcAddress("glGetObjectLabel"));
-		if(!GetObjectLabel) ++numFailed;
-		GetObjectPtrLabel = reinterpret_cast<PFNGETOBJECTPTRLABEL>(IntGetProcAddress("glGetObjectPtrLabel"));
-		if(!GetObjectPtrLabel) ++numFailed;
-		GetPointerv = reinterpret_cast<PFNGETPOINTERV>(IntGetProcAddress("glGetPointerv"));
-		if(!GetPointerv) ++numFailed;
-		ObjectLabel = reinterpret_cast<PFNOBJECTLABEL>(IntGetProcAddress("glObjectLabel"));
-		if(!ObjectLabel) ++numFailed;
-		ObjectPtrLabel = reinterpret_cast<PFNOBJECTPTRLABEL>(IntGetProcAddress("glObjectPtrLabel"));
-		if(!ObjectPtrLabel) ++numFailed;
-		PopDebugGroup = reinterpret_cast<PFNPOPDEBUGGROUP>(IntGetProcAddress("glPopDebugGroup"));
-		if(!PopDebugGroup) ++numFailed;
-		PushDebugGroup = reinterpret_cast<PFNPUSHDEBUGGROUP>(IntGetProcAddress("glPushDebugGroup"));
-		if(!PushDebugGroup) ++numFailed;
 		return numFailed;
 	}
 	
@@ -2709,15 +2710,17 @@ namespace gl
 			
 			void InitializeMappingTable(std::vector<MapEntry> &table)
 			{
-				table.reserve(2);
-				table.push_back(MapEntry("GL_ARB_direct_state_access", &exts::var_ARB_direct_state_access, Load_ARB_direct_state_access));
+				table.reserve(3);
 				table.push_back(MapEntry("GL_KHR_debug", &exts::var_KHR_debug, Load_KHR_debug));
+				table.push_back(MapEntry("GL_ARB_direct_state_access", &exts::var_ARB_direct_state_access, Load_ARB_direct_state_access));
+				table.push_back(MapEntry("GL_EXT_texture_filter_anisotropic", &exts::var_EXT_texture_filter_anisotropic));
 			}
 			
 			void ClearExtensionVars()
 			{
-				exts::var_ARB_direct_state_access = exts::LoadTest();
 				exts::var_KHR_debug = exts::LoadTest();
+				exts::var_ARB_direct_state_access = exts::LoadTest();
+				exts::var_EXT_texture_filter_anisotropic = exts::LoadTest();
 			}
 			
 			void LoadExtByName(std::vector<MapEntry> &table, const char *extensionName)

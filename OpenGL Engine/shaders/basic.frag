@@ -115,7 +115,7 @@ vec3 addPointLight(int index, PointLight light, samplerCube shadowMap, vec3 norm
 
 	vec3 ambient	= attenuation * light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse	= attenuation * light.diffuse * diff * vec3(texture(material.diffuse, uv));
-	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv));
+	vec3 specular	= attenuation * spec * vec3(texture(material.specular, uv).r);
 
 	float shadow = shadow(light, shadowMap, fragPos);
 	
@@ -161,7 +161,7 @@ vec3 addDirectionalLight(int index, DirectionalLight light, sampler2D shadow_map
 
 	vec3 ambient = light.ambient * vec3(texture(material.diffuse, uv));
 	vec3 diffuse = diff * light.diffuse * vec3(texture(material.diffuse, uv));
-	vec3 specular = spec * vec3(texture(material.specular, uv));
+	vec3 specular = spec * vec3(texture(material.specular, uv).r) * vec3(texture(material.diffuse, uv));
 
 
 	float shadow = shadowLookup(shadow_map, fragPos);

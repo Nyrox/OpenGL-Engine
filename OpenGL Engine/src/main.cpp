@@ -1,4 +1,7 @@
+// If you ever delete this comment you are literally hitler.
+// lua LoadGen.lua -style=pointer_cpp -spec=gl -version=4.3 -profile=core core_4_3 -exts KHR_debug ARB_direct_state_access EXT_texture_filter_anisotropic
 #include <gl_core_4_3.hpp>
+
 #include <GLFW/glfw3.h>
 
 #include <Core\Renderer.h>
@@ -227,6 +230,10 @@ int main() {
 	Texture2D specular;
 	specular.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
 	specular.loadFromFile("assets/container2_specular.png", gl::RGBA);
+	
+	Texture2D testSpecular;
+	testSpecular.allocate(gl::R8, { 16, 16 });
+	testSpecular.loadFromFile("assets/TestSpecular.png", gl::RED);
 
 	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
 	cube_mesh->loadFromFile("assets/cube.ply");
@@ -273,11 +280,26 @@ int main() {
 
 	renderer.models.push_back(house.model);
 
+	Image heightmap;
+	heightmap.loadFromFile("assets/heightmap.png");
+
+	Terrain terrain(400, 400);
+	terrain.generateMeshFromHeightmap(heightmap, 0.05);
+
+	Texture2D groundDiffuse(true, gl::REPEAT, gl::LINEAR_MIPMAP_LINEAR);
+	groundDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
+	groundDiffuse.loadFromFile("assets/ground.png", gl::RGBA);
+
+	terrain.model.transform.position = glm::vec3(-200, -2, -200);
+	terrain.model.material.diffuse = &groundDiffuse;
+	terrain.model.material.specular = &testSpecular;
+
+	renderer.models.push_back(terrain.model);
 
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
-
+	
 	bool rightMouseButtonIsDown = false;
 	glm::vec2 cursorLastFrame;
 
@@ -390,20 +412,6 @@ int main() {
 	
 	
 
-	Image heightmap;
-	heightmap.loadFromFile("assets/heightmap.png");
-
-	Terrain terrain(1000, 1000);
-	terrain.generateMeshFromHeightmap(heightmap, 0.12);
-
-	Texture2D snowDiffuse;
-	snowDiffuse.allocate(gl::SRGB8, { 900, 600 });
-	snowDiffuse.loadFromFile("assets/snow_diffuse.jpg", gl::RGB);
-
-	terrain.model.transform.position = glm::vec3(-500, 10, -500);
-	terrain.model.material.diffuse = &snowDiffuse;
-
-	renderer.models.push_back(terrain.model);
 	
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);
