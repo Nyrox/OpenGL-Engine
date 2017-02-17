@@ -282,9 +282,12 @@ int main() {
 	renderer.transparents.push_back(reflectiveCube);
 
 	
+	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>();
+	house_mesh->loadFromFile("assets/house.ply");
+
 	House house;
 	house.model.transform.position.x = 20;
-	house.model.mesh = cube_mesh;
+	house.model.mesh = house_mesh;
 	house.model.material.diffuse = &texture;
 
 	renderer.models.push_back(house.model);
@@ -407,12 +410,13 @@ int main() {
 
 				Ray ray(camera.position, ray_world);
 				house.collision = AABB(house.model.transform.position - glm::vec3(1), house.model.transform.position + glm::vec3(1));
+				AABB terrainCollision = AABB(terrain.model.transform.position, terrain.model.transform.position + glm::vec3(terrain.width, 0, terrain.height));
 				float min;
 				glm::vec3 q;
-				std::cout << house.collision.intersects(ray, &min, &q) << std::endl;
+				std::cout << terrainCollision.intersects(ray, &min, &q) << std::endl;
+				(----renderer.models.end())->transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
 
-
-				Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
+				//Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 				
 			}
 		};
