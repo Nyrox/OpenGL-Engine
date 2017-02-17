@@ -31,7 +31,7 @@ void Texture2D::updateParameters() {
 	gl::TextureParameteri(handle, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
 
 	if (gl::exts::var_EXT_texture_filter_anisotropic) {
-		gl::TextureParameterf(handle, gl::TEXTURE_MAX_ANISOTROPY_EXT, 16.f);
+		gl::TextureParameterf(handle, gl::TEXTURE_MAX_ANISOTROPY_EXT, 4.f);
 	}
 }
 

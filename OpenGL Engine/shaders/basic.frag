@@ -31,7 +31,7 @@ struct PointLight {
 	float quadratic;
 };
 
-in vec3 normal;
+
 in vec3 fragPos;
 in vec2 uv;
 
@@ -59,6 +59,9 @@ uniform vec3 camera_position;
 uniform float shadow_far_plane;
 
 
+in VS_OUT {
+	mat3 TBN;
+} fs_in;
 
 float shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
 	vec3 fragToLight = fragPos - light.position;
@@ -172,18 +175,29 @@ vec3 addDirectionalLight(int index, DirectionalLight light, sampler2D shadow_map
 
 in vec4 frag_pos_dir_light_space_0;
 
+in vec3 surfaceNormal;
+uniform sampler2D normalMap;	
+uniform bool useNormalMap;
+
 void main() {
 
-	vec3 norm = normalize(normal);
+	vec3 normal;
+	if(useNormalMap) {
+		normal = normalize(texture(normalMap, uv).rgb * 2.0 - 1.0);
+		normal = normalize(fs_in.TBN * normal);
+	}
+	else normal = surfaceNormal;
+
+
 	vec3 viewDir = normalize(camera_position - fragPos);
 
 	vec3 result = vec3(0, 0, 0);
 
-	result += addDirectionalLight(0, directional_lights[0], dir_shadow_map_0, norm, frag_pos_dir_light_space_0, viewDir);
+	result += addDirectionalLight(0, directional_lights[0], dir_shadow_map_0, normal, frag_pos_dir_light_space_0, viewDir);
 
-	result += addPointLight(0, point_lights[0], shadow_map_0, norm, fragPos, viewDir);
-	result += addPointLight(1, point_lights[1], shadow_map_1, norm, fragPos, viewDir);
-	//result += addPointLight(2, point_lights[2], shadow_map_2, norm, fragPos, viewDir);
+	result += addPointLight(0, point_lights[0], shadow_map_0, normal, fragPos, viewDir);
+	result += addPointLight(1, point_lights[1], shadow_map_1, normal, fragPos, viewDir);
+	//result += addPointLight(2, point_lights[2], shadow_map_2, normal, fragPos, viewDir);
 
 	color = vec4(result, texture(material.diffuse, uv).a);
 	//color = vec4(uv.x, uv.y, 0.0, 1.0);

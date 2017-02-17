@@ -34,16 +34,19 @@ void Mesh::initRenderData(std::vector<Vertex> vertices, std::vector<uint32_t> in
 	gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
 	gl::NamedBufferData(ebo, sizeof(uint32_t) * indices.size(), indices.data(), gl::STATIC_DRAW);
 
-	
+
 	// Positions
-	gl::VertexAttribPointer(0, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)0);
+	gl::VertexAttribPointer(0, 3, gl::FLOAT, 0, sizeof(Vertex), (GLvoid*)(0));
 	gl::EnableVertexAttribArray(0);
 	// Normals
-	gl::VertexAttribPointer(1, 3, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	gl::VertexAttribPointer(1, 3, gl::FLOAT, 0, sizeof(Vertex), (GLvoid*)(offsetof(Vertex, normal)));
 	gl::EnableVertexAttribArray(1);
 	// Texture Coords
-	gl::VertexAttribPointer(2, 2, gl::FLOAT, 0, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
+	gl::VertexAttribPointer(2, 2, gl::FLOAT, 0, sizeof(Vertex), (GLvoid*)(offsetof(Vertex, uv)));
 	gl::EnableVertexAttribArray(2);
+	// Tangents
+	gl::VertexAttribPointer(3, 3, gl::FLOAT, 0, sizeof(Vertex), (GLvoid*)(offsetof(Vertex, tangent)));
+	gl::EnableVertexAttribArray(3);
 
 	gl::BindVertexArray(0);
 }
@@ -53,10 +56,10 @@ Mesh Mesh::generatePlane(glm::vec2 size) {
 	Mesh mesh;
 
 	std::vector<Vertex> vertices = {
-		Vertex({ 0, 0, 0 }, { 0, 0, -1, }, { 0, 0 }),
-		Vertex({ size.x, 0, 0, }, { 0, 0, -1, }, { 1, 0 }),
-		Vertex({ 0, size.y, 0, }, { 0, 0, -1, }, { 0, 1 }),
-		Vertex({ size.x, size.y, 0,	}, { 0, 0, -1, }, { 1, 1 })
+		Vertex { glm::vec3(0, 0, 0),			glm::vec3(0, 0, -1), glm::vec2(0, 0) },
+		Vertex { glm::vec3(size.x, 0, 0),		glm::vec3(0, 0, -1), glm::vec2(1, 0) },
+		Vertex { glm::vec3(0, size.y, 0),		glm::vec3(0, 0, -1), glm::vec2(0, 1) },
+		Vertex { glm::vec3(size.x, size.y, 0),	glm::vec3(0, 0, -1), glm::vec2(1, 1) }
 	};
 
 	std::vector<uint32_t> indices = {
@@ -73,35 +76,30 @@ Mesh Mesh::generateCube(glm::vec3 size) {
 	Mesh mesh;
 
 	std::vector<Vertex> vertices = {
-		Vertex({ 0, 0, 0 },					{ 0, 0, -1 },	{ 0, 0 }),
-		Vertex({ size.x, 0, 0 },			{ 0, 0, -1 },	{ 1, 0 }),
-		Vertex({ 0, size.y, 0 },			{ 0, 0, -1 },	{ 0, 1 }),
-		Vertex({ size.x, size.y, 0.0 },		{ 0, 0, -1 },	{ 1, 1 }),
-
-		Vertex({ 0, 0, size.z },			{ -1, 0, 0 }, 	{ 0, 0 }),
-		Vertex({ 0, 0, 0 },					{ -1, 0, 0 }, 	{ 1, 0 }),
-		Vertex({ 0, size.y, size.z },		{ -1, 0, 0 }, 	{ 0, 1 }),
-		Vertex({ 0, size.y, 0 },			{ -1, 0, 0 }, 	{ 1, 1 }),
-
-		Vertex({ 0, size.y, size.z },		{ 0, 1, 0 }, 	{ 0, 0 }),
-		Vertex({ size.x, size.y, size.z },	{ 0, 1, 0 }, 	{ 1, 0 }),
-		Vertex({ 0, size.y, 0.0 },			{ 0, 1, 0 }, 	{ 0, 1 }),
-		Vertex({ size.x, size.y, 0.0 },		{ 0, 1, 0 }, 	{ 1, 1 }),
-
-		Vertex({ 0, 0, size.z },			{ 0, -1, 0 }, 	{ 0, 0 }),
-		Vertex({ size.x, 0.0, size.z },		{ 0, -1, 0 }, 	{ 1, 0 }),
-		Vertex({ 0, 0, 0 },					{ 0, -1, 0 }, 	{ 0, 1 }),
-		Vertex({ size.x, 0, 0 },			{ 0, -1, 0 }, 	{ 1, 1 }),
-
-		Vertex({ size.x, 0, 0 },			{ 1, 0, 0 }, 	{ 0, 0 }),
-		Vertex({ size.x, 0, size.z },		{ 1, 0, 0 }, 	{ 1, 0 }),
-		Vertex({ size.x, size.y, 0 },		{ 1, 0, 0 }, 	{ 0, 1 }),
-		Vertex({ size.x, size.y, size.z },	{ 1, 0, 0 }, 	{ 1, 1 }),
-
-		Vertex({ size.x, 0, size.z },		{ 0, 0, 1 }, 	{ 0, 0 }),
-		Vertex({ 0, 0, size.z },			{ 0, 0, 1 }, 	{ 1, 0 }),
-		Vertex({ size.x, size.y, size.z },	{ 0, 0, 1 }, 	{ 0, 1 }),
-		Vertex({ 0, size.y, size.z },		{ 0, 0, 1 }, 	{ 1, 1 })
+		Vertex { glm::vec3(0, 0, 0),				glm::vec3(0, 0, -1),	glm::vec2(0, 0) },
+		Vertex { glm::vec3(size.x, 0, 0),			glm::vec3(0, 0, -1),	glm::vec2(1, 0) },
+		Vertex { glm::vec3(0, size.y, 0),			glm::vec3(0, 0, -1),	glm::vec2(0, 1) },
+		Vertex { glm::vec3(size.x, size.y, 0.0),	glm::vec3(0, 0, -1),	glm::vec2(1, 1) },
+		Vertex { glm::vec3(0, 0, size.z),			glm::vec3(-1, 0, 0), 	glm::vec2(0, 0) },
+		Vertex { glm::vec3(0, 0, 0),				glm::vec3(-1, 0, 0), 	glm::vec2(1, 0) },
+		Vertex { glm::vec3(0, size.y, size.z),		glm::vec3(-1, 0, 0), 	glm::vec2(0, 1) },
+		Vertex { glm::vec3(0, size.y, 0),			glm::vec3(-1, 0, 0), 	glm::vec2(1, 1) },
+		Vertex { glm::vec3(0, size.y, size.z),		glm::vec3(0, 1, 0), 	glm::vec2(0, 0) },
+		Vertex { glm::vec3(size.x, size.y, size.z),	glm::vec3(0, 1, 0), 	glm::vec2(1, 0) },
+		Vertex { glm::vec3(0, size.y, 0.0),			glm::vec3(0, 1, 0), 	glm::vec2(0, 1) },
+		Vertex { glm::vec3(size.x, size.y, 0.0),	glm::vec3(0, 1, 0), 	glm::vec2(1, 1) },
+		Vertex { glm::vec3(0, 0, size.z),			glm::vec3(0, -1, 0), 	glm::vec2(0, 0) },
+		Vertex { glm::vec3(size.x, 0.0, size.z),	glm::vec3(0, -1, 0), 	glm::vec2(1, 0) },
+		Vertex { glm::vec3(0, 0, 0),				glm::vec3(0, -1, 0), 	glm::vec2(0, 1) },
+		Vertex { glm::vec3(size.x, 0, 0),			glm::vec3(0, -1, 0), 	glm::vec2(1, 1) },
+		Vertex { glm::vec3(size.x, 0, 0),			glm::vec3(1, 0, 0), 	glm::vec2(0, 0) },
+		Vertex { glm::vec3(size.x, 0, size.z),		glm::vec3(1, 0, 0), 	glm::vec2(1, 0) },
+		Vertex { glm::vec3(size.x, size.y, 0),		glm::vec3(1, 0, 0), 	glm::vec2(0, 1) },
+		Vertex { glm::vec3(size.x, size.y, size.z),	glm::vec3(1, 0, 0), 	glm::vec2(1, 1) },
+		Vertex { glm::vec3(size.x, 0, size.z),		glm::vec3(0, 0, 1), 	glm::vec2(0, 0) },
+		Vertex { glm::vec3(0, 0, size.z),			glm::vec3(0, 0, 1), 	glm::vec2(1, 0) },
+		Vertex { glm::vec3(size.x, size.y, size.z),	glm::vec3(0, 0, 1), 	glm::vec2(0, 1) },
+		Vertex { glm::vec3(0, size.y, size.z),		glm::vec3(0, 0, 1), 	glm::vec2(1, 1) }
 	};
 
 	std::vector<uint32_t> indices = {

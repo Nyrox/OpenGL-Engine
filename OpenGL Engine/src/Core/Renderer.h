@@ -24,8 +24,9 @@ public:
 	glm::mat4 projection;
 private:
 	Skybox skybox;
-	Framebuffer postProcessBuffer;
+	Refactor::Framebuffer postProcessBuffer;
 	Texture2D postProcessTexture;
+	Texture2D postProcessDepthTexture;
 
 	Shader post_process_shader;
 	Shader shadow_pass_shader;

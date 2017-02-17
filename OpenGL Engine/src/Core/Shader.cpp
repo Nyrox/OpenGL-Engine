@@ -98,6 +98,7 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 /*
 	Uniforms
 */
+
 void Shader::setUniform(std::string name, int val) {
 	gl::Uniform1i(gl::GetUniformLocation(this->id, name.c_str()), val);
 }

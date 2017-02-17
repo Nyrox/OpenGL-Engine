@@ -33,7 +33,6 @@ public:
 	*/
 	void compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource = nullptr);
 
-	
 	void setUniform(std::string name, int val);
 	void setUniform(std::string name, float val);
 	void setUniform(std::string name, glm::vec2);

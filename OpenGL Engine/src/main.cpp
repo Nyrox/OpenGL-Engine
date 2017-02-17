@@ -181,14 +181,13 @@ int main() {
 	Font arial("assets/fonts/arial.ttf", 48);
 	Text fpsCounter;
 	fpsCounter.setFont(&arial);
-	fpsCounter.setString("Foobar492ax85");
 	gl::Viewport(0, 0, 1280, 720);
 
 	Camera camera;
 	camera.position.z = 5;
 	camera.position.y = 10;
 
-	Renderer renderer({ 1280, 720 });
+	Renderer renderer(1280, 720);
 	renderer.camera = &camera;
 
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.f / 720.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
@@ -204,7 +203,7 @@ int main() {
 	PointLight light2;
 	light2.position = { -3, 3, -1 };
 	light2.ambient = { 0.2, 0.2, 0.2 };
-	light2.diffuse = { 0.4, 0.4, 0.4 };
+	light2.diffuse = { 0.7, 0.7, 0.7 };
 	light2.specular = { 0.4, 0.4, 0.4 };
 
 	renderer.addPointLight(light);
@@ -235,18 +234,28 @@ int main() {
 	testSpecular.allocate(gl::R8, { 16, 16 });
 	testSpecular.loadFromFile("assets/TestSpecular.png", gl::RED);
 
+	Texture2D brickwallDiffuse;
+	brickwallDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
+	brickwallDiffuse.loadFromFile("assets/brickwall.jpg", gl::RGB);
+
+	Texture2D brickwallNormal;
+	brickwallNormal.allocate(gl::RGB8, { 1024, 1024 });
+	brickwallNormal.loadFromFile("assets/brickwall_normal.jpg", gl::RGB);
+
 	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
 	cube_mesh->loadFromFile("assets/cube.ply");
 
 	Model cube;
 	cube.transform.position = glm::vec3(1.25, 2, 0);
 	cube.mesh = cube_mesh;
-	cube.material.diffuse = &texture;
+	cube.material.diffuse = &brickwallDiffuse;
+	cube.material.normal = &brickwallNormal;
 	
 	Model betterCube;
 	betterCube.transform.position = glm::vec3(-1.25, 2, 3);
 	betterCube.mesh = cube_mesh;
-	betterCube.material.diffuse = &texture;
+	betterCube.material.diffuse = &brickwallDiffuse;
+	betterCube.material.normal = &brickwallNormal;
 
 	Model cross;
 	cross.transform.position = glm::vec3(-1.25, 1, 6);
@@ -290,7 +299,7 @@ int main() {
 	groundDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
 	groundDiffuse.loadFromFile("assets/ground.png", gl::RGBA);
 
-	terrain.model.transform.position = glm::vec3(-200, -2, -200);
+	terrain.model.transform.position = glm::vec3(-200, 0, -200);
 	terrain.model.material.diffuse = &groundDiffuse;
 	terrain.model.material.specular = &testSpecular;
 
@@ -419,6 +428,8 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		physics_update();
+		
+		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
 		specular.bind(1);
 

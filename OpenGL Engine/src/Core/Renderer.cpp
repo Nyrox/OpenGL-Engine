@@ -4,7 +4,9 @@
 #include <algorithm>
 #include <iostream>
 
-Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessBuffer({ 1280, 720 }, RGB) {
+Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessTexture(false, gl::CLAMP_TO_BORDER, gl::NEAREST)
+	//: postProcessBuffer({ 1280, 720 }, RGB) 
+{
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
@@ -19,9 +21,10 @@ Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProces
 		"assets/skybox/blue_ft.tga"
 	});
 
-	//postProcessTexture.allocate(gl::RGB8, { 1280, 720 });
-	//postProcessBuffer.bind();
-	//postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
+	postProcessTexture.allocate(gl::RGB16F, { 1280, 720 });
+	postProcessDepthTexture.allocate(gl::DEPTH24_STENCIL8, { 1280, 720 });
+	postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
+	postProcessBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, postProcessDepthTexture);
 }
 
 void Renderer::addPointLight(PointLight light) {
@@ -140,7 +143,8 @@ void Renderer::render() {
 		shader.setUniform("view", camera->getViewMatrix());
 		shader.setUniform("projection", projection);
 		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-
+		
+		
 		shader.setUniform("point_light_count", (int)point_lights.size());
 		for (int i = 0; i < point_lights.size(); i++) {
 			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
@@ -170,9 +174,18 @@ void Renderer::render() {
 	// Draw opagues
 	for (auto& it : models) {
 		it.material.diffuse->bind(0);
+
 		if		(std::holds_alternative<glm::vec3>(it.material.specular))  { std::get<glm::vec3>(it.material.specular); }
 		else if (std::holds_alternative<Texture2D*>(it.material.specular)) { std::get<Texture2D*>(it.material.specular)->bind(1); }
 
+		if (it.material.normal != nullptr) {
+			it.material.normal->bind(4);
+			forward_render_shader.setUniform("useNormalMap", true);
+			forward_render_shader.setUniform("normalMap", 4);
+		}
+		else {
+			forward_render_shader.setUniform("useNormalMap", false);
+		}
 
 		if (it.material.forward_pass_override != nullptr) {
 			it.material.forward_pass_override->bind();
@@ -226,8 +239,8 @@ void Renderer::render() {
 
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
-	postProcessBuffer.bindTexture(0);
-	//postProcessTexture.bind(0);
+	//postProcessBuffer.bindTexture(0);
+	postProcessTexture.bind(0);
 
 	Mesh canvas = Mesh::generatePlane({ 2, 2 });
 	canvas.draw();
