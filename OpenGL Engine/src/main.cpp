@@ -213,7 +213,7 @@ int main() {
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.2f, -1.0f, -0.2f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
-	dirLight.diffuse = { 0.6, 0.4, 0.4 };
+	dirLight.diffuse = { 1.3, 1.3, 1.3 };
 	dirLight.specular = { 0.4, 0.4, 0.4 };
 
 	renderer.addDirectionalLight(dirLight);
@@ -246,30 +246,30 @@ int main() {
 	cube_mesh->loadFromFile("assets/cube.ply");
 
 	Model cube;
-	cube.transform.position = glm::vec3(1.25, 2, 0);
+	cube.transform.position = glm::vec3(1.25, 0, 0);
 	cube.mesh = cube_mesh;
 	cube.material.diffuse = &brickwallDiffuse;
 	cube.material.normal = &brickwallNormal;
 	
 	Model betterCube;
-	betterCube.transform.position = glm::vec3(-1.25, 2, 3);
+	betterCube.transform.position = glm::vec3(-1.25, 0, 3);
 	betterCube.mesh = cube_mesh;
 	betterCube.material.diffuse = &brickwallDiffuse;
 	betterCube.material.normal = &brickwallNormal;
 
 	Model cross;
-	cross.transform.position = glm::vec3(-1.25, 1, 6);
+	cross.transform.position = glm::vec3(-1.25, 0, 6);
 	cross.mesh = std::make_shared<Mesh>();
 	cross.mesh->loadFromFile("assets/cross.ply");
 	cross.material.diffuse = &texture;
 
 	Model reflectiveCube;
-	reflectiveCube.transform.position = glm::vec3(3, 2, 2);
+	reflectiveCube.transform.position = glm::vec3(3, 0, 2);
 	reflectiveCube.mesh = cube_mesh;
 	reflectiveCube.material.diffuse = &transparent;
 	
 	Model reflectiveSphere;
-	reflectiveSphere.transform.position = glm::vec3(-4, 2, 3);
+	reflectiveSphere.transform.position = glm::vec3(-4, 0, 3);
 	reflectiveSphere.mesh = std::make_shared<Mesh>();
 	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
 	reflectiveSphere.material.diffuse = &transparent;
@@ -296,7 +296,7 @@ int main() {
 	heightmap.loadFromFile("assets/heightmap.png");
 
 	Terrain terrain(400, 400);
-	terrain.generateMeshFromHeightmap(heightmap, 0.05);
+	terrain.generateMeshFromHeightmap(heightmap, 0.008);
 
 	Texture2D groundDiffuse(true, gl::REPEAT, gl::LINEAR_MIPMAP_LINEAR);
 	groundDiffuse.allocate(gl::SRGB8, { 1024, 1024 });

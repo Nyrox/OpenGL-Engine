@@ -1,4 +1,5 @@
 #include "Shader.h"
+#include <Core\NShaderCompiler\ShaderCompiler.h>
 
 #include <exception>
 #include <sstream>
@@ -12,12 +13,19 @@ Shader& Shader::bind() {
 	return *this;
 }
 
-void Shader::loadFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile) {
-	compile(loadSingle(vShaderFile).c_str(), loadSingle(fShaderFile).c_str(), gShaderFile ? loadSingle(gShaderFile).c_str() : nullptr);
+void Shader::loadFromFile(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile) {
+	compile(loadSingle(vShaderFile), loadSingle(fShaderFile), (!gShaderFile.empty() ? loadSingle(gShaderFile) : std::string()));
 }
 
-void Shader::compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource) {
+void Shader::compile(const std::string& t_vertexSource, const std::string& t_fragmentSource, const std::string& t_geometrySource) {
 	GLuint vertex, fragment, geometry;
+
+	std::string tempv = compileShader(t_vertexSource, { "./shaders" }).c_str();
+	std::string tempf = compileShader(t_fragmentSource, { "./shaders" }).c_str();
+	std::string tempg = (t_geometrySource.empty() ? std::string() : compileShader(t_geometrySource, { "./shaders" }).c_str());
+	const char* vertexSource = tempv.c_str();
+	const char* fragmentSource = tempf.c_str();
+	const char* geometrySource = (tempg.empty() ? nullptr : tempg.c_str());
 
 	/* Vertex */
 	vertex = gl::CreateShader(gl::VERTEX_SHADER);
@@ -53,7 +61,7 @@ void Shader::compile(const char* vertexSource, const char* fragmentSource, const
 }
 
 
-std::string Shader::loadSingle(const char* shaderFile) {
+std::string Shader::loadSingle(const std::string& shaderFile) {
 	std::stringstream out;
 	try {
 		std::ifstream file;

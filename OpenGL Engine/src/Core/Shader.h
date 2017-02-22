@@ -21,7 +21,7 @@ public:
 		@gShaderFile: File location of the geometry shader source.
 					  If none is provided the program will be compiled without a geometry shader.
 	*/
-	void loadFromFile(const char* vShaderFile, const char* fShaderFile, const char* gShaderFile = nullptr);
+	void loadFromFile(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile = std::string());
 
 	/*
 		Given shader source strings compiles them to a program
@@ -31,7 +31,7 @@ public:
 		@geometrySource: Geometry shader source.
 						 If none is provided the program will be compiled without a geometry shader.
 	*/
-	void compile(const char* vertexSource, const char* fragmentSource, const char* geometrySource = nullptr);
+	void compile(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometrySource = nullptr);
 
 	void setUniform(std::string name, int val);
 	void setUniform(std::string name, float val);
@@ -56,7 +56,7 @@ private:
 	/*
 		Helper function for lor loading individual shaders.
 	*/
-	std::string loadSingle(const char* shaderFile);
+	std::string loadSingle(const std::string& shaderFile);
 
 	
 };

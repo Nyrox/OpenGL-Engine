@@ -1,0 +1,54 @@
+// Declares a public block of framebuffers
+FRAMEBUFFERS (
+	DRAWBUFFER (NAME = "IntermediateBuffer")
+	ATTACH(COLOR_ATTACHMENT0, RGB16F)
+	ATTACH(DEPTH_STENCIL_ATTACHMENT, DEPTH24_STENCIL8)
+)
+
+// Renders shadow maps
+PASS GEOMETRY_PASS (
+	FOR LIGHT IN SCENE.LIGHTS (
+		DRAWBUFFER = LIGHT.SHADOW_MAP
+		DRAW (TYPE == OPAGUE) WITH LIGHT.SHADOW_PASS_SHADER
+	)
+);
+
+PASS BACKGROUND_PASS (
+	DRAWBUFFER = DRAWBUFFER("IntermediateBuffer")
+
+	draw(SKYBOX, material.shader)
+)
+
+// Renders opagues and also generates the depth buffer used for post processing
+PASS OPAGUE_PASS (
+	DRAWBUFFER = DRAWBUFFER("IntermediateBuffer")
+	draw(OPAGUE, material.shader);
+);
+
+// Renders transparents
+PASS TRANSPARENT_PASS (
+	DRAWBUFFER = DRAWBUFFER("IntermediateBuffer")
+	draw(OPAGUE, material.shader, BACK_TO_FRONT)
+)
+
+
+
+// POST PROCESS
+FRAMEBUFFERS (
+	createBuffer("BloomBuffer");
+	attach("BloomBuffer", COLOR_ATTACHMENT0, RGB16F);
+)
+
+POST_PROCESS (
+	SOURCEBUFFER = DRAWBUFFER("IntermediateBuffer")
+
+	PASS BLOOM_PASS(
+		pass.target = getBuffer("BloomBuffer")
+		draw(SCREEN_QUAD, getShader("highpass.shader"))
+		twoPassBlur(("BloomBuffer"), getBuffer("BloomBuffer"))
+	)
+
+	
+	setBool("useBloom", true);
+	setSampler2D("bloomBuffer", "bloomBuffer");
+)

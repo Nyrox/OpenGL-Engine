@@ -7,6 +7,7 @@ using glm::vec3;
 
 class Shader;
 
+
 /*
 	Stores all the data neccessary to render a mesh
 */
@@ -16,6 +17,8 @@ struct Material {
 		heightmap = nullptr;
 		normal = nullptr;
 	}
+
+	
 
 	Shader* forward_pass_override;
 	Shader* shadow_pass_override;

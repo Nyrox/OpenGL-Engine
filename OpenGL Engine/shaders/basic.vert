@@ -24,6 +24,8 @@ uniform mat4 projection;
 uniform mat4 dir_light_space_matrix_0;
 out vec4 frag_pos_dir_light_space_0;
 
+#include("headers/common.glsl");
+
 void main() {
 	gl_Position = projection * view * model * vec4(position.xyz, 1.0);
 	surfaceNormal = mat3(transpose(inverse(model))) * normal;
@@ -31,9 +33,5 @@ void main() {
 	uv = UV;
 	frag_pos_dir_light_space_0 = dir_light_space_matrix_0 * vec4(fragPos, 1.0);	
 
-	vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
-	vec3 N = normalize(vec3(model * vec4(normal, 0.0)));
-	vec3 B = cross(T, N);
-
-	vs_out.TBN = mat3(T, B, N);
+	vs_out.TBN = createTBNMatrix(model, normal, tangent);
 }
