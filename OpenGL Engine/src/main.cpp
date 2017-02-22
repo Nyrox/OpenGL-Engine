@@ -2,12 +2,22 @@
 // lua LoadGen.lua -style=pointer_cpp -spec=gl -version=4.3 -profile=core core_4_3 -exts KHR_debug ARB_direct_state_access EXT_texture_filter_anisotropic
 #include <gl_core_4_3.hpp>
 
+// Comment this out if you want to build the game
+//#define CL_IS_EDITOR
+#ifdef CL_IS_EDITOR
+#define CL_INCLUDE_DEBUG true
+#else
+// Comment this out if you want to build the game without debug functionality
+#define CL_INCLUDE_DEBUG true
+#endif
+
 #include <GLFW/glfw3.h>
 
 #include <Core\Renderer.h>
 #include <Core\Debug.h>
 #include <Core\Terrain.h>
 #include <Core\Image.h>
+#include <Core\Scene.h>
 #include <2D\GUI\GUIContext.h>
 #include <2D\Text.h>
 
@@ -135,7 +145,12 @@ struct AABB {
 	};
 };
 
-struct House {
+class House : public SceneNode {
+public:
+	virtual AABB getSceneBoundingBox() override {
+		return collision;
+	}
+
 	Model model;
 	AABB collision;
 };
@@ -308,6 +323,15 @@ int main() {
 
 	renderer.models.push_back(terrain.model);
 
+	House myHouse;
+	myHouse.model.transform.position.x = 25;
+	myHouse.model.mesh = house_mesh;
+	myHouse.model.material.diffuse = &texture;
+	renderer.models.push_back(myHouse.model);
+
+	Scene scene;
+	scene.nodes.push_back(std::make_unique<House>(std::move(myHouse)));
+	
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
