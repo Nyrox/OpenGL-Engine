@@ -1,6 +1,6 @@
 #include "Editor.h"
 
-Editor::Editor(GLFWwindow* _window) : window(_window), editorRenderer(800, 600) {
+Editor::Editor(GLFWwindow* _window) : window(_window){
 
 }
 

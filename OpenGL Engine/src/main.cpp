@@ -93,66 +93,18 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 #include <time.h>
 #include <functional>
 
-struct Ray {
-	Ray(glm::vec3 t_origin, glm::vec3 t_direction) : origin(t_origin), direction(t_direction) {
-		inverse_direction = 1.f / t_direction;
-	};
+#include <Core\Physics\AABB.h>
 
-	glm::vec3 origin, direction, inverse_direction;
-};
 
-struct AABB {
-	AABB(glm::vec3 t_min = glm::vec3(), glm::vec3 t_max = glm::vec3()) : min(t_min), max(t_max) {
-
-	};
-
-	glm::vec3 min, max;
-
-	bool intersects(const Ray& ray, float* tmin, glm::vec3* q) {
-		*tmin = 0.f;  // set to -FLT_MAX to get first hit on line
-		float tmax = std::numeric_limits<float>::max(); // max distance ray can travel
-								// for all 3 slabs
-		for (int i = 0; i < 3; i++)
-		{
-			if (abs(ray.direction[i]) < 0.0001) {
-				// Ray is parallel to slab. No hit if origin not within slab
-				if (ray.origin[i]  < this->min[i] || ray.origin[i] > this->max[i]) return false;
-			}
-			else
-			{
-				// Compute intersection t value of ray with near and far plane of slab
-				float ood = 1.f / ray.direction[i];
-				float t1 = (this->min[i] - ray.origin[i]) * ood;
-				float t2 = (this->max[i] - ray.origin[i]) * ood;
-				// make t1 be intersection with near plane, t2 with far plane
-				if (t1 > t2) std::swap(t1, t2);
-				// compute the intersection of slab intersection intervals
-				*tmin = std::max(*tmin, t1);
-				tmax = std::min(tmax, t2);
-				// Exit with no collision as soon as slab intersection becomes empty
-				if (*tmin > tmax) return false;
-			}
-		}
-		// Ray intersects all 3 slabs. Return point (q) and intersection t value  (tmin)
-		*q = ray.origin + ray.direction * *tmin;
-		return true;
-	};
-
-	// Very ugly hack at incredibly low grace
-	glm::vec3 operator[](std::size_t i) {
-		if (i > 1) { throw std::out_of_range("Tried to access AABB bounds out of range"); }
-		return i == 0 ? min : max;
-	};
-};
 
 class House : public SceneNode {
 public:
-	virtual AABB getSceneBoundingBox() override {
+	virtual Physics::AABB getSceneBoundingBox() override {
 		return collision;
 	}
 
 	Model model;
-	AABB collision;
+	Physics::AABB collision;
 };
 
 
@@ -198,16 +150,10 @@ int main() {
 	fpsCounter.setFont(&arial);
 	gl::Viewport(0, 0, 1280, 720);
 
-	Camera camera;
-	camera.position.z = 5;
-	camera.position.y = 10;
-
-	Renderer renderer(1280, 720);
-	renderer.camera = &camera;
-
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.f / 720.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
+	Camera camera(1280, 720, projection, 0, 0);
 
-	renderer.projection = projection;
+	Renderer renderer(camera, 1280, 720);
 
 	PointLight light;
 	light.position = { 2, 3, 2 };
@@ -359,16 +305,16 @@ int main() {
 		GLfloat cameraSpeed = 5.f * deltaTime;
 
 		if (keys[GLFW_KEY_W]) {
-			camera.position += camera.forwards() * cameraSpeed;
+			camera.transform.position += camera.forwards() * cameraSpeed;
 		}
 		if (keys[GLFW_KEY_S]) {
-			camera.position -= camera.forwards() * cameraSpeed;
+			camera.transform.position -= camera.forwards() * cameraSpeed;
 		}
 		if (keys[GLFW_KEY_D]) {
-			camera.position += camera.right() * cameraSpeed;
+			camera.transform.position += camera.right() * cameraSpeed;
 		}
 		if (keys[GLFW_KEY_A]) {
-			camera.position -= camera.right() * cameraSpeed;
+			camera.transform.position -= camera.right() * cameraSpeed;
 		}
 		if (keys[GLFW_KEY_E]) {
 			camera.yaw += cameraSpeed * 25;
@@ -377,10 +323,10 @@ int main() {
 			camera.yaw -= cameraSpeed * 25;
 		}
 		if (keys[GLFW_KEY_SPACE]) {
-			camera.position.y += cameraSpeed;
+			camera.transform.position.y += cameraSpeed;
 		}
 		if (keys[GLFW_KEY_LEFT_SHIFT]) {
-			camera.position.y -= cameraSpeed;
+			camera.transform.position.y -= cameraSpeed;
 		}
 
 
@@ -415,26 +361,9 @@ int main() {
 				event.type = Event::Click;
 				gui_context.handleEvent(event);
 
-				glm::vec3 ray_screen;
-				// 3d normalized device coords
-				ray_screen.x = (2.0f * mouse_x) / 1280 - 1.0f;
-				ray_screen.y = 1.0f - (2.0f * mouse_y) / 720.f;
-				ray_screen.z = 1.0f;
-				// Homogenous Clip coords
-				glm::vec4 ray_clip = glm::vec4(ray_screen.x, ray_screen.y, -1.0, 1.0);
-				// View space
-				glm::vec4 ray_view = glm::inverse(renderer.projection) * ray_clip;
-				ray_view = glm::vec4(ray_view.x, ray_view.y, -1.0, 0.0);
-				// World space
-				glm::vec3 ray_world = glm::vec3((glm::inverse(renderer.camera->getViewMatrix()) * ray_view));
-				ray_world = glm::normalize(ray_world);
-
-				
-				
-
-				Ray ray(camera.position, ray_world);
-				house.collision = AABB(house.model.transform.position - glm::vec3(1), house.model.transform.position + glm::vec3(1));
-				AABB terrainCollision = AABB(terrain.model.transform.position, terrain.model.transform.position + glm::vec3(terrain.width, 0, terrain.height));
+				Physics::Ray ray = Physics::screenPositionToRay(camera, glm::vec2(mouse_x, mouse_y));
+				house.collision = Physics::AABB(house.model.transform.position - glm::vec3(1), house.model.transform.position + glm::vec3(1));
+				Physics::AABB terrainCollision = Physics::AABB(terrain.model.transform.position, terrain.model.transform.position + glm::vec3(terrain.width, 0, terrain.height));
 				float min;
 				glm::vec3 q;
 				std::cout << terrainCollision.intersects(ray, &min, &q) << std::endl;
@@ -462,7 +391,7 @@ int main() {
 		specular.bind(1);
 
 		renderer.render();
-		Debug::render(renderer.camera->getViewMatrix(), renderer.projection);
+		Debug::render(camera.getViewMatrix(), camera.projection);
 		gui_context.render();
 
 

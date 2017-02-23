@@ -1,4 +1,5 @@
 #pragma once
+#include <Core\Transform.h>
 #include <gl_core_4_3.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -7,15 +8,20 @@
 
 class Camera {
 public:
-	Camera();
+	Camera(Transform transform, float viewportWidth, float viewportHeight, glm::mat4 projection, float yaw = 0, float pitch = 0);	
+	Camera(float viewportWidth, float viewportHeight, glm::mat4 projection, float yaw, float pitch);
 
-	glm::mat4 getViewMatrix();
+	glm::mat4 getViewMatrix() const;	
+	glm::vec3 forwards() const;
+	glm::vec3 right() const;
 
-	glm::vec3 position;
+	Transform transform;
+	glm::mat4 projection;
+	float yaw, pitch;
+	float viewportWidth, viewportHeight;
 
-	float yaw;
-	float pitch;
-
-	glm::vec3 forwards();
-	glm::vec3 right();
+private:
+	Camera(const Camera& right) = delete;
+	Camera(const Camera&& right) = delete;
+	Camera operator=(const Camera& right) = delete;
 }; 

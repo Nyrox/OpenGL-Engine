@@ -14,10 +14,6 @@ public:
 private:
 	GLFWwindow* window;
 
-	// Editor
-	Renderer editorRenderer;
-	Camera editorCamera;
-
 
 	// Preview
 

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <iostream>
 
-Renderer::Renderer(float backbuffer_width, float backbuffer_height) : postProcessTexture(false, gl::CLAMP_TO_BORDER, gl::NEAREST)
+Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(false, gl::CLAMP_TO_BORDER, gl::NEAREST)
 	//: postProcessBuffer({ 1280, 720 }, RGB) 
 {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
@@ -130,7 +130,7 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
-	skybox.render(projection, camera->getViewMatrix());
+	skybox.render(camera.projection, camera.getViewMatrix());
 
 
 	gl::Enable(gl::CULL_FACE);
@@ -139,9 +139,9 @@ void Renderer::render() {
 
 	
 	auto setUniforms = [&](Shader& shader) {
-		shader.setUniform("camera_position", camera->position);
-		shader.setUniform("view", camera->getViewMatrix());
-		shader.setUniform("projection", projection);
+		shader.setUniform("camera_position", camera.transform.position);
+		shader.setUniform("view", camera.getViewMatrix());
+		shader.setUniform("projection", camera.projection);
 		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 		
 		
@@ -213,7 +213,7 @@ void Renderer::render() {
 	forward_render_shader.setUniform("model", glm::translate(glm::vec3{ -5, -3, -7 }));
 
 	transparents.sort([&](const Model& a, const Model& b) {
-		return glm::distance(camera->position, a.transform.position) > glm::distance(camera->position, b.transform.position);
+		return glm::distance(camera.transform.position, a.transform.position) > glm::distance(camera.transform.position, b.transform.position);
 	});
 
 	// Draw transparents

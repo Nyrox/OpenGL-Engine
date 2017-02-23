@@ -10,7 +10,7 @@
 
 class Renderer {
 public:
-	Renderer(float backbuffer_width, float backbuffer_height);
+	Renderer(Camera& camera, float backbuffer_width, float backbuffer_height);
 	
 	void render();
 
@@ -20,8 +20,7 @@ public:
 	std::list<Model> models;
 	std::list<Model> transparents;
 
-	Camera* camera;
-	glm::mat4 projection;
+	Camera& camera;
 private:
 	Skybox skybox;
 	Refactor::Framebuffer postProcessBuffer;
