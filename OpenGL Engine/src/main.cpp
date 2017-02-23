@@ -269,16 +269,14 @@ int main() {
 
 	renderer.models.push_back(terrain.model);
 
-	House myHouse;
-	myHouse.model.transform.position.x = 25;
-	myHouse.model.mesh = house_mesh;
-	myHouse.model.material.diffuse = &texture;
-	renderer.models.push_back(myHouse.model);
-
 	Scene scene;
-	scene.nodes.push_back(std::make_unique<House>(std::move(myHouse)));
+	House* myHouse = scene.emplace<House>();
+	myHouse->model.transform.position.x = 25;
+	myHouse->model.mesh = house_mesh;
+	myHouse->model.material.diffuse = &texture;
+	renderer.models.push_back(myHouse->model);
 	
-
+	
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 	
@@ -367,7 +365,7 @@ int main() {
 				float min;
 				glm::vec3 q;
 				std::cout << terrainCollision.intersects(ray, &min, &q) << std::endl;
-				(----renderer.models.end())->transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
+				(------renderer.models.end())->transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
 
 				//Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 				
