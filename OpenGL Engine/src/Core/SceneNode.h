@@ -21,7 +21,7 @@ public:
 	/*
 		Requires SceneNode's to implement a method to generate a bounding box used for selections in the Editor/Ingame-Debugger
 	*/
-	virtual Physics::AABB getSceneBoundingBox() = 0;
+	virtual Physics::AABB getSceneBoundingBox() const = 0;
 private:
 
 

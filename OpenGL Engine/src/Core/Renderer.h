@@ -6,7 +6,7 @@
 #include <Core/Light.h>
 #include <Core/Skybox.h>
 #include <Core/Texture.h>
-#include <list>
+#include <vector>
 
 class Renderer {
 public:
@@ -17,11 +17,17 @@ public:
 	void addPointLight(PointLight light);
 	void addDirectionalLight(DirectionalLight light);
 
-	std::list<Model> models;
-	std::list<Model> transparents;
+	
+	void insert(Model* node);
+
 
 	Camera& camera;
 private:
+	// Cached containers
+	std::vector<Model*> opagues;
+	std::vector<Model*> transparents;
+
+
 	Skybox skybox;
 	Refactor::Framebuffer postProcessBuffer;
 	Texture2D postProcessTexture;

@@ -99,7 +99,7 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 
 class House : public SceneNode {
 public:
-	virtual Physics::AABB getSceneBoundingBox() override {
+	virtual Physics::AABB getSceneBoundingBox() const override {
 		return collision;
 	}
 
@@ -235,12 +235,12 @@ int main() {
 	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
 	reflectiveSphere.material.diffuse = &transparent;
 
-	renderer.models.push_back(cube);
-	renderer.models.push_back(betterCube);
-	renderer.models.push_back(cross);
+	renderer.insert(&cube);
+	renderer.insert(&betterCube);
+	renderer.insert(&cross);
 
-	renderer.transparents.push_back(reflectiveSphere);
-	renderer.transparents.push_back(reflectiveCube);
+	renderer.insert(&reflectiveSphere);
+	renderer.insert(&reflectiveCube);
 
 	
 	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>();
@@ -251,7 +251,7 @@ int main() {
 	house.model.mesh = house_mesh;
 	house.model.material.diffuse = &texture;
 
-	renderer.models.push_back(house.model);
+	renderer.insert(&house.model);
 
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
@@ -267,16 +267,18 @@ int main() {
 	terrain.model.material.diffuse = &groundDiffuse;
 	terrain.model.material.specular = &testSpecular;
 
-	renderer.models.push_back(terrain.model);
+	renderer.insert(&terrain.model);
 
 	Scene scene;
 	House* myHouse = scene.emplace<House>();
 	myHouse->model.transform.position.x = 25;
 	myHouse->model.mesh = house_mesh;
 	myHouse->model.material.diffuse = &texture;
-	renderer.models.push_back(myHouse->model);
+
+	renderer.insert(&myHouse->model);
 	
 	
+
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
 	
@@ -365,7 +367,7 @@ int main() {
 				float min;
 				glm::vec3 q;
 				std::cout << terrainCollision.intersects(ray, &min, &q) << std::endl;
-				(------renderer.models.end())->transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
+				myHouse->model.transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
 
 				//Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 				

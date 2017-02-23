@@ -12,12 +12,18 @@ class Shader;
 	Stores all the data neccessary to render a mesh
 */
 struct Material {
-	Material(float shininess = 64) : shininess(shininess) {
+	enum class ShadingModel {
+		Opague, Transparent
+	} const shadingModel;
+
+
+	Material(ShadingModel t_shadingModel = ShadingModel::Opague, float t_shininess = 64) : shadingModel(t_shadingModel), shininess(t_shininess) {
 		forward_pass_override = nullptr;
 		heightmap = nullptr;
 		normal = nullptr;
 	}
 
+	
 	
 
 	Shader* forward_pass_override;
@@ -33,5 +39,6 @@ struct Material {
 	Texture2D* heightmap;
 	Texture2D* normal;
 
+	
 	float shininess;
 };
