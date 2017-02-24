@@ -224,7 +224,7 @@ void Renderer::render() {
 		return glm::distance(camera.transform.position, a->transform.position) > glm::distance(camera.transform.position, b->transform.position);
 	});
 
-
+	gl::Enable(gl::BLEND);
 	// Draw transparents
 	for (auto& it : transparents) {
 		it->material.diffuse->bind(0);

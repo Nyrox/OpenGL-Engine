@@ -1,5 +1,6 @@
 #pragma once
 #include <2D/GUI/Widget.h>
+#include <2D\RectangleShape.h>
 
 #include <Core/Mesh.h>
 #include <functional>
@@ -7,16 +8,17 @@
 
 class Button : public Widget {
 public:
-	Button(uint32_t width, uint32_t height);
+	Button(glm::vec2 t_size);
+
+	void setSize(glm::vec2 t_size);
 
 	virtual void render(Shader& shader) override;
 	virtual void handleEvent(const Event& event);
 
-	uint32_t width, height;
-	glm::vec2 position;
-
 	std::function<void()> click_callback;
+
+	Transform transform;
 private:
-	Mesh mesh;
+	RectangleShape box;
 
 };

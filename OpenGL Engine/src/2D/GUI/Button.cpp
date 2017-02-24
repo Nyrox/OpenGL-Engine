@@ -2,21 +2,23 @@
 #include <Core\Shader.h>
 #include <glm\gtx\transform.hpp>
 
-Button::Button(uint32_t t_width, uint32_t t_height) : width(t_width), height(t_height) {
-	mesh = Mesh::generatePlane({ width, height });
+Button::Button(glm::vec2 t_size) : box(t_size) {
+
+}
+
+void Button::setSize(glm::vec2 t_size) {
+	box.setSize(t_size);
 }
 
 void Button::render(Shader& shader) {
-	shader.setUniform("model", glm::translate(glm::vec3(position, 0)));
-	mesh.draw();
+	shader.setUniform("model", glm::translate(glm::vec3(transform.position)));
+	box.render(shader);
 }
 
 void Button::handleEvent(const Event& event) {
 	switch (event.type) {
 	case Event::Click:
-		if (event.click.x > position.x && event.click.x < position.x + width &&
-			event.click.y > position.y && event.click.y < position.y + height) {
-
+		if (box.getLocalBounds().contains(event.click.x, event.click.y)) {
 			if (click_callback != nullptr) click_callback();
 		}
 		break;

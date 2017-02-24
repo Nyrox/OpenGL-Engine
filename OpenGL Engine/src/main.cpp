@@ -157,19 +157,14 @@ int main() {
 
 	PointLight light;
 	light.position = { 2, 3, 2 };
-	light.ambient = { 0.2, 0.2, 0.2 };
-	light.diffuse = { 0.5, 0.5, 0.5 };
-	light.specular = { 0.5, 0.5, 0.5 };
+	light.color = { 0.5, 0.5, 0.5 };
 
 	PointLight light2;
 	light2.position = { -3, 3, -1 };
-	light2.ambient = { 0.2, 0.2, 0.2 };
-	light2.diffuse = { 0.7, 0.7, 0.7 };
-	light2.specular = { 0.4, 0.4, 0.4 };
+	light2.color = { 0.7, 0.7, 0.7 };
 
 	renderer.addPointLight(light);
 	renderer.addPointLight(light2);
-
 
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.2f, -1.0f, -0.2f };
@@ -286,12 +281,18 @@ int main() {
 	glm::vec2 cursorLastFrame;
 
 	GUIContext gui_context(1280, 720);
-	Button* exitButton = gui_context.createWidget<Button>(200, 100);
-	exitButton->position = { 0, 0 };
+	Button* exitButton = gui_context.createWidget<Button>(glm::vec2(50, 50));
+	exitButton->transform.position.x = 1280 - 50;
 	exitButton->click_callback = [&]() {
 		glfwTerminate();
 		exit(EXIT_SUCCESS);
 	};
+
+	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 360), [&](double val) {
+		std::cout << std::to_string(val) << "\n";
+	});
+
+	
 
 	auto physics_update = [&]() {
 		float currentFrame = glfwGetTime();

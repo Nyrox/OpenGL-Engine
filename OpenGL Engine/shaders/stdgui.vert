@@ -1,6 +1,6 @@
 #version 420 core
 
-layout(location = 0) in vec3 position;
+layout(location = 0) in vec2 position;
 
 uniform mat4 model;
 uniform mat4 projection;

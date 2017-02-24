@@ -135,9 +135,9 @@ void Shader::setUniform(std::string name, Material material) {
 
 void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
 	setUniform(name + ".position", light.position);
-	setUniform(name + ".ambient", light.ambient);
-	setUniform(name + ".diffuse", light.diffuse);
-	setUniform(name + ".specular", light.specular);
+	setUniform(name + ".ambient", light.color);
+	setUniform(name + ".diffuse", light.color);
+	setUniform(name + ".specular", light.color);
 	setUniform(name + ".constant", light.constant);
 	setUniform(name + ".linear", light.linear);
 	setUniform(name + ".quadratic", light.quadratic);

@@ -193,7 +193,7 @@ void main() {
 
 	vec3 result = vec3(0, 0, 0);
 
-	result += addDirectionalLight(0, directional_lights[0], dir_shadow_map_0, normal, frag_pos_dir_light_space_0, viewDir);
+	//result += addDirectionalLight(0, directional_lights[0], dir_shadow_map_0, normal, frag_pos_dir_light_space_0, viewDir);
 
 	result += addPointLight(0, point_lights[0], shadow_map_0, normal, fragPos, viewDir);
 	result += addPointLight(1, point_lights[1], shadow_map_1, normal, fragPos, viewDir);

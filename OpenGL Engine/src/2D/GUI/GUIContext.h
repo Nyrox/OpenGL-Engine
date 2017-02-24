@@ -2,6 +2,7 @@
 #include <Core/Shader.h>
 #include <2D/GUI/Widget.h>
 #include <2D/GUI/Button.h>
+#include <2D/GUI/Slider.h>
 
 #include <vector>
 #include <memory>
