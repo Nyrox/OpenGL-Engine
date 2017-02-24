@@ -11,7 +11,7 @@ void Button::setSize(glm::vec2 t_size) {
 }
 
 void Button::render(Shader& shader) {
-	shader.setUniform("model", glm::translate(glm::vec3(transform.position)));
+	box.transform.position = transform.position;
 	box.render(shader);
 }
 

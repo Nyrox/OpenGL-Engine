@@ -8,12 +8,18 @@ public:
 		float y;
 	};
 
+	struct MouseEvent {
+		float x;
+		float y;
+	};
+
 	enum EventType {
-		Click
+		Click, MouseMove, MouseUp, MouseDown
 	};
 	EventType type;
 
 	union {
 		ClickEvent click;
+		MouseEvent mouse;
 	};
 };

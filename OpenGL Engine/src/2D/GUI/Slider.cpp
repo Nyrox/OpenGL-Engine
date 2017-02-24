@@ -17,5 +17,23 @@ void Slider::render(Shader& shader) {
 }
 
 void Slider::handleEvent(const Event& event) {
+	static bool isMouseDown;
 
+	switch (event.type) {
+	case Event::MouseDown:
+		if (selector.getLocalBounds().contains(event.click.x, event.click.y)) {
+			isMouseDown = true;
+		}
+		break;
+	case Event::MouseUp:
+		isMouseDown = false;
+		break;
+	case Event::MouseMove:
+		if (isMouseDown) {
+			float d = transform.position.x + size.x;
+			float interp = (event.mouse.x - transform.position.x) / d;
+			current = std::clamp(interp, 0.f, 1.f);
+		}
+		break;
+	}
 }

@@ -28,8 +28,14 @@ constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 10000;
 
 std::function<void(GLFWwindow*, int, int, int)> mouse_callback = nullptr;
+std::function<void(GLFWwindow*, double, double)> cursorPositionCallback = nullptr;
+
 void glfw_mouse_callback(GLFWwindow* window, int button, int action, int mods) {
 	if (mouse_callback != nullptr) mouse_callback(window, button, action, mods);
+}
+
+void glfw_cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
+	if (cursorPositionCallback != nullptr) cursorPositionCallback(window, xPos, yPos);
 }
 
 bool keys[1024];
@@ -128,6 +134,7 @@ int main() {
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, glfw_cursorPositionCallback);
 
 	gl::sys::LoadFunctions();
 
@@ -351,6 +358,16 @@ int main() {
 		}
 
 		mouse_callback = [&](GLFWwindow* window, int button, int action, int mods) {
+			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_PRESS) {
+				double mouse_x, mouse_y;
+				glfwGetCursorPos(window, &mouse_x, &mouse_y);
+
+				Event event;
+				event.mouse = { (float)mouse_x, (float)mouse_y };
+				event.type = Event::MouseDown;
+				gui_context.handleEvent(event);
+
+			}
 			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 				
 				double mouse_x, mouse_y;
@@ -360,6 +377,10 @@ int main() {
 				event.click.x = mouse_x;
 				event.click.y = mouse_y;
 				event.type = Event::Click;
+				gui_context.handleEvent(event);
+
+				event.mouse = { (float)mouse_x, (float)mouse_y };
+				event.type = Event::MouseUp;
 				gui_context.handleEvent(event);
 
 				Physics::Ray ray = Physics::screenPositionToRay(camera, glm::vec2(mouse_x, mouse_y));
@@ -374,6 +395,14 @@ int main() {
 				
 			}
 		};
+		cursorPositionCallback = [&](GLFWwindow* window, double xPos, double yPos) {
+			Event event;
+			event.mouse = { (float)xPos, (float)yPos };
+			event.type = Event::MouseMove;
+
+			gui_context.handleEvent(event);
+		};
+
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
 	};
 	
