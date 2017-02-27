@@ -31,6 +31,8 @@ void Curve<val, sample>::addPoint(std::pair<sample, val> point) {
 
 template<class val, class sample = float>
 val Curve<val, sample>::samplePoint(sample point, std::function<val(val, val, sample)> lerp) const {
+	if (point < std::get<sample>(nodes.at(0))) return std::get<val>(nodes.at(0));
+
 	for (auto iterator = nodes.begin(); iterator != nodes.end(); iterator++) {
 		sample current = std::get<sample>(*iterator);
 		if (current >= point) {

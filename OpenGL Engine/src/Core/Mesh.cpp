@@ -3,6 +3,10 @@
 #include <glm\gtx\transform.hpp>
 #include <iostream>
 
+Mesh::Mesh(const std::string& file) {
+	loadFromFile(file);
+}
+
 void Mesh::draw() const {
 	if (vao == 0) {
 		std::cout << "Error::Mesh::draw: Tried to draw mesh without a valid VAO" << std::endl;

@@ -17,19 +17,13 @@ struct Material {
 	} const shadingModel;
 
 
-	Material(ShadingModel t_shadingModel = ShadingModel::Opague, float t_shininess = 64) : shadingModel(t_shadingModel), shininess(t_shininess) {
-		forward_pass_override = nullptr;
+	Material(Shader& t_shader, ShadingModel t_shadingModel = ShadingModel::Opague, float t_shininess = 64) : shader(t_shader), shadingModel(t_shadingModel), shininess(t_shininess) {
 		heightmap = nullptr;
 		normal = nullptr;
 	}
 
-	
-	
+	Shader& shader;
 
-	Shader* forward_pass_override;
-	Shader* shadow_pass_override;
-
-	
 	// Store's the specular component of the material. 
 	// Unless defined otherwise, this is a 3 component 8bit color with black as it's default.
 	// If std::holds_alternative<Texture2D*>(specular) holds true, it is assumed the pointer is valid.

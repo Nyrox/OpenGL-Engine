@@ -1,6 +1,5 @@
 #pragma once
 #include "Constants.h"
-#include "Curve.h"
 #include "Rect.h"
 
 namespace Math {

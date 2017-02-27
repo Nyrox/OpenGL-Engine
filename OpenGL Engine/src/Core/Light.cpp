@@ -1,4 +1,6 @@
 #include "Light.h"
+#include <Math\Curve.h>
+#include <Math\Math.h>
 
 /*
 Range Constant Linear Quadratic

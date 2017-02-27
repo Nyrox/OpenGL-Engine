@@ -10,8 +10,9 @@
 */
 class Model {
 public:
+	Model(Material& material, std::shared_ptr<Mesh> mesh, Transform transform = Transform());
 
-	Material material;
+	Material& material;
 	Transform transform;
 	std::shared_ptr<Mesh> mesh;
 private:

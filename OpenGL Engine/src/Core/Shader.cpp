@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <Core\NShaderCompiler\ShaderCompiler.h>
+#include <experimental\filesystem>
 
 #include <exception>
 #include <sstream>
@@ -7,6 +8,10 @@
 #include <iostream>
 
 #include <glm/gtc/type_ptr.hpp>
+
+Shader::Shader(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile) {
+	loadFromFile(vShaderFile, fShaderFile, gShaderFile);
+}
 
 void Shader::bind() const {
 	gl::UseProgram(this->id);
@@ -61,6 +66,14 @@ void Shader::compile(const std::string& t_vertexSource, const std::string& t_fra
 
 
 std::string Shader::loadSingle(const std::string& shaderFile) {
+	using namespace std::experimental;
+
+	filesystem::path path(shaderFile);
+	if (!filesystem::exists(path)) {
+		std::cout << "Error trying to load: " << shaderFile << ". File does not exist.\n";
+		return std::string();
+	}	
+
 	std::stringstream out;
 	try {
 		std::ifstream file;

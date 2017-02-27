@@ -106,11 +106,13 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 
 class House : public SceneNode {
 public:
+	House(Model& t_model) : model(t_model) { }
+
 	virtual Physics::AABB getSceneBoundingBox() const override {
 		return collision;
 	}
 
-	Model model;
+	Model& model;
 	Physics::AABB collision;
 };
 
@@ -206,65 +208,61 @@ int main() {
 	brickwallNormal.allocate(gl::RGB8, { 1024, 1024 });
 	brickwallNormal.loadFromFile("assets/brickwall_normal.jpg", gl::RGB);
 
-	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>();
-	cube_mesh->loadFromFile("assets/cube.ply");
+	Shader blinnPhongShader("shaders/basic.vert", "shaders/basic.frag");
 
-	Model cube;
-	cube.transform.position = glm::vec3(1.25, 0, 0);
-	cube.mesh = cube_mesh;
-	cube.material.diffuse = &brickwallDiffuse;
-	cube.material.normal = &brickwallNormal;
+	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>("assets/cube.ply");
+	std::shared_ptr<Mesh> cross_mesh = std::make_shared<Mesh>("assets/cross.ply");
+	
+	Material brickwallMaterial(blinnPhongShader);
+	brickwallMaterial.diffuse = &brickwallDiffuse;
+	brickwallMaterial.normal = &brickwallNormal;
 
-	Model betterCube;
-	betterCube.transform.position = glm::vec3(-1.25, 0, 3);
-	betterCube.mesh = cube_mesh;
-	betterCube.material.diffuse = &brickwallDiffuse;
-	betterCube.material.normal = &brickwallNormal;
-
-	Model cross;
-	cross.transform.position = glm::vec3(-1.25, 0, 6);
-	cross.mesh = std::make_shared<Mesh>();
-	cross.mesh->loadFromFile("assets/cross.ply");
-	cross.material.diffuse = &texture;
-
-	Model reflectiveCube;
-	reflectiveCube.transform.position = glm::vec3(3, 0, 2);
-	reflectiveCube.mesh = cube_mesh;
-	reflectiveCube.material.diffuse = &transparent;
-
-	Model reflectiveSphere;
-	reflectiveSphere.transform.position = glm::vec3(-4, 0, 3);
-	reflectiveSphere.mesh = std::make_shared<Mesh>();
-	reflectiveSphere.mesh->loadFromFile("assets/sphere.ply");
-	reflectiveSphere.material.diffuse = &transparent;
+	Model cube(brickwallMaterial, cube_mesh, Transform(glm::vec3(1.25, 0, 0)));
+	Model betterCube(brickwallMaterial, cube_mesh, Transform(glm::vec3(-1.25, 0, 3)));
 
 	renderer.insert(&cube);
 	renderer.insert(&betterCube);
-	renderer.insert(&cross);
 
+	Material woodMaterial(blinnPhongShader);
+	woodMaterial.diffuse = &texture;
+
+	Model cross(woodMaterial, cross_mesh, Transform(glm::vec3(-1.25, 0, 6)));
+	
+	Material glassMaterial(blinnPhongShader);
+	glassMaterial.diffuse = &transparent;
+
+	Model reflectiveCube(glassMaterial, cube_mesh, Transform(glm::vec3(3, 0, 2)));
+	Model reflectiveSphere(glassMaterial, std::make_shared<Mesh>("assets/sphere.ply"), Transform(glm::vec3(-4, 0, 3)));
+
+	
+	renderer.insert(&cross);
 	renderer.insert(&reflectiveSphere);
 	renderer.insert(&reflectiveCube);
 
+	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>("assets/house.ply");
+	Model houseModel(woodMaterial, house_mesh, Transform(glm::vec3(20, 0, 0)));
 
-	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>();
-	house_mesh->loadFromFile("assets/house.ply");
-
-	House house;
-	house.model.transform.position.x = 20;
-	house.model.mesh = house_mesh;
-	house.model.material.diffuse = &texture;
+	House house(houseModel);
 
 	renderer.insert(&house.model);
 
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
 
-	Terrain terrain(400, 400);
-	terrain.generateMeshFromHeightmap(heightmap, 0.008);
-
 	Texture2D groundDiffuse(true, gl::REPEAT, gl::LINEAR_MIPMAP_LINEAR);
 	groundDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
 	groundDiffuse.loadFromFile("assets/ground.png", gl::RGBA);
+
+	Shader terrainShader("shaders/terrain.vert", "shaders/basic.frag");
+	terrainShader.bind();
+	terrainShader.setUniform("uvScale", 8.f);
+
+	Material terrainMaterial(terrainShader);
+	terrainMaterial.diffuse = &groundDiffuse;
+	terrainMaterial.specular = &testSpecular;
+
+	Terrain terrain(terrainMaterial, 400, 400);
+	terrain.generateMeshFromHeightmap(heightmap, 0.008);
 
 	terrain.model.transform.position = glm::vec3(-200, 0, -200);
 	terrain.model.material.diffuse = &groundDiffuse;
@@ -273,10 +271,8 @@ int main() {
 	renderer.insert(&terrain.model);
 
 	Scene scene;
-	House* myHouse = scene.emplace<House>();
+	House* myHouse = scene.emplace<House>(houseModel);
 	myHouse->model.transform.position.x = 25;
-	myHouse->model.mesh = house_mesh;
-	myHouse->model.material.diffuse = &texture;
 
 	renderer.insert(&myHouse->model);
 
@@ -297,8 +293,8 @@ int main() {
 		exit(EXIT_SUCCESS);
 	};
 
-	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 360), [&](double val) {
-		std::cout << std::to_string(val) << "\n";
+	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(1, 360), [&](double val) {
+		renderer.point_lights.at(0).setEffectiveRange(val);
 	});
 
 

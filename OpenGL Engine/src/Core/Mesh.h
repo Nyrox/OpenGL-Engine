@@ -8,6 +8,9 @@
 // TODO: Maybe implement an std::optional to keep a cpu copy of the vertices and indices
 class Mesh {
 public:
+	Mesh() = default;
+	Mesh(const std::string& file);
+
 	// Emit an OpenGL draw call
 	// Does not have any side effects
 	void draw() const;

@@ -3,8 +3,8 @@
 
 #include <vector>
 
-Terrain::Terrain(float t_width, float t_height) : width(t_width), height(t_height) { 
-	model.mesh = std::make_shared<Mesh>();
+Terrain::Terrain(Material& material, float t_width, float t_height) : model(material, std::make_shared<Mesh>()), width(t_width), height(t_height) { 
+
 }
 
 void Terrain::generateMeshFromHeightmap(const Image& heightmap, float heightmapIntensity) {

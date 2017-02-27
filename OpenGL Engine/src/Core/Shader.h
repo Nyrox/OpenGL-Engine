@@ -9,6 +9,9 @@
 */
 class Shader {
 public:
+	Shader() = default;
+	Shader(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile = std::string());
+
 	GLuint id;
 	void bind() const;
 

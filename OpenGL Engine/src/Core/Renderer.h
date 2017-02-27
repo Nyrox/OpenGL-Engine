@@ -19,7 +19,7 @@ public:
 
 	
 	void insert(Model* node);
-
+	std::vector<PointLight> point_lights;
 
 	Camera& camera;
 private:
@@ -39,7 +39,7 @@ private:
 
 	Shader forward_render_shader;	
 
-	std::vector<PointLight> point_lights;
+	
 	std::vector<Framebuffer> shadow_maps;
 	
 	std::vector<DirectionalLight> directional_lights;

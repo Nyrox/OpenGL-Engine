@@ -177,12 +177,12 @@ void Renderer::render() {
 	};
 
 	
-
-	forward_render_shader.bind();
-	setUniforms(forward_render_shader);
-
 	// Draw opagues
 	for (auto& it : opagues) {
+		Shader& shader = it->material.shader;
+		shader.bind();
+		setUniforms(shader);
+
 		it->material.diffuse->bind(0);
 
 		if		(std::holds_alternative<glm::vec3>(it->material.specular))  { std::get<glm::vec3>(it->material.specular); }
@@ -190,37 +190,19 @@ void Renderer::render() {
 
 		if (it->material.normal != nullptr) {
 			it->material.normal->bind(4);
-			forward_render_shader.setUniform("useNormalMap", true);
-			forward_render_shader.setUniform("normalMap", 4);
+			shader.setUniform("useNormalMap", true);
+			shader.setUniform("normalMap", 4);
 		}
 		else {
-			forward_render_shader.setUniform("useNormalMap", false);
+			shader.setUniform("useNormalMap", false);
 		}
 
-		if (it->material.forward_pass_override != nullptr) {
-			it->material.forward_pass_override->bind();
-			setUniforms(*it->material.forward_pass_override);
-			
-			if (it->material.heightmap != nullptr) {
-				it->material.forward_pass_override->setUniform("heightmap", 2);
-				it->material.heightmap->bind(2);
-			}
+		shader.setUniform("model", it->transform.getModelMatrix());
+		shader.setUniform("material", it->material);
 
-			it->material.forward_pass_override->setUniform("model", it->transform.getModelMatrix());
-			it->material.forward_pass_override->setUniform("material", it->material);
-			
-			it->mesh->draw();
-		}
-		else {
-			forward_render_shader.bind();
-			forward_render_shader.setUniform("model", it->transform.getModelMatrix());
-			forward_render_shader.setUniform("material", it->material);
-
-			it->mesh->draw();
-		}
+		it->mesh->draw();
+		
 	}
-	forward_render_shader.bind();
-	forward_render_shader.setUniform("model", glm::translate(glm::vec3{ -5, -3, -7 }));
 
 	std::sort(transparents.begin(), transparents.end(), [&](const Model* a, const Model* b) {
 		return glm::distance(camera.transform.position, a->transform.position) > glm::distance(camera.transform.position, b->transform.position);
@@ -229,12 +211,13 @@ void Renderer::render() {
 	gl::Enable(gl::BLEND);
 	// Draw transparents
 	for (auto& it : transparents) {
+		Shader& shader = it->material.shader;
+		shader.bind();
 		it->material.diffuse->bind(0);
 		//it.material.specular.bind(1);
 		
-		forward_render_shader.bind();
-		forward_render_shader.setUniform("model", it->transform.getModelMatrix());
-		forward_render_shader.setUniform("material", it->material);
+		shader.setUniform("model", it->transform.getModelMatrix());
+		shader.setUniform("material", it->material);
 		
 		it->mesh->draw();
 	}

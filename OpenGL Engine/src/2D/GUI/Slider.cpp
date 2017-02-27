@@ -1,5 +1,6 @@
 #include "Slider.h"
 #include <Core\Shader.h>
+#include <algorithm>
 
 Slider::Slider(glm::vec2 t_size, glm::vec2 t_valueRange, std::function<void(double)> callback) 
 	: size(t_size), valueRange(t_valueRange), sliderCallback(callback), box(size), selector(t_size.y / 2.5, 16) {
@@ -33,6 +34,8 @@ void Slider::handleEvent(const Event& event) {
 			float d = transform.position.x + size.x;
 			float interp = (event.mouse.x - transform.position.x) / d;
 			current = std::clamp(interp, 0.f, 1.f);
+
+			sliderCallback(Math::lerp(valueRange.x, valueRange.y, current));
 		}
 		break;
 	}

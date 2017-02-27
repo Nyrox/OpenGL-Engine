@@ -11,7 +11,7 @@ class Image;
 */
 class Terrain {
 public:
-	Terrain(float width, float height);
+	Terrain(Material& material, float width, float height);
 
 	/*
 		Generates the mesh from a generator function by calling the function once for each grid node with the x and y indices of that node provided.
