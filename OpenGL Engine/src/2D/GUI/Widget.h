@@ -1,5 +1,5 @@
 #pragma once
-#include <2D\GUI\Event.h>
+#include <Core/Event.h>
 
 class Shader;
 

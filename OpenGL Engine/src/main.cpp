@@ -308,6 +308,8 @@ int main() {
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
+		gizmo.update();
+		myHouse->model.transform = myHouse->transform;
 
 		/*
 			Input
@@ -367,7 +369,9 @@ int main() {
 				Event event;
 				event.mouse = { (float)mouse_x, (float)mouse_y };
 				event.type = Event::MouseDown;
+				event.mouse.camera = &camera;
 				gui_context.handleEvent(event);
+				gizmo.handleEvent(event);
 
 			}
 			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
@@ -378,21 +382,17 @@ int main() {
 				Event event;
 				event.click.x = mouse_x;
 				event.click.y = mouse_y;
+				event.click.camera = &camera;
 				event.type = Event::Click;
 				gui_context.handleEvent(event);
+				gizmo.handleEvent(event);
 
 				event.mouse = { (float)mouse_x, (float)mouse_y };
 				event.type = Event::MouseUp;
 				gui_context.handleEvent(event);
+				gizmo.handleEvent(event);
 
-				Physics::Ray ray = Physics::screenPositionToRay(camera, glm::vec2(mouse_x, mouse_y));
-				house.collision = Physics::AABB(house.model.transform.position - glm::vec3(1), house.model.transform.position + glm::vec3(1));
-				Physics::AABB terrainCollision = Physics::AABB(terrain.model.transform.position, terrain.model.transform.position + glm::vec3(terrain.width, 0, terrain.height));
-				float min;
-				glm::vec3 q;
-				std::cout << terrainCollision.intersects(ray, &min, &q) << std::endl;
-				myHouse->model.transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
-
+				
 				//Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
 
 			}
@@ -401,8 +401,10 @@ int main() {
 			Event event;
 			event.mouse = { (float)xPos, (float)yPos };
 			event.type = Event::MouseMove;
+			event.mouse.camera = &camera;
 
 			gui_context.handleEvent(event);
+			gizmo.handleEvent(event);
 		};
 
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
@@ -423,7 +425,7 @@ int main() {
 		specular.bind(1);
 
 		renderer.render();
-		gizmo.render();
+		gizmo.render(camera.getViewMatrix(), camera.projection);
 
 		Debug::render(camera.getViewMatrix(), camera.projection);
 		gui_context.render();

@@ -16,3 +16,4 @@ Ray Physics::screenPositionToRay(const Camera& camera, glm::vec2 position) {
 	glm::vec3 ray_world = glm::vec3(glm::inverse(camera.getViewMatrix()) * ray_view);
 	return Ray(camera.transform.position, glm::normalize(ray_world));
 }
+
