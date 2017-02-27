@@ -176,6 +176,8 @@ void Renderer::render() {
 		}
 	};
 
+	
+
 	forward_render_shader.bind();
 	setUniforms(forward_render_shader);
 

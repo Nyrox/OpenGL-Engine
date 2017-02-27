@@ -20,6 +20,7 @@
 #include <Core\Scene.h>
 #include <2D\GUI\GUIContext.h>
 #include <2D\Text.h>
+#include <Editor\Gizmo.h>
 
 #include <iostream>
 #include <functional>
@@ -126,7 +127,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, false);
 
-	
+
 	// Context
 	GLFWwindow* window = glfwCreateWindow(1280, 720, "Hi", nullptr, nullptr);
 	if (window == nullptr) {
@@ -192,7 +193,7 @@ int main() {
 	Texture2D specular;
 	specular.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
 	specular.loadFromFile("assets/container2_specular.png", gl::RGBA);
-	
+
 	Texture2D testSpecular;
 	testSpecular.allocate(gl::R8, { 16, 16 });
 	testSpecular.loadFromFile("assets/TestSpecular.png", gl::RED);
@@ -213,7 +214,7 @@ int main() {
 	cube.mesh = cube_mesh;
 	cube.material.diffuse = &brickwallDiffuse;
 	cube.material.normal = &brickwallNormal;
-	
+
 	Model betterCube;
 	betterCube.transform.position = glm::vec3(-1.25, 0, 3);
 	betterCube.mesh = cube_mesh;
@@ -230,7 +231,7 @@ int main() {
 	reflectiveCube.transform.position = glm::vec3(3, 0, 2);
 	reflectiveCube.mesh = cube_mesh;
 	reflectiveCube.material.diffuse = &transparent;
-	
+
 	Model reflectiveSphere;
 	reflectiveSphere.transform.position = glm::vec3(-4, 0, 3);
 	reflectiveSphere.mesh = std::make_shared<Mesh>();
@@ -244,7 +245,7 @@ int main() {
 	renderer.insert(&reflectiveSphere);
 	renderer.insert(&reflectiveCube);
 
-	
+
 	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>();
 	house_mesh->loadFromFile("assets/house.ply");
 
@@ -278,12 +279,13 @@ int main() {
 	myHouse->model.material.diffuse = &texture;
 
 	renderer.insert(&myHouse->model);
-	
-	
+
+	Gizmo gizmo;
+	gizmo.sceneNode = myHouse;
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
-	
+
 	bool rightMouseButtonIsDown = false;
 	glm::vec2 cursorLastFrame;
 
@@ -299,14 +301,14 @@ int main() {
 		std::cout << std::to_string(val) << "\n";
 	});
 
-	
+
 
 	auto physics_update = [&]() {
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		
+
 		/*
 			Input
 		*/
@@ -339,8 +341,8 @@ int main() {
 
 
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2)) {
-			if (rightMouseButtonIsDown == false) { 
-				rightMouseButtonIsDown = true; 
+			if (rightMouseButtonIsDown == false) {
+				rightMouseButtonIsDown = true;
 				double tmpx, tmpy;
 				glfwGetCursorPos(window, &tmpx, &tmpy);
 				cursorLastFrame = { tmpx, tmpy };
@@ -369,7 +371,7 @@ int main() {
 
 			}
 			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-				
+
 				double mouse_x, mouse_y;
 				glfwGetCursorPos(window, &mouse_x, &mouse_y);
 
@@ -392,7 +394,7 @@ int main() {
 				myHouse->model.transform.position = glm::vec3(q.x, house.model.transform.position.y, q.z);
 
 				//Debug::drawLine(renderer.camera->position, renderer.camera->position + ray_world * 100.f, 15.f);
-				
+
 			}
 		};
 		cursorPositionCallback = [&](GLFWwindow* window, double xPos, double yPos) {
@@ -405,22 +407,24 @@ int main() {
 
 		glfwSetMouseButtonCallback(window, glfw_mouse_callback);
 	};
-	
-	
 
-	
+
+
+
 	gl::DepthFunc(gl::LESS);
 	gl::Enable(gl::DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		physics_update();
-		
+
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
 		specular.bind(1);
 
 		renderer.render();
+		gizmo.render();
+
 		Debug::render(camera.getViewMatrix(), camera.projection);
 		gui_context.render();
 

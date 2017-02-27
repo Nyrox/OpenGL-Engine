@@ -3,7 +3,7 @@
 #include <glm\gtx\transform.hpp>
 #include <iostream>
 
-void Mesh::draw() {
+void Mesh::draw() const {
 	if (vao == 0) {
 		std::cout << "Error::Mesh::draw: Tried to draw mesh without a valid VAO" << std::endl;
 		return;

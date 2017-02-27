@@ -10,7 +10,7 @@
 class Shader {
 public:
 	GLuint id;
-	Shader& bind();
+	void bind() const;
 
 	/*
 		Loads shader source from files and compiles the program
@@ -33,19 +33,19 @@ public:
 	*/
 	void compile(const std::string& vertexSource, const std::string& fragmentSource, const std::string& geometrySource = nullptr);
 
-	void setUniform(std::string name, int val);
-	void setUniform(std::string name, float val);
-	void setUniform(std::string name, glm::vec2);
-	void setUniform(std::string name, glm::vec3);
-	void setUniform(std::string name, glm::mat4 matrix);
+	void setUniform(std::string name, int val) const;
+	void setUniform(std::string name, float val) const;
+	void setUniform(std::string name, glm::vec2) const;
+	void setUniform(std::string name, glm::vec3) const;
+	void setUniform(std::string name, glm::mat4 matrix) const;
 
-	void setUniform(std::string name, Material material);
-	void setUniform(std::string name, PointLight light, uint32_t index = 0);
-	void setUniform(std::string name, DirectionalLight light, uint32_t index = 0);
+	void setUniform(std::string name, Material material) const;
+	void setUniform(std::string name, PointLight light, uint32_t index = 0) const;
+	void setUniform(std::string name, DirectionalLight light, uint32_t index = 0) const;
 
 
-	void setUniformArray(std::string name, glm::mat4* data, uint32_t count);
-	void setUniformArray(std::string name, PointLight* data, uint32_t count);
+	void setUniformArray(std::string name, glm::mat4* data, uint32_t count) const;
+	void setUniformArray(std::string name, PointLight* data, uint32_t count) const;
 	
 private:
 	/*

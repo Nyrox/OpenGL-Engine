@@ -10,7 +10,7 @@ class Mesh {
 public:
 	// Emit an OpenGL draw call
 	// Does not have any side effects
-	void draw();
+	void draw() const;
 
 	// Load a mesh from file
 	// @[Params]

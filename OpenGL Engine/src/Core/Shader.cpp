@@ -8,9 +8,8 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-Shader& Shader::bind() {
+void Shader::bind() const {
 	gl::UseProgram(this->id);
-	return *this;
 }
 
 void Shader::loadFromFile(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile) {
@@ -107,33 +106,33 @@ void Shader::checkCompileErrors(GLuint object, GLenum type) {
 	Uniforms
 */
 
-void Shader::setUniform(std::string name, int val) {
+void Shader::setUniform(std::string name, int val) const {
 	gl::Uniform1i(gl::GetUniformLocation(this->id, name.c_str()), val);
 }
 
-void Shader::setUniform(std::string name, float val) {
+void Shader::setUniform(std::string name, float val) const {
 	gl::Uniform1f(gl::GetUniformLocation(this->id, name.c_str()), val);
 }
 
-void Shader::setUniform(std::string name, glm::vec2 val) {
+void Shader::setUniform(std::string name, glm::vec2 val) const {
 	gl::Uniform2fv(gl::GetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
 }
 
-void Shader::setUniform(std::string name, glm::vec3 val) {
+void Shader::setUniform(std::string name, glm::vec3 val) const {
 	gl::Uniform3fv(gl::GetUniformLocation(this->id, name.c_str()), 1, glm::value_ptr(val));
 }
 
-void Shader::setUniform(std::string name, glm::mat4 matrix) {
+void Shader::setUniform(std::string name, glm::mat4 matrix) const {
 	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
 }
 
-void Shader::setUniform(std::string name, Material material) {
+void Shader::setUniform(std::string name, Material material) const {
 	setUniform(name + ".diffuse", 0);
 	setUniform(name + ".specular", 1);
 	setUniform(name + ".shininess", material.shininess);
 }
 
-void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
+void Shader::setUniform(std::string name, PointLight light, uint32_t index) const {
 	setUniform(name + ".position", light.position);
 	setUniform(name + ".ambient", light.color);
 	setUniform(name + ".diffuse", light.color);
@@ -143,7 +142,7 @@ void Shader::setUniform(std::string name, PointLight light, uint32_t index) {
 	setUniform(name + ".quadratic", light.quadratic);
 }
 
-void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index) {
+void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index) const {
 	setUniform(name + ".direction", light.direction);
 	setUniform(name + ".ambient", light.ambient);
 	setUniform(name + ".diffuse", light.diffuse);
@@ -151,11 +150,11 @@ void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index
 }
 
 
-void Shader::setUniformArray(std::string name, glm::mat4* data, uint32_t count) {
+void Shader::setUniformArray(std::string name, glm::mat4* data, uint32_t count) const {
 	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), count, 0, (GLfloat*)data);
 }
 
-void Shader::setUniformArray(std::string name, PointLight* data, uint32_t count) {
+void Shader::setUniformArray(std::string name, PointLight* data, uint32_t count) const {
 	/*
 	setUniform(name + "[" + "0" + "]" + ".position", light.position);
 	setUniform(name + "[" + "0" + "]" + ".ambient", light.ambient);
