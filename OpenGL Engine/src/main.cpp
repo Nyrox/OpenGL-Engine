@@ -276,6 +276,19 @@ int main() {
 
 	renderer.insert(&myHouse->model);
 
+
+
+	/*
+		PBR BLACK MAGIC
+	*/
+	Shader pbrShader("shaders/pbr.vert", "shaders/pbr.frag");
+	Material pbrMaterial(pbrShader);
+	pbrMaterial.diffuse = &transparent;
+
+	Model pbrSphere(pbrMaterial, std::make_shared<Mesh>("assets/sphere.ply"), Transform(glm::vec3(-4, 0, -3)));
+	renderer.insert(&pbrSphere);
+
+
 	Gizmo gizmo;
 	gizmo.sceneNode = myHouse;
 
