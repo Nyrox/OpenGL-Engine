@@ -278,14 +278,30 @@ int main() {
 
 
 
+	Texture2D ironIngotAlbedo;
+	ironIngotAlbedo.allocate(gl::SRGB8, { 2048, 2048 });
+	ironIngotAlbedo.loadFromFile("assets/IronIngot_albedo.png", gl::RGB);
+
+	Texture2D ironIngotRoughness;
+	ironIngotRoughness.allocate(gl::R8, { 2048, 2048 });
+	ironIngotRoughness.loadFromFile("assets/IronIngot_roughness.png", gl::RED);
+
+	Texture2D ironIngotNormal;
+	ironIngotNormal.allocate(gl::RGB8, { 2048, 2048 });
+	ironIngotNormal.loadFromFile("assets/IronIngot_normal.png", gl::RGB);
+
 	/*
 		PBR BLACK MAGIC
 	*/
 	Shader pbrShader("shaders/pbr.vert", "shaders/pbr.frag");
 	Material pbrMaterial(pbrShader);
+	pbrMaterial["albedo"] = &ironIngotAlbedo;
+	pbrMaterial["roughness"] = &ironIngotRoughness;
+	pbrMaterial["normal"] = &ironIngotNormal;
+
 	pbrMaterial.diffuse = &transparent;
 
-	Model pbrSphere(pbrMaterial, std::make_shared<Mesh>("assets/sphere.ply"), Transform(glm::vec3(-4, 0, -3)));
+	Model pbrSphere(pbrMaterial, std::make_shared<Mesh>("assets/iron_ingot.ply"), Transform(glm::vec3(-4, 0, -3)));
 	renderer.insert(&pbrSphere);
 
 
@@ -306,8 +322,9 @@ int main() {
 		exit(EXIT_SUCCESS);
 	};
 
-	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(1, 360), [&](double val) {
-		renderer.point_lights.at(0).setEffectiveRange(val);
+	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 1), [&](double val) {
+		pbrShader.bind();
+		pbrShader.setUniform("roughness", (float)val);
 	});
 
 

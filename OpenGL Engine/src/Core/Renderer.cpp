@@ -83,22 +83,22 @@ void Renderer::render() {
 
 		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
-		std::vector<glm::mat4> shadowTransforms;
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+std::vector<glm::mat4> shadowTransforms;
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-		shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
 
-		for (auto& it : opagues) {
-			shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
-			shadow_pass_shader.setUniform("material", it->material);
+for (auto& it : opagues) {
+	shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
+	shadow_pass_shader.setUniform("material", it->material);
 
-			it->mesh->draw();
-		}
+	it->mesh->draw();
+}
 	}
 
 	dirLightShadowPassShader.bind();
@@ -145,14 +145,14 @@ void Renderer::render() {
 	gl::CullFace(gl::BACK);
 	gl::FrontFace(gl::CCW);
 
-	
+
 	auto setUniforms = [&](Shader& shader) {
 		shader.setUniform("camera_position", camera.transform.position);
 		shader.setUniform("view", camera.getViewMatrix());
 		shader.setUniform("projection", camera.projection);
 		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-		
-		
+
+
 		shader.setUniform("point_light_count", (int)point_lights.size());
 		for (int i = 0; i < point_lights.size(); i++) {
 			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
@@ -165,7 +165,7 @@ void Renderer::render() {
 			shader.setUniform("directional_lights[" + std::to_string(i) + "]", directional_lights.at(i));
 			shader.setUniform("dir_shadow_map_" + std::to_string(i), 21 + i);
 			directional_shadow_maps.at(i).bindTexture(21 + i);
-			
+
 			Framebuffer& fb = directional_shadow_maps.at(i);
 			DirectionalLight& light = directional_lights.at(i);
 
@@ -176,7 +176,7 @@ void Renderer::render() {
 		}
 	};
 
-	
+
 	// Draw opagues
 	for (auto& it : opagues) {
 		Shader& shader = it->material.shader;
@@ -185,6 +185,15 @@ void Renderer::render() {
 
 		it->material.diffuse->bind(0);
 
+		int i = 0;
+		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
+			shader.setUniform(it2->first, i);
+			it2->second->bind(i);
+
+			i++;
+		}
+
+		
 		if		(std::holds_alternative<glm::vec3>(it->material.specular))  { std::get<glm::vec3>(it->material.specular); }
 		else if (std::holds_alternative<Texture2D*>(it->material.specular)) { std::get<Texture2D*>(it->material.specular)->bind(1); }
 

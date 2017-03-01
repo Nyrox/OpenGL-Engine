@@ -30,6 +30,12 @@ uniform int point_light_count;
 
 uniform samplerCube shadow_map_0;
 
+
+
+uniform sampler2D tex2D_albedo;
+uniform sampler2D tex2D_roughness;
+uniform sampler2D tex2D_normal;
+
 const float PI = 3.14159265359;
 
 vec3 fresnelSchlick(float cosTheta, vec3 F0) {
@@ -71,25 +77,28 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 }
 
 void main() {
-	vec3 N = normalize(fs_in.faceNormal);
-	vec3 V = camera_position - fs_in.fragPos;
+	vec3 N = normalize(texture(tex2D_normal, fs_in.uv).rgb * 2.0 - 1.0);
+	N = normalize(fs_in.TBN * N);
 
-	const vec3 albedo = vec3(0.3, 0.25, 0.3);
-	const float metallic = 0.0;
-	const float roughness = 0.5;
+	vec3 V = normalize(camera_position - fs_in.fragPos);
+
+	const vec3 albedo = texture(tex2D_albedo, fs_in.uv).rgb;
+	float roughness = texture(tex2D_roughness, fs_in.uv).r;
+
+	const float metallic = 1.0;
 
 	vec3 F0 = vec3(0.04); 
     F0 = mix(F0, albedo, metallic);
 
 	vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i) 
+    for(int i = 0; i < 2; ++i) 
     {
         // calculate per-light radiance
         vec3 L = normalize(point_lights[i].position - fs_in.fragPos);
         vec3 H = normalize(V + L);
         float distance    = length(point_lights[i].position - fs_in.fragPos);
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance     = point_lights[i].diffuse * attenuation;        
+        vec3 radiance     = point_lights[i].diffuse * 20 * attenuation;        
         
         // cook-torrance brdf
         float NDF = DistributionGGX(N, H, roughness);        

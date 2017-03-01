@@ -2,6 +2,7 @@
 #include <Core/Texture.h>
 #include <glm/glm.hpp>
 #include <variant>
+#include <unordered_map>
 
 using glm::vec3;
 
@@ -33,6 +34,12 @@ struct Material {
 	Texture2D* heightmap;
 	Texture2D* normal;
 
-	
+	std::unordered_map<std::string, Texture2D*> textures;
+
+	Texture2D*& operator[](const std::string& id) {
+		return textures[id];
+	}
+
+
 	float shininess;
 };
