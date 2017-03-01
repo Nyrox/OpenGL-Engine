@@ -83,22 +83,22 @@ void Renderer::render() {
 
 		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
-std::vector<glm::mat4> shadowTransforms;
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-
-shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
-
-for (auto& it : opagues) {
-	shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
-	shadow_pass_shader.setUniform("material", it->material);
-
-	it->mesh->draw();
-}
+		std::vector<glm::mat4> shadowTransforms;
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+		
+		shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+		
+		for (auto& it : opagues) {
+			shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
+			shadow_pass_shader.setUniform("material", it->material);
+		
+			it->mesh->draw();
+		}
 	}
 
 	dirLightShadowPassShader.bind();
@@ -183,27 +183,12 @@ for (auto& it : opagues) {
 		shader.bind();
 		setUniforms(shader);
 
-		it->material.diffuse->bind(0);
-
 		int i = 0;
 		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
 			shader.setUniform(it2->first, i);
 			it2->second->bind(i);
 
 			i++;
-		}
-
-		
-		if		(std::holds_alternative<glm::vec3>(it->material.specular))  { std::get<glm::vec3>(it->material.specular); }
-		else if (std::holds_alternative<Texture2D*>(it->material.specular)) { std::get<Texture2D*>(it->material.specular)->bind(1); }
-
-		if (it->material.normal != nullptr) {
-			it->material.normal->bind(4);
-			shader.setUniform("useNormalMap", true);
-			shader.setUniform("normalMap", 4);
-		}
-		else {
-			shader.setUniform("useNormalMap", false);
 		}
 
 		shader.setUniform("model", it->transform.getModelMatrix());
@@ -222,9 +207,7 @@ for (auto& it : opagues) {
 	for (auto& it : transparents) {
 		Shader& shader = it->material.shader;
 		shader.bind();
-		it->material.diffuse->bind(0);
-		//it.material.specular.bind(1);
-		
+
 		shader.setUniform("model", it->transform.getModelMatrix());
 		shader.setUniform("material", it->material);
 		

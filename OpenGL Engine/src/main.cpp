@@ -197,8 +197,8 @@ int main() {
 	std::shared_ptr<Mesh> cross_mesh = std::make_shared<Mesh>("assets/cross.ply");
 	
 	Material brickwallMaterial(blinnPhongShader);
-	brickwallMaterial.diffuse = &brickwallDiffuse;
-	brickwallMaterial.normal = &brickwallNormal;
+	brickwallMaterial["diffuse"] = &brickwallDiffuse;
+	brickwallMaterial["normal"] = &brickwallNormal;
 
 	Model cube(brickwallMaterial, cube_mesh, Transform(glm::vec3(1.25, 0, 0)));
 	Model betterCube(brickwallMaterial, cube_mesh, Transform(glm::vec3(-1.25, 0, 3)));
@@ -207,12 +207,12 @@ int main() {
 	renderer.insert(&betterCube);
 
 	Material woodMaterial(blinnPhongShader);
-	woodMaterial.diffuse = &texture;
+	woodMaterial["diffuse"] = &texture;
 
 	Model cross(woodMaterial, cross_mesh, Transform(glm::vec3(-1.25, 0, 6)));
 	
 	Material glassMaterial(blinnPhongShader);
-	glassMaterial.diffuse = &transparent;
+	glassMaterial["diffuse"] = &transparent;
 
 	Model reflectiveCube(glassMaterial, cube_mesh, Transform(glm::vec3(3, 0, 2)));
 	Model reflectiveSphere(glassMaterial, std::make_shared<Mesh>("assets/sphere.ply"), Transform(glm::vec3(-4, 0, 3)));
@@ -239,15 +239,13 @@ int main() {
 	terrainShader.setUniform("uvScale", 8.f);
 
 	Material terrainMaterial(terrainShader);
-	terrainMaterial.diffuse = &groundDiffuse;
-	terrainMaterial.specular = &testSpecular;
+	terrainMaterial["diffuse"] = &groundDiffuse;
+	terrainMaterial["specular"] = &testSpecular;
 
 	Terrain terrain(terrainMaterial, 400, 400);
 	terrain.generateMeshFromHeightmap(heightmap, 0.008);
 
 	terrain.model.transform.position = glm::vec3(-200, 0, -200);
-	terrain.model.material.diffuse = &groundDiffuse;
-	terrain.model.material.specular = &testSpecular;
 
 	renderer.insert(&terrain.model);
 
@@ -270,7 +268,6 @@ int main() {
 	pbrMaterial["albedo"] = &ironIngotAlbedo;
 	pbrMaterial["roughness"] = &ironIngotRoughness;
 	pbrMaterial["normal"] = &ironIngotNormal;
-	pbrMaterial.diffuse = &transparent;
 
 	Model pbrIngot(pbrMaterial, std::make_shared<Mesh>("assets/iron_ingot.ply"), Transform(glm::vec3(-4, 0, -3)));
 	renderer.insert(&pbrIngot);
@@ -418,8 +415,6 @@ int main() {
 		physics_update();
 
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
-
-		specular.bind(1);
 
 		renderer.render();
 		gizmo.render(camera.getViewMatrix(), camera.projection);
