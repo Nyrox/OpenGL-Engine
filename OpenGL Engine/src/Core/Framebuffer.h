@@ -50,5 +50,8 @@ namespace Refactor {
 
 	private:
 		Framebuffer(const Framebuffer& other) = delete;
+
+
+
 	};
 }

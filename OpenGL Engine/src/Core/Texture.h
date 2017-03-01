@@ -9,7 +9,7 @@ enum FilteringModes { Nearest = gl::NEAREST, Linear = gl::LINEAR, Bilinear = gl:
 
 struct TextureSettings {
 	
-	TextureSettings(MipmapModes mipmapMode = NoMipmaps, TextureWrapModes textureWrapMode = Repeat, FilteringModes filteringMode = Linear, float anisotropicFilteringLevel = 0.f);
+	TextureSettings(MipmapModes mipmapMode = NoMipmaps, TextureWrapModes textureWrapMode = Repeat, FilteringModes filteringMode = Nearest, float anisotropicFilteringLevel = 0.f);
 	
 	MipmapModes mipmapMode = NoMipmaps;
 	TextureWrapModes textureWrapMode = Repeat;

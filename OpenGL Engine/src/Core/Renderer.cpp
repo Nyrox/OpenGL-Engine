@@ -4,12 +4,15 @@
 #include <iostream>
 
 Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest))
-	//: postProcessBuffer({ 1280, 720 }, RGB) 
+	
 {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
+	geometryPassShader.loadFromFile("shaders/deferred/geometry_pass.vert", "shaders/deferred/geometry_pass.frag");
+	lightingPrepassShader.loadFromFile("shaders/deferred/lighting_prepass.vert", "shaders/deferred/lighting_prepass.frag");
+
 
 	skybox.loadFromFiles({
 		"assets/skybox/blue_rt.tga",
@@ -24,6 +27,21 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	postProcessDepthTexture.allocate(gl::DEPTH24_STENCIL8, { 1280, 720 });
 	postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
 	postProcessBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, postProcessDepthTexture);
+
+
+	geometryPositions.allocate(gl::RGB16F, { 1280, 720 });
+	geometryNormals.allocate(gl::RGB8, { 1280, 720 });
+	geometryDepth.allocate(gl::DEPTH24_STENCIL8, { 1280, 720 });
+
+	geometryBuffer.attach(gl::COLOR_ATTACHMENT0, geometryPositions);
+	geometryBuffer.attach(gl::COLOR_ATTACHMENT1, geometryNormals);
+	geometryBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, geometryDepth);
+
+
+
+	lightingAlbedoSpec.allocate(gl::RGBA16F, { 1280, 720 });
+	lightingBuffer.attach(gl::COLOR_ATTACHMENT0, lightingAlbedoSpec);
+
 }
 
 void Renderer::insert(Model* model) {
@@ -54,6 +72,106 @@ constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE = 10.f;
 constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE = 300.f;
 
 //#define GL_WIREFRAME
+
+void Renderer::render_new() {
+
+	/*
+		TODO: Add shadow maps
+	*/
+
+
+
+
+
+	// Geometry Pass
+	geometryBuffer.bind();
+	GLuint attachments[] = { gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1 };
+	gl::DrawBuffers(2, attachments);
+
+	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+
+	gl::Enable(gl::DEPTH_TEST);
+
+	geometryPassShader.bind();
+	geometryPassShader.setUniform("view", camera.getViewMatrix());
+	geometryPassShader.setUniform("projection", camera.projection);
+	for (auto& it : opagues) {
+		geometryPassShader.setUniform("model", it->transform.getModelMatrix());
+
+		it->mesh->draw();
+	}
+
+
+	// Lighting prepass
+	lightingBuffer.bind();
+	gl::Clear(gl::COLOR_BUFFER_BIT);
+
+	// Screen sized quad
+	Mesh canvas = Mesh::generatePlane({ 2, 2 });
+
+	
+	auto setUniforms = [&](Shader& shader) {
+		shader.setUniform("camera_position", camera.transform.position);
+		shader.setUniform("view", camera.getViewMatrix());
+		shader.setUniform("projection", camera.projection);
+		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
+
+
+		shader.setUniform("point_light_count", (int)point_lights.size());
+		for (int i = 0; i < point_lights.size(); i++) {
+			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
+			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
+			shadow_maps.at(i).bindTexture(5 + i);
+		}
+
+		shader.setUniform("directional_light_count", (int)directional_lights.size());
+		for (int i = 0; i < directional_lights.size(); i++) {
+			shader.setUniform("directional_lights[" + std::to_string(i) + "]", directional_lights.at(i));
+			shader.setUniform("dir_shadow_map_" + std::to_string(i), 21 + i);
+			directional_shadow_maps.at(i).bindTexture(21 + i);
+
+			Framebuffer& fb = directional_shadow_maps.at(i);
+			DirectionalLight& light = directional_lights.at(i);
+
+			glm::mat4 shadow_projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE, DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
+			glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
+
+			shader.setUniform("dir_light_space_matrix_" + std::to_string(i), shadow_projection * shadow_view);
+		}
+	};
+
+
+	gl::Disable(gl::DEPTH_TEST);
+	gl::Disable(gl::CULL_FACE);
+	gl::Disable(gl::BLEND);
+
+
+	lightingPrepassShader.bind();
+	setUniforms(lightingPrepassShader);
+	lightingPrepassShader.setUniform("tex2D_geoPositions", 0);
+	lightingPrepassShader.setUniform("tex2D_geoNormals", 1);
+	geometryPositions.bind(0);
+	geometryNormals.bind(1);
+
+	canvas.draw();
+
+
+
+	gl::Disable(gl::DEPTH_TEST);
+	
+
+	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
+	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	gl::Clear(gl::COLOR_BUFFER_BIT);
+
+	post_process_shader.bind();
+	post_process_shader.setUniform("screen_capture", 0);
+	lightingAlbedoSpec.bind(0);
+
+	
+	canvas.draw();
+}
 
 void Renderer::render() {
 

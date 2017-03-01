@@ -13,6 +13,7 @@ public:
 	Renderer(Camera& camera, float backbuffer_width, float backbuffer_height);
 	
 	void render();
+	void render_new();
 
 	void addPointLight(PointLight light);
 	void addDirectionalLight(DirectionalLight light);
@@ -45,4 +46,14 @@ private:
 	std::vector<DirectionalLight> directional_lights;
 	std::vector<Framebuffer> directional_shadow_maps;
 
+
+	Shader geometryPassShader;
+	Refactor::Framebuffer geometryBuffer;
+	Texture2D geometryPositions;
+	Texture2D geometryNormals;
+	Texture2D geometryDepth;
+	
+	Shader lightingPrepassShader;
+	Refactor::Framebuffer lightingBuffer;
+	Texture2D lightingAlbedoSpec;
 };

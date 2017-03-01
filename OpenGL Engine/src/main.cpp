@@ -416,14 +416,14 @@ int main() {
 
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
-		renderer.render();
-		gizmo.render(camera.getViewMatrix(), camera.projection);
+		renderer.render_new();
+		//gizmo.render(camera.getViewMatrix(), camera.projection);
 
-		Debug::render(camera.getViewMatrix(), camera.projection);
-		gui_context.render();
+		//Debug::render(camera.getViewMatrix(), camera.projection);
+		//gui_context.render();
 
 
-		fpsCounter.render();
+		//fpsCounter.render();
 
 		glfwSwapBuffers(window);
 	}
