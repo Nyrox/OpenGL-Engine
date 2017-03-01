@@ -129,7 +129,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, false);
 
-
+	
 	// Context
 	GLFWwindow* window = glfwCreateWindow(1280, 720, "Hi", nullptr, nullptr);
 	if (window == nullptr) {
@@ -184,29 +184,12 @@ int main() {
 
 	renderer.addDirectionalLight(dirLight);
 
-	Texture2D texture;
-	texture.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
-	texture.loadFromFile("assets/container2.png", gl::RGBA);
-
-	Texture2D transparent;
-	transparent.allocate(gl::SRGB8_ALPHA8, { 1, 1 });
-	transparent.loadFromFile("assets/transparent.png", gl::RGBA);
-
-	Texture2D specular;
-	specular.allocate(gl::SRGB8_ALPHA8, { 500, 500 });
-	specular.loadFromFile("assets/container2_specular.png", gl::RGBA);
-
-	Texture2D testSpecular;
-	testSpecular.allocate(gl::R8, { 16, 16 });
-	testSpecular.loadFromFile("assets/TestSpecular.png", gl::RED);
-
-	Texture2D brickwallDiffuse;
-	brickwallDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
-	brickwallDiffuse.loadFromFile("assets/brickwall.jpg", gl::RGB);
-
-	Texture2D brickwallNormal;
-	brickwallNormal.allocate(gl::RGB8, { 1024, 1024 });
-	brickwallNormal.loadFromFile("assets/brickwall_normal.jpg", gl::RGB);
+	Texture2D texture("assets/container2.png", gl::SRGB8_ALPHA8);
+	Texture2D transparent("assets/transparent.png", gl::SRGB8_ALPHA8);
+	Texture2D specular("assets/container2_specular.png", gl::SRGB8_ALPHA8);
+	Texture2D testSpecular("assets/TestSpecular.png", gl::R8);
+	Texture2D brickwallDiffuse("assets/brickwall.jpg", gl::SRGB8);
+	Texture2D brickwallNormal("assets/brickwall_normal.jpg", gl::RGB8);
 
 	Shader blinnPhongShader("shaders/basic.vert", "shaders/basic.frag");
 
@@ -249,9 +232,7 @@ int main() {
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
 
-	Texture2D groundDiffuse(true, gl::REPEAT, gl::LINEAR_MIPMAP_LINEAR);
-	groundDiffuse.allocate(gl::SRGB8, { 1024, 1024 });
-	groundDiffuse.loadFromFile("assets/ground.png", gl::RGBA);
+	Texture2D groundDiffuse("assets/ground.png", gl::SRGB8, TextureSettings(GenerateMipmaps, Repeat, Bilinear, 4.f));
 
 	Shader terrainShader("shaders/terrain.vert", "shaders/basic.frag");
 	terrainShader.bind();
@@ -276,19 +257,10 @@ int main() {
 
 	renderer.insert(&myHouse->model);
 
+	Texture2D ironIngotAlbedo("assets/IronIngot_albedo.png", gl::SRGB8);
+	Texture2D ironIngotRoughness("assets/IronIngot_roughness.png", gl::R8);
+	Texture2D ironIngotNormal("assets/IronIngot_normal.png", gl::RGB8);
 
-
-	Texture2D ironIngotAlbedo;
-	ironIngotAlbedo.allocate(gl::SRGB8, { 2048, 2048 });
-	ironIngotAlbedo.loadFromFile("assets/IronIngot_albedo.png", gl::RGB);
-
-	Texture2D ironIngotRoughness;
-	ironIngotRoughness.allocate(gl::R8, { 2048, 2048 });
-	ironIngotRoughness.loadFromFile("assets/IronIngot_roughness.png", gl::RED);
-
-	Texture2D ironIngotNormal;
-	ironIngotNormal.allocate(gl::RGB8, { 2048, 2048 });
-	ironIngotNormal.loadFromFile("assets/IronIngot_normal.png", gl::RGB);
 
 	/*
 		PBR BLACK MAGIC
@@ -298,11 +270,10 @@ int main() {
 	pbrMaterial["albedo"] = &ironIngotAlbedo;
 	pbrMaterial["roughness"] = &ironIngotRoughness;
 	pbrMaterial["normal"] = &ironIngotNormal;
-
 	pbrMaterial.diffuse = &transparent;
 
-	Model pbrSphere(pbrMaterial, std::make_shared<Mesh>("assets/iron_ingot.ply"), Transform(glm::vec3(-4, 0, -3)));
-	renderer.insert(&pbrSphere);
+	Model pbrIngot(pbrMaterial, std::make_shared<Mesh>("assets/iron_ingot.ply"), Transform(glm::vec3(-4, 0, -3)));
+	renderer.insert(&pbrIngot);
 
 
 	Gizmo gizmo;

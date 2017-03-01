@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iostream>
 
-Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(false, gl::CLAMP_TO_BORDER, gl::NEAREST)
+Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest))
 	//: postProcessBuffer({ 1280, 720 }, RGB) 
 {
 	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");

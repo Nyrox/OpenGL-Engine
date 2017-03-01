@@ -3,10 +3,26 @@
 #include <glm\glm.hpp>
 #include <string>
 
+enum MipmapModes { NoMipmaps = 0, GenerateMipmaps };
+enum TextureWrapModes { Repeat = gl::REPEAT, RepeatMirrored = gl::MIRRORED_REPEAT, ClampToEdge = gl::CLAMP_TO_EDGE, ClampToBorder = gl::CLAMP_TO_BORDER };
+enum FilteringModes { Nearest = gl::NEAREST, Linear = gl::LINEAR, Bilinear = gl::LINEAR_MIPMAP_LINEAR };
+
+struct TextureSettings {
+	
+	TextureSettings(MipmapModes mipmapMode = NoMipmaps, TextureWrapModes textureWrapMode = Repeat, FilteringModes filteringMode = Linear, float anisotropicFilteringLevel = 0.f);
+	
+	MipmapModes mipmapMode = NoMipmaps;
+	TextureWrapModes textureWrapMode = Repeat;
+	FilteringModes filteringMode = Nearest;
+	float anisotropicFilteringLevel = 0.f;
+};
+
 
 class Texture2D {
 public:
-	Texture2D(bool mipmaps = true, GLenum texture_wrap = gl::REPEAT, GLenum filtering = gl::LINEAR_MIPMAP_LINEAR);
+	Texture2D(TextureSettings settings = TextureSettings());
+	Texture2D(const std::string& textureFile, GLenum internalFormat, TextureSettings settings = TextureSettings());
+
 	Texture2D(Texture2D&& other);
 
 	~Texture2D();
@@ -21,11 +37,9 @@ public:
 	*/
 	void loadFromFile(const std::string& file, GLenum pixelFormat = 0);
 
-	bool mipmaps;
-	GLenum texture_wrap;
-	GLenum filtering;
-	GLenum internalFormat;
+	TextureSettings settings;
 
+	GLenum internalFormat;
 	GLuint handle;
 	int32_t width, height;
 
