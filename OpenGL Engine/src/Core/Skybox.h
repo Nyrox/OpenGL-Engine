@@ -1,5 +1,7 @@
 #pragma once
 #include <Core/Shader.h>
+#include <Core/Mesh.h>
+
 #include <array>
 
 
@@ -19,8 +21,9 @@ public:
 	void loadFromFiles(const std::array<std::string, 6>& paths);
 
 
-	void render(glm::mat4, glm::mat4);
+	void render(glm::mat4 view, glm::mat4 projection);
 private:
+	Mesh skyboxMesh;
 	Shader shader;
 
 	GLuint id;

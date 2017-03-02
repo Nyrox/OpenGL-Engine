@@ -4,14 +4,18 @@
 #include <glm/glm.hpp>
 
 struct PointLight {
-	PointLight() {
-		setEffectiveRange(55);
+	PointLight(glm::vec3 t_position = glm::vec3(), glm::vec3 t_color = glm::vec3(1), float t_intensity = 1.0, float t_ambient = 0.15)
+		: position(t_position), color(t_color), intensity(t_intensity), ambientIntensity(t_ambient) {
+		
+		setEffectiveRange(100);
 	}
 	
 	glm::vec3 position;
 	glm::vec3 color;
+	float ambientIntensity;
+	float intensity;
 
-	float effectiveRange;
+
 	float constant, linear, quadratic;
 
 	/*

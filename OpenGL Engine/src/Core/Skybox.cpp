@@ -4,7 +4,7 @@
 #include <stb_image.h>
 #include <glm\gtx\transform.hpp>
 
-Skybox::Skybox() {
+Skybox::Skybox() : skyboxMesh(Mesh::generateCube(glm::vec3(100))) {
 	shader.loadFromFile("shaders/skybox.vert", "shaders/skybox.frag");
 }
 
@@ -28,21 +28,23 @@ void Skybox::loadFromFiles(const std::array<std::string, 6>& paths) {
 }
 
 
-void Skybox::render(glm::mat4 projection, glm::mat4 view) {
+void Skybox::render(glm::mat4 view, glm::mat4 projection) {
 
 	gl::DepthMask(false);
 	gl::Disable(gl::CULL_FACE);
+	gl::DepthFunc(gl::LEQUAL);
 
 	shader.bind();
-	shader.setUniform("model", glm::translate(glm::mat4(), { -50, -50, -50 }));
+	shader.setUniform("model", glm::translate(glm::vec3(-50)));
 	shader.setUniform("projection", projection);
 	shader.setUniform("view", glm::mat4(glm::mat3(view)));
 
+	shader.setUniform("skybox", 0);
 	gl::ActiveTexture(gl::TEXTURE0);
 	gl::BindTexture(gl::TEXTURE_CUBE_MAP, id);
-	
-	Mesh skybox = Mesh::generateCube(glm::vec3(100));
-	skybox.draw();
 
+	skyboxMesh.draw();
+	
+	gl::DepthFunc(gl::LESS);
 	gl::DepthMask(true);
 }

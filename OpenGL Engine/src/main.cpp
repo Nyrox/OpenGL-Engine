@@ -26,7 +26,7 @@
 #include <functional>
 
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
-constexpr float CAMERA_FAR_PLANE = 10000;
+constexpr float CAMERA_FAR_PLANE = 500;
 
 std::function<void(GLFWwindow*, int, int, int)> mouse_callback = nullptr;
 std::function<void(GLFWwindow*, double, double)> cursorPositionCallback = nullptr;
@@ -165,13 +165,8 @@ int main() {
 
 	Renderer renderer(camera, 1280, 720);
 
-	PointLight light;
-	light.position = { 2, 3, 2 };
-	light.color = { 0.5, 0.5, 0.5 };
-
-	PointLight light2;
-	light2.position = { -3, 3, -1 };
-	light2.color = { 0.7, 0.7, 0.7 };
+	PointLight light(glm::vec3(2, 3, 2), glm::vec3(1), 3);
+	PointLight light2(glm::vec3(-3, 3, -1), glm::vec3(1), 3);
 
 	renderer.addPointLight(light);
 	renderer.addPointLight(light2);
@@ -211,7 +206,7 @@ int main() {
 
 	Model cross(woodMaterial, cross_mesh, Transform(glm::vec3(-1.25, 0, 6)));
 	
-	Material glassMaterial(blinnPhongShader);
+	Material glassMaterial(blinnPhongShader, Material::ShadingModel::Transparent);
 	glassMaterial["diffuse"] = &transparent;
 
 	Model reflectiveCube(glassMaterial, cube_mesh, Transform(glm::vec3(3, 0, 2)));
@@ -417,13 +412,13 @@ int main() {
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
 		renderer.render_new();
-		//gizmo.render(camera.getViewMatrix(), camera.projection);
+		gizmo.render(camera.getViewMatrix(), camera.projection);
 
-		//Debug::render(camera.getViewMatrix(), camera.projection);
-		//gui_context.render();
+		Debug::render(camera.getViewMatrix(), camera.projection);
+		gui_context.render();
 
 
-		//fpsCounter.render();
+		fpsCounter.render();
 
 		glfwSwapBuffers(window);
 	}

@@ -30,8 +30,10 @@ void Text::setString(const std::string& string) {
 
 void Text::render() {
 	glm::mat4 projection = glm::ortho(0.f, 1280.f, 720.f, 0.0f, -100.f, 100.f);
+
 	gl::Disable(gl::CULL_FACE);
 	gl::Enable(gl::BLEND);
+	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
 	shader.bind();
 	shader.setUniform("projection", projection);

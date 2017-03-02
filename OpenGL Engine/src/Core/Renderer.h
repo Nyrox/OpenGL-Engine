@@ -56,4 +56,8 @@ private:
 	Shader lightingPrepassShader;
 	Refactor::Framebuffer lightingBuffer;
 	Texture2D lightingAlbedoSpec;
+
+	Shader lightingPassShader;
+	Refactor::Framebuffer mainFramebuffer;
+	Texture2D mainFramebufferTexture;
 };
