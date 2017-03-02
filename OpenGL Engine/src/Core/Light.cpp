@@ -1,6 +1,11 @@
 #include "Light.h"
+#include <Core/Physics/AABB.h>
+
 #include <Math\Curve.h>
 #include <Math\Math.h>
+
+using namespace Physics;
+
 
 /*
 Range Constant Linear Quadratic
@@ -41,4 +46,9 @@ void PointLight::setEffectiveRange(float range) {
 	this->linear = std::get<0>(val);
 	this->quadratic = std::get<1>(val);
 	this->constant = 1;
+}
+
+AABB PointLight::getSceneBoundingBox() const {
+	float bbSize = 0.2;
+	return AABB(glm::vec3(bbSize) - glm::vec3(bbSize) / 2.f);
 }

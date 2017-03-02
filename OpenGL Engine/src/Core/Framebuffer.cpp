@@ -1,6 +1,6 @@
 #include "Framebuffer.h"
-#include <Core\Texture.h>
-
+#include <Core/Texture2D.h>
+#include <Core/Texture3D.h>
 
 #include <iostream>
 

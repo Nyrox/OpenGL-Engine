@@ -5,7 +5,7 @@
 #include <Core/Model.h>
 #include <Core/Light.h>
 #include <Core/Skybox.h>
-#include <Core/Texture.h>
+#include <Core/Texture2D.h>
 #include <vector>
 
 class Renderer {
@@ -15,15 +15,25 @@ public:
 	void render();
 	void render_new();
 
-	void addPointLight(PointLight light);
+	void addPointLight(PointLight* light);
 	void addDirectionalLight(DirectionalLight light);
 
-	
+	void setRenderSettings(const Shader& shader);
+
+	struct RenderSettings {
+		bool enableSSAO = true;
+	} settings;
+
+
 	void insert(Model* node);
-	std::vector<PointLight> point_lights;
+	std::vector<PointLight*> pointLights;
 
 	Camera& camera;
 private:
+	void buildSSAOTexture();
+	void buildShadowMaps();
+
+
 	// Cached containers
 	std::vector<Model*> opagues;
 	std::vector<Model*> transparents;
@@ -35,7 +45,7 @@ private:
 	Texture2D postProcessDepthTexture;
 
 	Shader post_process_shader;
-	Shader shadow_pass_shader;
+	Shader shadowPassShader;
 	Shader dirLightShadowPassShader;
 
 	Shader forward_render_shader;	

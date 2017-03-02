@@ -1,17 +1,10 @@
 #pragma once
-#include <Core/Texture.h>
-#include <glm/glm.hpp>
-#include <variant>
+#include <Core/Texture2D.h>
 #include <unordered_map>
-
-using glm::vec3;
 
 class Shader;
 
 
-/*
-	Stores all the data neccessary to render a mesh
-*/
 struct Material {
 	enum class ShadingModel {
 		Opague, Transparent

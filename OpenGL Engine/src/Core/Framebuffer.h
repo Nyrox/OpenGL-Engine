@@ -30,6 +30,7 @@ private:
 };
 
 class Texture2D;
+class Texture3D;
 
 /*
 	Refactored version of Framebuffer for transition purpose
@@ -43,6 +44,7 @@ namespace Refactor {
 		~Framebuffer();
 
 		void attach(GLenum attach, const Texture2D& texture);
+		void attach(GLenum attach, const Texture3D& textur);
 
 		void bind();
 

@@ -42,9 +42,9 @@ public:
 	void setUniform(std::string name, glm::vec3) const;
 	void setUniform(std::string name, glm::mat4 matrix) const;
 
-	void setUniform(std::string name, Material material) const;
-	void setUniform(std::string name, PointLight light, uint32_t index = 0) const;
-	void setUniform(std::string name, DirectionalLight light, uint32_t index = 0) const;
+	void setUniform(std::string name, const Material& material) const;
+	void setUniform(std::string name, const PointLight& light, uint32_t index = 0) const;
+	void setUniform(std::string name, const DirectionalLight& light, uint32_t index = 0) const;
 
 
 	void setUniformArray(std::string name, glm::mat4* data, uint32_t count) const;

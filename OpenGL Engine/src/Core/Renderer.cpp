@@ -3,10 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
-Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest))
-	
-{
-	shadow_pass_shader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
+Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
+	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
@@ -24,15 +22,15 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 		"assets/skybox/blue_ft.tga"
 	});
 
-	postProcessTexture.allocate(gl::RGB16F, { 1280, 720 });
-	postProcessDepthTexture.allocate(gl::DEPTH24_STENCIL8, { 1280, 720 });
+	postProcessTexture.allocate(gl::RGB16F, 1280, 720);
+	postProcessDepthTexture.allocate(gl::DEPTH24_STENCIL8, 1280, 720);
 	postProcessBuffer.attach(gl::COLOR_ATTACHMENT0, postProcessTexture);
 	postProcessBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, postProcessDepthTexture);
 
 
-	geometryPositions.allocate(gl::RGB32F, { 1280, 720 });
-	geometryNormals.allocate(gl::RGB32F, { 1280, 720 });
-	geometryDepth.allocate(gl::DEPTH24_STENCIL8, { 1280, 720 });
+	geometryPositions.allocate(gl::RGB32F, 1280, 720);
+	geometryNormals.allocate(gl::RGB32F, 1280, 720);
+	geometryDepth.allocate(gl::DEPTH24_STENCIL8, 1280, 720);
 
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT0, geometryPositions);
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT1, geometryNormals);
@@ -40,13 +38,17 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 
 
 
-	lightingAlbedoSpec.allocate(gl::RGBA32F, { 1280, 720 });
+	lightingAlbedoSpec.allocate(gl::RGBA32F, 1280, 720);
 	lightingBuffer.attach(gl::COLOR_ATTACHMENT0, lightingAlbedoSpec);
 
 
-	mainFramebufferTexture.allocate(gl::RGBA32F, { 1280, 720 });
+	mainFramebufferTexture.allocate(gl::RGBA32F, 1280, 720);
 	mainFramebuffer.attach(gl::COLOR_ATTACHMENT0, mainFramebufferTexture);
 	mainFramebuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, geometryDepth);
+}
+
+void Renderer::setRenderSettings(const Shader& shader) {
+	shader.setUniform("enableSSAO", settings.enableSSAO);
 }
 
 void Renderer::insert(Model* model) {
@@ -58,8 +60,8 @@ void Renderer::insert(Model* model) {
 	}
 }
 
-void Renderer::addPointLight(PointLight light) {
-	this->point_lights.push_back(light);
+void Renderer::addPointLight(PointLight* light) {
+	this->pointLights.push_back(light);
 	this->shadow_maps.emplace_back(glm::vec2{ 1024, 1024 }, CUBE_DEPTH);
 
 }
@@ -78,55 +80,60 @@ constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE = 300.f;
 
 //#define GL_WIREFRAME
 
-void Renderer::render_new() {
-	for (auto& it : point_lights) {
-		it.position.z += std::sin(glfwGetTime()) / 15;
-	}
+void Renderer::buildSSAOTexture() {
 
-	/*
-		TODO: Add shadow maps
-	*/
+}
 
-	//skybox.render(camera.projection, camera.getViewMatrix());
-
-	// Shadow pass
-	shadow_pass_shader.bind();
-	shadow_pass_shader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-
-	gl::Enable(gl::DEPTH_TEST);
+void Renderer::buildShadowMaps() {
+	
 	gl::Disable(gl::BLEND);
-
+	gl::Enable(gl::DEPTH_TEST);
 	gl::DepthFunc(gl::LESS);
-	for (int i = 0; i < point_lights.size(); i++) {
-		PointLight& light = point_lights.at(i);
+	gl::Enable(gl::CULL_FACE);
+
+	gl::ClearColor(0, 0, 0, 1);
+
+	shadowPassShader.bind();
+	shadowPassShader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
+
+	for (int i = 0; i < pointLights.size(); i++) {
+		PointLight& light = *pointLights.at(i);
 		Framebuffer& fb = shadow_maps.at(i);
 
 		fb.bind();
 		gl::Viewport(0, 0, fb.width, fb.height);
-		gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		gl::Clear(gl::DEPTH_BUFFER_BIT);
 
-		shadow_pass_shader.setUniform("light_position", light.position);
-
+		Shader& shader = shadowPassShader;
 		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
 		std::vector<glm::mat4> shadowTransforms;
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
-		shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+		shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
+		shader.setUniform("light_position", light.transform.position);
 
 		for (auto& it : opagues) {
-			shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
-			shadow_pass_shader.setUniform("material", it->material);
+			shader.setUniform("model", it->transform.getModelMatrix());
+			shader.setUniform("material", it->material);
 
 			it->mesh->draw();
 		}
 	}
+}
+
+void Renderer::render_new() {
+	for (auto& it : pointLights) {
+		it->transform.position.z += std::sin(glfwGetTime()) / 15;
+	}
+
+	// Shadow pass
+	buildShadowMaps();
 
 	gl::Viewport(0, 0, 1280, 720);
 
@@ -150,6 +157,10 @@ void Renderer::render_new() {
 	}
 
 
+	// SSAO
+	if (settings.enableSSAO) buildSSAOTexture();
+
+
 	// Lighting prepass
 	lightingBuffer.bind();
 	gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -165,9 +176,9 @@ void Renderer::render_new() {
 		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
 
-		shader.setUniform("point_light_count", (int)point_lights.size());
-		for (int i = 0; i < point_lights.size(); i++) {
-			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
+		shader.setUniform("point_light_count", (int)pointLights.size());
+		for (int i = 0; i < pointLights.size(); i++) {
+			shader.setUniform("point_lights[" + std::to_string(i) + "]", *pointLights.at(i));
 			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
 			shadow_maps.at(i).bindTexture(5 + i);
 		}
@@ -195,6 +206,7 @@ void Renderer::render_new() {
 
 
 	lightingPrepassShader.bind();
+	setRenderSettings(lightingPrepassShader);
 	setUniforms(lightingPrepassShader);
 	lightingPrepassShader.setUniform("tex2D_geoPositions", 0);
 	lightingPrepassShader.setUniform("tex2D_geoNormals", 1);
@@ -283,179 +295,3 @@ void Renderer::render_new() {
 	canvas.draw();
 }
 
-void Renderer::render() {
-
-	for (auto& it : point_lights) {
-		it.position.z += std::sin(glfwGetTime()) / 15;
-	}
-
-
-	// Render shadow maps
-	shadow_pass_shader.bind();
-	shadow_pass_shader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-
-	gl::Enable(gl::DEPTH_TEST);
-	gl::Disable(gl::BLEND);
-
-	gl::DepthFunc(gl::LESS);
-	for (int i = 0; i < point_lights.size(); i++) {
-		PointLight& light = point_lights.at(i);
-		Framebuffer& fb = shadow_maps.at(i);
-
-		fb.bind();
-		gl::Viewport(0, 0, fb.width, fb.height);
-		gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-		shadow_pass_shader.setUniform("light_position", light.position);
-
-		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-
-		std::vector<glm::mat4> shadowTransforms;
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.position, light.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
-		
-		shadow_pass_shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
-		
-		for (auto& it : opagues) {
-			shadow_pass_shader.setUniform("model", it->transform.getModelMatrix());
-			shadow_pass_shader.setUniform("material", it->material);
-		
-			it->mesh->draw();
-		}
-	}
-
-	dirLightShadowPassShader.bind();
-	dirLightShadowPassShader.setUniform("far_plane", DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
-	for (int i = 0; i < directional_lights.size(); i++) {
-		DirectionalLight& light = directional_lights.at(i);
-		Framebuffer& fb = directional_shadow_maps.at(i);
-
-		fb.bind();
-		gl::Viewport(0, 0, fb.width, fb.height);
-		gl::Clear(gl::DEPTH_BUFFER_BIT);
-
-		glm::mat4 shadow_projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE, DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
-		glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
-
-		dirLightShadowPassShader.setUniform("lightSpaceMatrix", shadow_projection * shadow_view);
-
-		for (auto& it : opagues) {
-			dirLightShadowPassShader.setUniform("model", it->transform.getModelMatrix());
-			dirLightShadowPassShader.setUniform("material", it->material);
-
-			it->mesh->draw();
-		}
-	}
-
-#ifdef GL_WIREFRAME
-	gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
-#endif
-	// Render scene	
-	postProcessBuffer.bind();
-
-	//gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	gl::Viewport(0, 0, 1280, 720);
-	gl::ClearColor(0.4f, 0.4f, 0.4f, 1.0f);
-	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-
-	gl::Enable(gl::BLEND);
-	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
-
-	skybox.render(camera.projection, camera.getViewMatrix());
-
-
-	gl::Enable(gl::CULL_FACE);
-	gl::CullFace(gl::BACK);
-	gl::FrontFace(gl::CCW);
-
-
-	auto setUniforms = [&](Shader& shader) {
-		shader.setUniform("camera_position", camera.transform.position);
-		shader.setUniform("view", camera.getViewMatrix());
-		shader.setUniform("projection", camera.projection);
-		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
-
-
-		shader.setUniform("point_light_count", (int)point_lights.size());
-		for (int i = 0; i < point_lights.size(); i++) {
-			shader.setUniform("point_lights[" + std::to_string(i) + "]", point_lights.at(i));
-			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
-			shadow_maps.at(i).bindTexture(5 + i);
-		}
-
-		shader.setUniform("directional_light_count", (int)directional_lights.size());
-		for (int i = 0; i < directional_lights.size(); i++) {
-			shader.setUniform("directional_lights[" + std::to_string(i) + "]", directional_lights.at(i));
-			shader.setUniform("dir_shadow_map_" + std::to_string(i), 21 + i);
-			directional_shadow_maps.at(i).bindTexture(21 + i);
-
-			Framebuffer& fb = directional_shadow_maps.at(i);
-			DirectionalLight& light = directional_lights.at(i);
-
-			glm::mat4 shadow_projection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE, DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE);
-			glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
-
-			shader.setUniform("dir_light_space_matrix_" + std::to_string(i), shadow_projection * shadow_view);
-		}
-	};
-
-
-	// Draw opagues
-	for (auto& it : opagues) {
-		Shader& shader = it->material.shader;
-		shader.bind();
-		setUniforms(shader);
-
-		int i = 0;
-		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
-			shader.setUniform(it2->first, i);
-			it2->second->bind(i);
-
-			i++;
-		}
-
-		shader.setUniform("model", it->transform.getModelMatrix());
-		shader.setUniform("material", it->material);
-
-		it->mesh->draw();
-		
-	}
-
-	std::sort(transparents.begin(), transparents.end(), [&](const Model* a, const Model* b) {
-		return glm::distance(camera.transform.position, a->transform.position) > glm::distance(camera.transform.position, b->transform.position);
-	});
-
-	gl::Enable(gl::BLEND);
-	// Draw transparents
-	for (auto& it : transparents) {
-		Shader& shader = it->material.shader;
-		shader.bind();
-
-		shader.setUniform("model", it->transform.getModelMatrix());
-		shader.setUniform("material", it->material);
-		
-		it->mesh->draw();
-	}
-
-#ifdef GL_WIREFRAME
-	gl::PolygonMode(gl::FRONT_AND_BACK, gl::FILL);
-#endif
-	gl::Disable(gl::DEPTH_TEST);
-
-	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	//gl::Clear(gl::COLOR_BUFFER_BIT);
-
-	post_process_shader.bind();
-	post_process_shader.setUniform("screen_capture", 0);
-	//postProcessBuffer.bindTexture(0);
-	postProcessTexture.bind(0);
-
-	Mesh canvas = Mesh::generatePlane({ 2, 2 });
-	canvas.draw();
-}

@@ -165,11 +165,11 @@ int main() {
 
 	Renderer renderer(camera, 1280, 720);
 
-	PointLight light(glm::vec3(2, 3, 2), glm::vec3(1), 3);
-	PointLight light2(glm::vec3(-3, 3, -1), glm::vec3(1), 3);
+	PointLight light(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
+	PointLight light2(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
 
-	renderer.addPointLight(light);
-	renderer.addPointLight(light2);
+	renderer.addPointLight(&light);
+	renderer.addPointLight(&light2);
 
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.2f, -1.0f, -0.2f };

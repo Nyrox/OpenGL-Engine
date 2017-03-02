@@ -11,6 +11,9 @@ namespace Physics {
 
 class SceneNode {
 public:
+	SceneNode(Transform transform = Transform());
+	virtual ~SceneNode() = default;
+
 	std::vector<std::unique_ptr<SceneNode>> children;
 
 	// World space transform

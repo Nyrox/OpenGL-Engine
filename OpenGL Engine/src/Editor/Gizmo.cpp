@@ -42,7 +42,7 @@ void Gizmo::render(const glm::mat4& view, const glm::mat4& projection) const {
 
 void Gizmo::handleEvent(const Event& event) {
 	static bool isDragging;
-	static vec3 axis;
+	static glm::vec3 axis;
 	static glm::vec3 translationStart;
 	static glm::vec3 originalPosition;
 

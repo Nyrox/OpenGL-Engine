@@ -139,14 +139,14 @@ void Shader::setUniform(std::string name, glm::mat4 matrix) const {
 	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), 1, false, glm::value_ptr(matrix));
 }
 
-void Shader::setUniform(std::string name, Material material) const {
+void Shader::setUniform(std::string name, const Material& material) const {
 	setUniform(name + ".diffuse", 0);
 	setUniform(name + ".specular", 1);
 	setUniform(name + ".shininess", material.shininess);
 }
 
-void Shader::setUniform(std::string name, PointLight light, uint32_t index) const {
-	setUniform(name + ".position", light.position);
+void Shader::setUniform(std::string name, const PointLight& light, uint32_t index) const {
+	setUniform(name + ".position", light.transform.position);
 	setUniform(name + ".intensity", light.intensity);
 	setUniform(name + ".ambientIntensity", light.ambientIntensity);
 	setUniform(name + ".color", light.color);
@@ -155,7 +155,7 @@ void Shader::setUniform(std::string name, PointLight light, uint32_t index) cons
 	setUniform(name + ".quadratic", light.quadratic);
 }
 
-void Shader::setUniform(std::string name, DirectionalLight light, uint32_t index) const {
+void Shader::setUniform(std::string name, const DirectionalLight& light, uint32_t index) const {
 	setUniform(name + ".direction", light.direction);
 	setUniform(name + ".ambient", light.ambient);
 	setUniform(name + ".diffuse", light.diffuse);
