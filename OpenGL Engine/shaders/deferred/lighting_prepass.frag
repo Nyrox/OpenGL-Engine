@@ -83,7 +83,8 @@ void main() {
 
 		float diffuseIntensity = max(dot(fragmentNormal, lightDir), 0.0);
 		vec3 halfwayDir = normalize(lightDir + viewDir);
-		
+		float specularIntensity = pow(max(dot(fragmentNormal, halfwayDir), 0.0), 128);
+
 		float distance = length(point_lights[i].position - fragmentPosition);
 		float attenuation = calculateAttenuation(distance, point_lights[i].constant, point_lights[i].linear, point_lights[i].quadratic);
 
@@ -91,7 +92,7 @@ void main() {
 		vec3 ambient = attenuation * point_lights[i].color * (point_lights[i].intensity * point_lights[i].ambientIntensity);
 
 		result.rgb += ambient + (1.0 - shadow) * diffuse;
-		result.a += 0.0;
+		result.a += specularIntensity * attenuation;
 	}
 
 	albedoSpec = result;

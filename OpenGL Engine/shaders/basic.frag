@@ -181,9 +181,9 @@ uniform bool useNormalMap;
 
 void main() {
 
-	vec3 normal = normalize(texture(normalMap, uv).rgb * 2.0 - 1.0);
-	normal = normalize(fs_in.TBN * normal);
-
+	//vec3 normal = normalize(texture(normalMap, uv).rgb * 2.0 - 1.0);
+	//normal = normalize(fs_in.TBN * normal);
+	vec3 normal = surfaceNormal;
 
 	vec3 viewDir = normalize(camera_position - fragPos);
 

@@ -25,7 +25,7 @@ void main() {
 	float specularIntensity = texture(tex2D_albedoSpec, screenSpaceUV).a;
 
 	vec3 diffuse = diffuseLight * vec3(texture(material.diffuse, fs_in.uv)).rgb;
-	vec3 specular = specularIntensity * vec3(texture(material.diffuse, fs_in.uv)).rgb;
+	vec3 specular = specularIntensity * vec3(texture(material.specular, fs_in.uv).r);
 
 	vec3 lighting = diffuse + specular;
 

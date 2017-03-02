@@ -179,12 +179,14 @@ int main() {
 
 	renderer.addDirectionalLight(dirLight);
 
-	Texture2D texture("assets/container2.png", gl::SRGB8_ALPHA8);
-	Texture2D transparent("assets/transparent.png", gl::SRGB8_ALPHA8);
-	Texture2D specular("assets/container2_specular.png", gl::SRGB8_ALPHA8);
-	Texture2D testSpecular("assets/TestSpecular.png", gl::R8);
-	Texture2D brickwallDiffuse("assets/brickwall.jpg", gl::SRGB8);
-	Texture2D brickwallNormal("assets/brickwall_normal.jpg", gl::RGB8);
+	TextureSettings highQualityTextureSettings(GenerateMipmaps, Repeat, Bilinear, 4.f);
+
+	Texture2D texture("assets/container2.png", gl::SRGB8_ALPHA8, highQualityTextureSettings);
+	Texture2D transparent("assets/transparent.png", gl::SRGB8_ALPHA8, highQualityTextureSettings);
+	Texture2D specular("assets/container2_specular.png", gl::SRGB8_ALPHA8, highQualityTextureSettings);
+	Texture2D testSpecular("assets/TestSpecular.png", gl::R8, highQualityTextureSettings);
+	Texture2D brickwallDiffuse("assets/brickwall.jpg", gl::SRGB8, highQualityTextureSettings);
+	Texture2D brickwallNormal("assets/brickwall_normal.jpg", gl::RGB8, highQualityTextureSettings);
 
 	Shader blinnPhongShader("shaders/basic.vert", "shaders/basic.frag");
 
@@ -203,6 +205,7 @@ int main() {
 
 	Material woodMaterial(blinnPhongShader);
 	woodMaterial["diffuse"] = &texture;
+	woodMaterial["specular"] = &specular;
 
 	Model cross(woodMaterial, cross_mesh, Transform(glm::vec3(-1.25, 0, 6)));
 	
@@ -227,7 +230,7 @@ int main() {
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
 
-	Texture2D groundDiffuse("assets/ground.png", gl::SRGB8, TextureSettings(GenerateMipmaps, Repeat, Bilinear, 4.f));
+	Texture2D groundDiffuse("assets/ground.png", gl::SRGB8, highQualityTextureSettings);
 
 	Shader terrainShader("shaders/terrain.vert", "shaders/basic.frag");
 	terrainShader.bind();

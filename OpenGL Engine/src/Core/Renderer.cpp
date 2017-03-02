@@ -233,7 +233,39 @@ void Renderer::render_new() {
 
 	skybox.render(camera.getViewMatrix(), camera.projection);
 
+	// Transparency
+	gl::Enable(gl::CULL_FACE);
+	gl::CullFace(gl::BACK);
+	gl::FrontFace(gl::CCW);
 
+	gl::Enable(gl::BLEND);
+	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
+	std::sort(transparents.begin(), transparents.end(), [&](const Model* a, const Model* b) {
+		return glm::distance(camera.transform.position, a->transform.position) > glm::distance(camera.transform.position, b->transform.position);
+	});
+
+
+	forward_render_shader.bind();
+	setUniforms(forward_render_shader);
+	for (auto& it : transparents) {
+		Shader& shader = forward_render_shader;
+		int i = 0;
+		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
+			shader.setUniform(it2->first, i);
+			it2->second->bind(i);
+
+			i++;
+		}
+
+		shader.setUniform("model", it->transform.getModelMatrix());
+		shader.setUniform("material", it->material);
+
+		it->mesh->draw();
+	}
+
+
+	// Post processing
 	gl::Disable(gl::DEPTH_TEST);
 	gl::DepthFunc(gl::LESS);
 
