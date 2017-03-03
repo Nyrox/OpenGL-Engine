@@ -2,13 +2,13 @@
 
 #include("headers/lighting.glsl");
 
-layout (location = 0) out vec4 albedoSpec;
-
 in VS_OUT {
 	vec2 uv;
 } fs_in;
 
-
+layout (location = 0) out vec3 radiance;
+layout (location = 1) out vec3 outBrdf;
+layout (location = 2) out vec3 Kd;
 
 struct PointLight {
 	vec3 position;
@@ -21,6 +21,9 @@ struct PointLight {
 	float quadratic;
 };
 
+uniform vec3 camera_position;
+uniform float shadow_far_plane;
+
 uniform int point_light_count;
 uniform PointLight point_lights[16];
 uniform samplerCube shadow_map_0;
@@ -28,14 +31,22 @@ uniform samplerCube shadow_map_1;
 uniform samplerCube shadow_map_2;
 uniform samplerCube shadow_map_3;
 
-uniform vec3 camera_position;
-uniform float shadow_far_plane;
-
 uniform sampler2D tex2D_geoPositions;
 uniform sampler2D tex2D_geoNormals;
+uniform sampler2D tex2D_geoRoughnessMetal;
+uniform sampler2D tex2D_geoAlbedo;
 
-float point_shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
-	vec3 fragToLight = fragPos - light.position;
+
+/*
+Legend:
+
+fragPos: Fragment position in world space
+N: World space fragment normal
+V: View direction vector
+*/
+
+float getPointShadow(samplerCube shadowMap, vec3 fragPos, vec3 lightPos, float shadow_far_plane) {
+	vec3 fragToLight = fragPos - lightPos;
 
 	float currentDepth = length(fragToLight);
 
@@ -44,7 +55,7 @@ float point_shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
 	float samples = 6;
 
 	float viewDistance = length(camera_position - fragPos);
-	float diskRadius = (1.0 + (viewDistance / shadow_far_plane)) / 25.0;  
+	float diskRadius = (1.0 + (viewDistance / shadow_far_plane)) / 25.0;
 
 	vec3 sampleOffsetDirections[20] = vec3[] (
 		vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -68,32 +79,52 @@ float point_shadow(PointLight light, samplerCube shadowMap, vec3 fragPos) {
 }
 
 void main() {
-	vec4 result = vec4(0);
+	vec3 fragPos = normalize(texture(tex2D_geoPositions, fs_in.uv).rgb);
+	vec3 normal = normalize(texture(tex2D_geoNormals, fs_in.uv).rgb);
+	vec3 viewDir = normalize(camera_position - fragPos);
 
+	float roughness = texture(tex2D_geoRoughnessMetal, fs_in.uv).r;
+	float metallic = texture(tex2D_geoRoughnessMetal, fs_in.uv).g;
+	vec3 albedo = texture(tex2D_geoAlbedo, fs_in.uv).rgb;
+
+	// Base IOR for Dialectrics
+	vec3 F0 = vec3(0.04);
+	F0      = mix(F0, albedo, metallic);
+	
+	vec3 Lo = vec3(0);
 	for(int i = 0; i < point_light_count; i++) {
-		vec3 fragmentNormal = texture(tex2D_geoNormals, fs_in.uv).rgb;
-		vec3 fragmentPosition = texture(tex2D_geoPositions, fs_in.uv).rgb;
+		vec3 lightDir = normalize(point_lights[i].position - fragPos);
+		vec3 halfway = normalize(viewDir + lightDir);
 
-		vec3 lightDir = normalize(point_lights[i].position - fragmentPosition);
-		vec3 viewDir = normalize(camera_position - fragmentPosition);
+		float distance = length(point_lights[i].position - fragPos);
+		float attenuation = calculateAttenuation(distance, point_lights[i].constant, point_lights[i].linear, point_lights[i].quadratic);
+		vec3 radiance = point_lights[i].color * point_lights[i].intensity * attenuation;
+
+		float NDF = GGX_NormalDistribution(normal, halfway, roughness);
+		float G = SmithMicrofacetSelfShadowing(normal, viewDir, lightDir, roughness);
+		vec3 F  = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
+
+		// Calculate the Cook-Torrance BRDF
+		vec3 nominator = NDF * G * F;
+		float denominator = 4 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.001;
+		vec3 brdf = nominator / denominator;
+
+
+		vec3 specular = F;
+		vec3 diffuse = vec3(1.0) - specular;
+		diffuse *= 1.0 - metallic;
+
+		float NdotL = max(dot(normal, lightDir), 0.0);
+		//Lo += (diffuse * albedo / PI + brdf) * radiance * NdotL;
 
 		float shadow = 0;
-		if(i == 0) shadow = point_shadow(point_lights[i], shadow_map_0, fragmentPosition);
-		if(i == 1) shadow = point_shadow(point_lights[i], shadow_map_1, fragmentPosition);
+		if(i == 0) shadow = getPointShadow(shadow_map_0, fragPos, point_lights[i].position, shadow_far_plane);
+		if(i == 1) shadow = getPointShadow(shadow_map_1, fragPos, point_lights[i].position, shadow_far_plane);
 
-		float diffuseIntensity = max(dot(fragmentNormal, lightDir), 0.0);
-		vec3 halfwayDir = normalize(lightDir + viewDir);
-		float specularIntensity = pow(max(dot(fragmentNormal, halfwayDir), 0.0), 128);
-
-		float distance = length(point_lights[i].position - fragmentPosition);
-		float attenuation = calculateAttenuation(distance, point_lights[i].constant, point_lights[i].linear, point_lights[i].quadratic);
-
-		vec3 diffuse = attenuation * point_lights[i].color * point_lights[i].intensity * diffuseIntensity;
-		vec3 ambient = attenuation * point_lights[i].color * (point_lights[i].intensity * point_lights[i].ambientIntensity);
-
-		result.rgb += ambient + (1.0 - shadow) * diffuse;
-		result.a += specularIntensity * attenuation;
+		radiance += (1.0 - shadow) * (radiance * NdotL);
+		outBrdf += (1.0 - shadow) * brdf;
+		Kd += (1.0 - shadow) * (diffuse * albedo / PI);
 	}
 
-	albedoSpec = result;
+	//radiance = Lo;
 }

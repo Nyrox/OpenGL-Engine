@@ -48,9 +48,6 @@ private:
 	Shader shadowPassShader;
 	Shader dirLightShadowPassShader;
 
-	Shader forward_render_shader;	
-
-	
 	std::vector<Framebuffer> shadow_maps;
 	
 	std::vector<DirectionalLight> directional_lights;
@@ -62,10 +59,14 @@ private:
 	Texture2D geometryPositions;
 	Texture2D geometryNormals;
 	Texture2D geometryDepth;
-	
+	Texture2D geometryRoughnessMetal;
+	Texture2D geometryAlbedo;
+
 	Shader lightingPrepassShader;
 	Refactor::Framebuffer lightingBuffer;
-	Texture2D lightingAlbedoSpec;
+	Texture2D lightingRadiance;
+	Texture2D lightingBrdf;
+	Texture2D lightingKd;
 
 	Shader lightingPassShader;
 	Refactor::Framebuffer mainFramebuffer;

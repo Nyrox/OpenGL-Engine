@@ -6,7 +6,6 @@
 Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
 	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
-	forward_render_shader.loadFromFile("shaders/basic.vert", "shaders/basic.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
 	
 	geometryPassShader.loadFromFile("shaders/deferred/geometry_pass.vert", "shaders/deferred/geometry_pass.frag");
@@ -31,16 +30,22 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	geometryPositions.allocate(gl::RGB32F, 1280, 720);
 	geometryNormals.allocate(gl::RGB32F, 1280, 720);
 	geometryDepth.allocate(gl::DEPTH24_STENCIL8, 1280, 720);
+	geometryRoughnessMetal.allocate(gl::RG16F, 1280, 720);
+	geometryAlbedo.allocate(gl::RGB16F, 1280, 720);
 
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT0, geometryPositions);
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT1, geometryNormals);
 	geometryBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, geometryDepth);
+	geometryBuffer.attach(gl::COLOR_ATTACHMENT2, geometryRoughnessMetal);
+	geometryBuffer.attach(gl::COLOR_ATTACHMENT3, geometryAlbedo);
 
+	lightingRadiance.allocate(gl::RGB32F, 1280, 720);
+	lightingBrdf.allocate(gl::RGB32F, 1280, 720);
+	lightingKd.allocate(gl::RGB32F, 1280, 720);
 
-
-	lightingAlbedoSpec.allocate(gl::RGBA32F, 1280, 720);
-	lightingBuffer.attach(gl::COLOR_ATTACHMENT0, lightingAlbedoSpec);
-
+	lightingBuffer.attach(gl::COLOR_ATTACHMENT0, lightingRadiance);
+	lightingBuffer.attach(gl::COLOR_ATTACHMENT1, lightingBrdf);
+	lightingBuffer.attach(gl::COLOR_ATTACHMENT2, lightingKd);
 
 	mainFramebufferTexture.allocate(gl::RGBA32F, 1280, 720);
 	mainFramebuffer.attach(gl::COLOR_ATTACHMENT0, mainFramebufferTexture);
@@ -139,8 +144,8 @@ void Renderer::render_new() {
 
 	// Geometry Pass
 	geometryBuffer.bind();
-	GLuint attachments[] = { gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1 };
-	gl::DrawBuffers(2, attachments);
+	GLuint attachments[] = { gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1, gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3 };
+	gl::DrawBuffers(ARRAYSIZE(attachments), attachments);
 
 	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
@@ -153,6 +158,22 @@ void Renderer::render_new() {
 	for (auto& it : opagues) {
 		geometryPassShader.setUniform("model", it->transform.getModelMatrix());
 
+		Shader& shader = geometryPassShader;
+		shader.setUniform("material.roughness", 4);
+		shader.setUniform("material.metal", 5);
+		shader.setUniform("material.albedo", 6);
+
+		if (it->material.textures.find("roughness") != it->material.textures.end()) {
+			it->material["roughness"]->bind(4);
+			it->material["metal"]->bind(5);
+			it->material["albedo"]->bind(6);
+		}
+		else {
+			gl::BindTextureUnit(4, 0);
+			gl::BindTextureUnit(5, 0);
+			gl::BindTextureUnit(6, 0);
+		}
+
 		it->mesh->draw();
 	}
 
@@ -161,13 +182,7 @@ void Renderer::render_new() {
 	if (settings.enableSSAO) buildSSAOTexture();
 
 
-	// Lighting prepass
-	lightingBuffer.bind();
-	gl::Clear(gl::COLOR_BUFFER_BIT);
-
-	// Screen sized quad
-	Mesh canvas = Mesh::generatePlane({ 2, 2 });
-
+	
 	
 	auto setUniforms = [&](Shader& shader) {
 		shader.setUniform("camera_position", camera.transform.position);
@@ -183,7 +198,7 @@ void Renderer::render_new() {
 			shadow_maps.at(i).bindTexture(5 + i);
 		}
 
-		shader.setUniform("directional_light_count", (int)directional_lights.size());
+		/*shader.setUniform("directional_light_count", (int)directional_lights.size());
 		for (int i = 0; i < directional_lights.size(); i++) {
 			shader.setUniform("directional_lights[" + std::to_string(i) + "]", directional_lights.at(i));
 			shader.setUniform("dir_shadow_map_" + std::to_string(i), 21 + i);
@@ -196,8 +211,17 @@ void Renderer::render_new() {
 			glm::mat4 shadow_view = glm::lookAt(-light.direction * 100.f, { 0, 0, 0, }, { 0, 1, 0 });
 
 			shader.setUniform("dir_light_space_matrix_" + std::to_string(i), shadow_projection * shadow_view);
-		}
+		}*/
 	};
+
+	// Lighting prepass
+	lightingBuffer.bind();
+	gl::Clear(gl::COLOR_BUFFER_BIT);
+	GLuint attachmentsPrepass[] = { gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1, gl::COLOR_ATTACHMENT2 };
+	gl::DrawBuffers(ARRAYSIZE(attachmentsPrepass), attachmentsPrepass);
+
+	// Screen sized quad
+	Mesh canvas = Mesh::generatePlane({ 2, 2 });
 
 
 	gl::Disable(gl::DEPTH_TEST);
@@ -206,12 +230,19 @@ void Renderer::render_new() {
 
 
 	lightingPrepassShader.bind();
-	setRenderSettings(lightingPrepassShader);
+	lightingPrepassShader.setUniform("camera_position", camera.transform.position);
+	//setRenderSettings(lightingPrepassShader);
 	setUniforms(lightingPrepassShader);
 	lightingPrepassShader.setUniform("tex2D_geoPositions", 0);
 	lightingPrepassShader.setUniform("tex2D_geoNormals", 1);
+	lightingPrepassShader.setUniform("tex2D_geoRoughnessMetal", 2);
+	lightingPrepassShader.setUniform("tex2D_geoAlbedo", 3);
+
 	geometryPositions.bind(0);
 	geometryNormals.bind(1);
+	geometryRoughnessMetal.bind(2);
+	geometryAlbedo.bind(3);
+
 
 	canvas.draw();
 
@@ -220,29 +251,31 @@ void Renderer::render_new() {
 	gl::DepthFunc(gl::LEQUAL);
 	
 	mainFramebuffer.bind();
+
 	gl::Clear(gl::COLOR_BUFFER_BIT);
 
 	lightingPassShader.bind();
 	setUniforms(lightingPassShader);
-	lightingPassShader.setUniform("tex2D_albedoSpec", 8);
-	lightingAlbedoSpec.bind(8);
+
+	lightingPassShader.setUniform("tex2D_radiance", 4);
+	lightingPassShader.setUniform("tex2D_brdf", 5);
+	lightingPassShader.setUniform("tex2D_Kd", 6);
+	
+	lightingRadiance.bind(4);
+	lightingBrdf.bind(5);
+	lightingKd.bind(6);
 
 	for (auto& it : opagues) {
 		Shader& shader = lightingPassShader;
-		int i = 0;
-		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
-			shader.setUniform(it2->first, i);
-			it2->second->bind(i);
-
-			i++;
-		}
 
 		shader.setUniform("model", it->transform.getModelMatrix());
-		shader.setUniform("material", it->material);
+		//shader.setUniform("material", it->material);
 
 		it->mesh->draw();
 	}
 
+
+	shadowPassShader.bind();
 	skybox.render(camera.getViewMatrix(), camera.projection);
 
 	// Transparency
@@ -253,15 +286,13 @@ void Renderer::render_new() {
 	gl::Enable(gl::BLEND);
 	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
 
-	std::sort(transparents.begin(), transparents.end(), [&](const Model* a, const Model* b) {
+	/*std::sort(transparents.begin(), transparents.end(), [&](const Model* a, const Model* b) {
 		return glm::distance(camera.transform.position, a->transform.position) > glm::distance(camera.transform.position, b->transform.position);
 	});
 
 
-	forward_render_shader.bind();
-	setUniforms(forward_render_shader);
 	for (auto& it : transparents) {
-		Shader& shader = forward_render_shader;
+		Shader& shader = shadowPassShader;
 		int i = 0;
 		for (auto it2 = it->material.textures.begin(); it2 != it->material.textures.end(); it2++) {
 			shader.setUniform(it2->first, i);
@@ -275,7 +306,7 @@ void Renderer::render_new() {
 
 		it->mesh->draw();
 	}
-
+*/
 
 	// Post processing
 	gl::Disable(gl::DEPTH_TEST);

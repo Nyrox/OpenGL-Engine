@@ -185,8 +185,10 @@ int main() {
 	Texture2D transparent("assets/transparent.png", gl::SRGB8_ALPHA8, highQualityTextureSettings);
 	Texture2D specular("assets/container2_specular.png", gl::SRGB8_ALPHA8, highQualityTextureSettings);
 	Texture2D testSpecular("assets/TestSpecular.png", gl::R8, highQualityTextureSettings);
-	Texture2D brickwallDiffuse("assets/brickwall.jpg", gl::SRGB8, highQualityTextureSettings);
-	Texture2D brickwallNormal("assets/brickwall_normal.jpg", gl::RGB8, highQualityTextureSettings);
+	Texture2D brickwallAlbedo("assets/stonewall-albedo.png", gl::SRGB8, highQualityTextureSettings);
+	Texture2D brickwallNormal("assets/stonewall-normal.png", gl::RGB8, highQualityTextureSettings);
+	Texture2D brickwallRoughness("assets/stonewall-roughness.png", gl::R8, highQualityTextureSettings);
+	Texture2D brickwallMetal("assets/stonewall-metalness.png", gl::R8, highQualityTextureSettings);
 
 	Shader blinnPhongShader("shaders/basic.vert", "shaders/basic.frag");
 
@@ -194,7 +196,9 @@ int main() {
 	std::shared_ptr<Mesh> cross_mesh = std::make_shared<Mesh>("assets/cross.ply");
 	
 	Material brickwallMaterial(blinnPhongShader);
-	brickwallMaterial["diffuse"] = &brickwallDiffuse;
+	brickwallMaterial["albedo"] = &brickwallAlbedo;
+	brickwallMaterial["roughness"] = &brickwallRoughness;
+	brickwallMaterial["metal"] = &brickwallMetal;
 	brickwallMaterial["normal"] = &brickwallNormal;
 
 	Model cube(brickwallMaterial, cube_mesh, Transform(glm::vec3(1.25, 0, 0)));
@@ -257,20 +261,6 @@ int main() {
 	Texture2D ironIngotRoughness("assets/IronIngot_roughness.png", gl::R8);
 	Texture2D ironIngotNormal("assets/IronIngot_normal.png", gl::RGB8);
 
-
-	/*
-		PBR BLACK MAGIC
-	*/
-	Shader pbrShader("shaders/pbr.vert", "shaders/pbr.frag");
-	Material pbrMaterial(pbrShader);
-	pbrMaterial["albedo"] = &ironIngotAlbedo;
-	pbrMaterial["roughness"] = &ironIngotRoughness;
-	pbrMaterial["normal"] = &ironIngotNormal;
-
-	Model pbrIngot(pbrMaterial, std::make_shared<Mesh>("assets/iron_ingot.ply"), Transform(glm::vec3(-4, 0, -3)));
-	renderer.insert(&pbrIngot);
-
-
 	Gizmo gizmo;
 	gizmo.sceneNode = myHouse;
 
@@ -289,8 +279,6 @@ int main() {
 	};
 
 	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 1), [&](double val) {
-		pbrShader.bind();
-		pbrShader.setUniform("roughness", (float)val);
 	});
 
 

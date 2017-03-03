@@ -2,13 +2,14 @@
 
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec3 normal;
-layout(location = 2) in vec2 UV;
+layout(location = 2) in vec2 uv;
 layout(location = 3) in vec3 tangent;
 
 
 out VS_OUT {
 	vec3 world_fragPos;
 	vec3 world_surfaceNormal;
+	vec2 uv;
 } vs_out;
 
 uniform mat4 model;
@@ -22,4 +23,5 @@ void main() {
 	
 	vs_out.world_fragPos = vec3(model * vec4(position, 1.0));
 	vs_out.world_surfaceNormal = mat3(transpose(inverse(model))) * normal;
+	vs_out.uv = uv;
 }
