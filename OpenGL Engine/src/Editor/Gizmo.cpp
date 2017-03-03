@@ -40,7 +40,7 @@ void Gizmo::render(const glm::mat4& view, const glm::mat4& projection) const {
 	translationGizmo.draw();
 }
 
-void Gizmo::handleEvent(const Event& event) {
+bool Gizmo::handleEvent(const Event& event) {
 	static bool isDragging;
 	static glm::vec3 axis;
 	static glm::vec3 translationStart;
@@ -79,6 +79,7 @@ void Gizmo::handleEvent(const Event& event) {
 			translationPlane.intersects(ray, t, q);
 			translationStart = q;
 			originalPosition = sceneNode->transform.position;
+			return false;
 		}
 
 		break;
@@ -88,20 +89,23 @@ void Gizmo::handleEvent(const Event& event) {
 		break;
 	case Event::MouseMove:
 	{
-		if (!isDragging) return;
+		if (!isDragging) return true;
 
 		glm::vec3 q; 
 		float t;
 
 		if (!translationPlane.intersects(screenPositionToRay(*event.mouse.camera, { event.mouse.x, event.mouse.y }), t, q)) {
 			std::cout << "Gizmo translation plane is not intersecting ray!!!" << "\n";
-			return;
+			return false;
 		}
 		
 		glm::vec3 translationOffset = (q - translationStart) * axis;
 		sceneNode->transform.position = originalPosition + translationOffset;
 
+		return false;
 		break;
 	}
 	}
+
+	return true;
 }

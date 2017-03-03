@@ -49,6 +49,6 @@ void PointLight::setEffectiveRange(float range) {
 }
 
 AABB PointLight::getSceneBoundingBox() const {
-	float bbSize = 0.2;
-	return AABB(glm::vec3(bbSize) - glm::vec3(bbSize) / 2.f);
+	float bbSize = 1;
+	return AABB(transform.position - glm::vec3(bbSize / 2), transform.position + glm::vec3(bbSize / 2));
 }

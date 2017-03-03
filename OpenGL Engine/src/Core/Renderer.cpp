@@ -133,10 +133,6 @@ void Renderer::buildShadowMaps() {
 }
 
 void Renderer::render_new() {
-	for (auto& it : pointLights) {
-		it->transform.position.z += std::sin(glfwGetTime()) / 15;
-	}
-
 	// Shadow pass
 	buildShadowMaps();
 
@@ -270,6 +266,10 @@ void Renderer::render_new() {
 
 		shader.setUniform("model", it->transform.getModelMatrix());
 		//shader.setUniform("material", it->material);
+		shader.setUniform("material.albedo", 0);
+		if (it->material.textures.find("albedo") != it->material.textures.end()) {
+			it->material["albedo"]->bind(0);
+		}
 
 		it->mesh->draw();
 	}

@@ -12,7 +12,7 @@ public:
 
 	void update();
 	void render(const glm::mat4& view, const glm::mat4& projection) const;
-	void handleEvent(const Event& event);
+	bool handleEvent(const Event& event);
 	
 	SceneNode* sceneNode;
 private:

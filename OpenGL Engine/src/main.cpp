@@ -165,12 +165,7 @@ int main() {
 
 	Renderer renderer(camera, 1280, 720);
 
-	PointLight light(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
-	PointLight light2(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
-
-	renderer.addPointLight(&light);
-	renderer.addPointLight(&light2);
-
+	
 	DirectionalLight dirLight;
 	dirLight.direction = { -0.2f, -1.0f, -0.2f };
 	dirLight.ambient = { 0.15, 0.15, 0.15 };
@@ -257,6 +252,13 @@ int main() {
 
 	renderer.insert(&myHouse->model);
 
+	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
+	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
+
+	renderer.addPointLight(light1);
+	renderer.addPointLight(light2);
+
+
 	Texture2D ironIngotAlbedo("assets/IronIngot_albedo.png", gl::SRGB8);
 	Texture2D ironIngotRoughness("assets/IronIngot_roughness.png", gl::R8);
 	Texture2D ironIngotNormal("assets/IronIngot_normal.png", gl::RGB8);
@@ -290,6 +292,8 @@ int main() {
 
 		gizmo.update();
 		myHouse->model.transform = myHouse->transform;
+
+		
 
 		/*
 			Input
@@ -350,8 +354,18 @@ int main() {
 				event.mouse = { (float)mouse_x, (float)mouse_y };
 				event.type = Event::MouseDown;
 				event.mouse.camera = &camera;
+
 				gui_context.handleEvent(event);
-				gizmo.handleEvent(event);
+				
+				if (!gizmo.handleEvent(event)) {
+					return;
+				}
+
+				auto& results = scene.raycastAgainstSceneCollision(Physics::screenPositionToRay(camera, { mouse_x, mouse_y }));
+				if (results.size()) {
+					std::cout << "Selected new object: \n";
+					gizmo.sceneNode = std::get<SceneNode*>(results.at(0));
+				}
 
 			}
 			if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
@@ -399,6 +413,7 @@ int main() {
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents();
 		physics_update();
+		scene.update();
 
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
@@ -407,7 +422,7 @@ int main() {
 
 		Debug::render(camera.getViewMatrix(), camera.projection);
 		gui_context.render();
-
+		scene.render(camera.getViewMatrix(), camera.projection);
 
 		fpsCounter.render();
 
