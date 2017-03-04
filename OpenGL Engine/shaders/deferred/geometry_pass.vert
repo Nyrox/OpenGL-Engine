@@ -10,6 +10,7 @@ out VS_OUT {
 	vec3 world_fragPos;
 	vec3 world_surfaceNormal;
 	vec2 uv;
+	mat3 TBN;
 } vs_out;
 
 uniform mat4 model;
@@ -24,4 +25,5 @@ void main() {
 	vs_out.world_fragPos = vec3(model * vec4(position, 1.0));
 	vs_out.world_surfaceNormal = mat3(transpose(inverse(model))) * normal;
 	vs_out.uv = uv;
+	vs_out.TBN = createTBNMatrix(model, normal, tangent);
 }

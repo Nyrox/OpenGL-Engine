@@ -158,11 +158,13 @@ void Renderer::render_new() {
 		shader.setUniform("material.roughness", 4);
 		shader.setUniform("material.metal", 5);
 		shader.setUniform("material.albedo", 6);
+		shader.setUniform("material.normal", 7);
 
 		if (it->material.textures.find("roughness") != it->material.textures.end()) {
 			it->material["roughness"]->bind(4);
 			it->material["metal"]->bind(5);
 			it->material["albedo"]->bind(6);
+			it->material["normal"]->bind(7);
 		}
 		else {
 			gl::BindTextureUnit(4, 0);

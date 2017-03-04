@@ -4,6 +4,7 @@ struct PbrMaterial {
 	sampler2D albedo;
 	sampler2D roughness;
 	sampler2D metal;
+	sampler2D normal;
 };
 
 float calculateAttenuation(float distance, float constant, float linear, float quadratic) {
