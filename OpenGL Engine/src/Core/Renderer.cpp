@@ -181,6 +181,7 @@ void Renderer::render_new() {
 	
 	
 	auto setUniforms = [&](Shader& shader) {
+		shader.bind();
 		shader.setUniform("camera_position", camera.transform.position);
 		shader.setUniform("view", camera.getViewMatrix());
 		shader.setUniform("projection", camera.projection);
@@ -226,7 +227,6 @@ void Renderer::render_new() {
 
 
 	lightingPrepassShader.bind();
-	lightingPrepassShader.setUniform("camera_position", camera.transform.position);
 	//setRenderSettings(lightingPrepassShader);
 	setUniforms(lightingPrepassShader);
 	lightingPrepassShader.setUniform("tex2D_geoPositions", 0);

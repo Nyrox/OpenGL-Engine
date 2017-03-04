@@ -78,8 +78,8 @@ void main() {
 		vec3 viewDir = normalize(camera_position - fragmentPosition);
 
 		float shadow = 0;
-		if(i == 0) shadow = point_shadow(point_lights[i], shadow_map_0, fragmentPosition);
-		if(i == 1) shadow = point_shadow(point_lights[i], shadow_map_1, fragmentPosition);
+		//if(i == 0) { shadow = point_shadow(point_lights[i], shadow_map_0, fragmentPosition) };
+		//if(i == 1) { shadow = point_shadow(point_lights[i], shadow_map_1, fragmentPosition) };
 
 		float diffuseIntensity = max(dot(fragmentNormal, lightDir), 0.0);
 		vec3 halfwayDir = normalize(lightDir + viewDir);

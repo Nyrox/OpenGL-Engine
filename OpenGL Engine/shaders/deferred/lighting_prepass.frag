@@ -14,7 +14,6 @@ struct PointLight {
 	vec3 position;
 	vec3 color;
 	float intensity;
-	float ambientIntensity;
 
 	float constant;
 	float linear;
@@ -91,7 +90,10 @@ void main() {
 	vec3 F0 = vec3(0.04);
 	F0      = mix(F0, albedo, metallic);
 	
-	vec3 Lo = vec3(0);
+	vec3 radTotal = vec3(0);
+	vec3 kdTotal = vec3(0);
+	vec3 brdfTotal = vec3(0);
+
 	for(int i = 0; i < point_light_count; i++) {
 		vec3 lightDir = normalize(point_lights[i].position - fragPos);
 		vec3 halfway = normalize(viewDir + lightDir);
@@ -104,15 +106,18 @@ void main() {
 		float G = SmithMicrofacetSelfShadowing(normal, viewDir, lightDir, roughness);
 		vec3 F  = fresnelSchlick(max(dot(halfway, viewDir), 0.0), F0);
 
+
+		vec3 kS = F;
+		vec3 kD = vec3(1.0) - kS;
+		kD *= 1.0 - metallic;
+
 		// Calculate the Cook-Torrance BRDF
 		vec3 nominator = NDF * G * F;
 		float denominator = 4 * max(dot(normal, viewDir), 0.0) * max(dot(normal, lightDir), 0.0) + 0.001;
 		vec3 brdf = nominator / denominator;
 
 
-		vec3 specular = F;
-		vec3 diffuse = vec3(1.0) - specular;
-		diffuse *= 1.0 - metallic;
+		
 
 		float NdotL = max(dot(normal, lightDir), 0.0);
 		//Lo += (diffuse * albedo / PI + brdf) * radiance * NdotL;
@@ -121,10 +126,12 @@ void main() {
 		if(i == 0) shadow = getPointShadow(shadow_map_0, fragPos, point_lights[i].position, shadow_far_plane);
 		if(i == 1) shadow = getPointShadow(shadow_map_1, fragPos, point_lights[i].position, shadow_far_plane);
 
-		radiance += (1.0 - shadow) * (radiance * NdotL);
-		outBrdf += (1.0 - shadow) * brdf;
-		Kd += (1.0 - shadow) * (diffuse * albedo / PI);
+		radTotal += radiance * NdotL;
+		brdfTotal += brdf;
+		kdTotal += (kD * albedo / PI);
 	}
 
-	//radiance = Lo;
+	radiance = radTotal;
+	Kd = kdTotal;
+	outBrdf = brdfTotal;
 }

@@ -3,8 +3,11 @@
 #include <glm\gtx\transform.hpp>
 
 struct Transform {
-	Transform(glm::vec3 t_position = glm::vec3(), glm::vec3 t_scale = glm::vec3(1))
+	explicit Transform(glm::vec3 t_position, glm::vec3 t_scale = glm::vec3(1))
 		: position(t_position), scale(t_scale) {
+
+	}
+	explicit Transform() : scale(1) {
 
 	}
 
