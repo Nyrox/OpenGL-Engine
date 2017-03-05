@@ -27,6 +27,7 @@ void Terrain::generateMeshFromFunction(std::function<float(const Terrain&, uint3
 			vertex.position = glm::vec3(i * (width / segments_x), generator(*this, i, b), b * (height / segments_y));
 			vertex.normal = glm::vec3(0, 1, 0);
 			vertex.uv = glm::vec2((1.f / segments_x) * i, (1.f / segments_y) * b);
+			vertex.tangent = glm::vec3(1, 0, 0);
 
 			vertices.push_back(vertex);
 		

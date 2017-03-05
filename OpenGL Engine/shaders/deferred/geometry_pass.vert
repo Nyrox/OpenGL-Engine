@@ -13,6 +13,8 @@ out VS_OUT {
 	mat3 TBN;
 } vs_out;
 
+uniform float uvScale = 1.f;
+
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
@@ -24,6 +26,6 @@ void main() {
 	
 	vs_out.world_fragPos = vec3(model * vec4(position, 1.0));
 	vs_out.world_surfaceNormal = mat3(transpose(inverse(model))) * normal;
-	vs_out.uv = uv;
+	vs_out.uv = uv * uvScale;
 	vs_out.TBN = createTBNMatrix(model, normal, tangent);
 }

@@ -18,7 +18,9 @@ uniform PbrMaterial material;
 
 void main() {
 	position = fs_in.world_fragPos;
-	normal = fs_in.TBN * texture(material.normal, fs_in.uv).rgb * vec3(1, 1, 1);
+	vec3 t_normal = normalize(texture(material.normal, fs_in.uv).rgb);
+	normal = normalize(fs_in.TBN * t_normal * vec3(1, 1, 1));
+	normal = fs_in.world_surfaceNormal;
 
 	roughnessMetal.r = texture(material.roughness, fs_in.uv).r;
 	roughnessMetal.g = texture(material.metal, fs_in.uv).r;

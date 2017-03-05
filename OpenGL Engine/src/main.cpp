@@ -235,9 +235,18 @@ int main() {
 	terrainShader.bind();
 	terrainShader.setUniform("uvScale", 8.f);
 
+	
+	Texture2D blackrockAlbedo("assets/blackrock-albedo.png", gl::SRGB8, highQualityTextureSettings);
+	Texture2D blackrockRoughness("assets/blackrock-roughness.png", gl::R8, highQualityTextureSettings);
+	Texture2D blackrockMetal("assets/blackrock-metalness.png", gl::R8, highQualityTextureSettings);
+	Texture2D blackrockNormal("assets/blackrock-normal.png", gl::RGB8, highQualityTextureSettings);
+
 	Material terrainMaterial(terrainShader);
-	terrainMaterial["diffuse"] = &groundDiffuse;
-	terrainMaterial["specular"] = &testSpecular;
+	terrainMaterial["albedo"] = &blackrockAlbedo;
+	terrainMaterial["roughness"] = &blackrockRoughness;
+	terrainMaterial["normal"] = &blackrockNormal;
+	terrainMaterial["metal"] = &blackrockMetal;
+		
 
 	Terrain terrain(terrainMaterial, 400, 400);
 	terrain.generateMeshFromHeightmap(heightmap, 0.008);
@@ -255,7 +264,7 @@ int main() {
 	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
 	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
 
-	renderer.addPointLight(light1);
+	//renderer.addPointLight(light1);
 	renderer.addPointLight(light2);
 
 

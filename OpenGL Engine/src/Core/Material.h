@@ -11,7 +11,7 @@ struct Material {
 	} const shadingModel;
 
 
-	Material(Shader& t_shader, ShadingModel t_shadingModel = ShadingModel::Opague, float t_shininess = 64) : shader(t_shader), shadingModel(t_shadingModel), shininess(t_shininess) {
+	Material(Shader& t_shader, ShadingModel t_shadingModel = ShadingModel::Opague) : shader(t_shader), shadingModel(t_shadingModel) {
 
 	}
 
@@ -23,6 +23,6 @@ struct Material {
 		return textures[id];
 	}
 
-
-	float shininess;
+	
+	
 };

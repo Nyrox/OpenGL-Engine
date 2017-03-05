@@ -58,7 +58,7 @@ float SmithMicrofacetSelfShadowing(vec3 normal, vec3 viewDir, vec3 lightDir, flo
 	float NdotV = max(dot(normal, viewDir), 0.0);
 	float NdotL = max(dot(normal, lightDir), 0.0);
 
-	float ggx1 = impl_GeometrySchlickGGX(NdotV, roughness);
-	float ggx2 = impl_GeometrySchlickGGX(NdotL, roughness);
+	float ggx2 = impl_GeometrySchlickGGX(NdotV, roughness);
+	float ggx1 = impl_GeometrySchlickGGX(NdotL, roughness);
 	return ggx1 * ggx2;
 }

@@ -10,7 +10,7 @@ public:
 	explicit PointLight(Transform transform, uint32_t shadowMapResolution = 1024, glm::vec3 t_color = glm::vec3(1), float t_intensity = 1.0, float t_ambient = 0.15)
 		: SceneNode(transform), color(t_color), intensity(t_intensity), ambientIntensity(t_ambient) {
 		
-		setEffectiveRange(30);
+		setEffectiveRange(15);
 	}
 
 	explicit PointLight() : PointLight(Transform()) { 
