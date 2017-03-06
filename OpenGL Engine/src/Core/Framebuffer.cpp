@@ -20,10 +20,17 @@ namespace Refactor {
 	}
 
 	void Framebuffer::attach(GLenum attach, const Texture2D& texture) {
-		//gl::NamedFramebufferTexture(handle, attach, texture.handle, 0);
 		bind();
 		gl::FramebufferTexture2D(gl::FRAMEBUFFER, attach, gl::TEXTURE_2D, texture.handle, 0);
 	}
+
+	void Framebuffer::attach(GLenum attach, GLenum target, const Texture3D& texture) {
+		bind();
+		for (uint8_t i = 0; i < 6; i++) {
+			gl::FramebufferTexture2D(gl::FRAMEBUFFER, attach + i, target, texture.handle, 0);
+		}
+	}
+
 
 }
 

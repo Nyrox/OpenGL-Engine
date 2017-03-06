@@ -35,6 +35,7 @@ uniform sampler2D tex2D_geoNormals;
 uniform sampler2D tex2D_geoRoughnessMetal;
 uniform sampler2D tex2D_geoAlbedo;
 
+uniform samplerCube tex2D_ambientIrradiance;
 
 /*
 Legend:
@@ -133,10 +134,18 @@ void main() {
 		//radTotal += radiance * NdotL;
 		//brdfTotal += brdf;
 		//kdTotal += (kD * albedo / PI);
+
 		radTotal += (kD * albedo / PI + brdf) * radiance * NdotL; 
 	}
 
-	outRadiance = radTotal;
+	// Ambient term
+	vec3 a_kS = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness); 
+	vec3 a_kD = 1.0 - a_kS;
+	vec3 irradiance = texture(tex2D_ambientIrradiance, N).rgb;
+	vec3 diffuse    = irradiance * albedo;
+	vec3 ambient    = (a_kD * diffuse); // * ao 
+
+	outRadiance = radTotal + ambient;
 	//outKd = kdTotal;
 	outKd = V;
 	outBrdf = fragPos;

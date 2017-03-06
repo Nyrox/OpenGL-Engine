@@ -239,7 +239,9 @@ void Renderer::render_new() {
 	lightingPrepassShader.setUniform("tex2D_geoNormals", 1);
 	lightingPrepassShader.setUniform("tex2D_geoRoughnessMetal", 2);
 	lightingPrepassShader.setUniform("tex2D_geoAlbedo", 3);
+	lightingPrepassShader.setUniform("tex2D_ambientIrradiance", 10);
 
+	skybox.convolutedCubemap->bind(10);
 	geometryPositions.bind(9);
 	geometryNormals.bind(1);
 	geometryRoughnessMetal.bind(2);

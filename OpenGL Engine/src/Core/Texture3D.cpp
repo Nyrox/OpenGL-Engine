@@ -2,6 +2,7 @@
 #include <Core/Texture2D.h>
 #include <Core/Framebuffer.h>
 #include <Core/Shader.h>
+#include <Core/Mesh.h>
 
 #include <stb_image.h>
 #include <iostream>
@@ -56,11 +57,14 @@ void Texture3D::loadFromFiles(std::array<std::string, 6> files, GLenum t_interna
 void Texture3D::loadFromHDRFile(const std::string& file, GLenum t_internalFormat) {
 	this->internalFormat = t_internalFormat;
 	
-	Texture2D hdrTexture(file, internalFormat);
-	allocate(internalFormat, { 1024, 1024 });
 
-	Refactor::Framebuffer captureFB;
-	captureFB.attach(gl::COLOR_ATTACHMENT0, *this);
+	stbi_set_flip_vertically_on_load(true);
+	Texture2D hdrTexture(file, internalFormat, TextureSettings(NoMipmaps, ClampToEdge, Linear));
+	stbi_set_flip_vertically_on_load(false);
+
+	allocate(internalFormat, { 2024, 2024 });
+
+	Refactor::Framebuffer captureFBO;
 
 	Shader equiToCubeShader("shaders/process/equiToCube.vert", "shaders/process/equiToCube.frag");
 
@@ -73,6 +77,26 @@ void Texture3D::loadFromHDRFile(const std::string& file, GLenum t_internalFormat
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
 		glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
 	};
+
+	equiToCubeShader.bind();
+	equiToCubeShader.setUniform("tex2D_sourceMap", 0);
+	hdrTexture.bind(0);
+
+	equiToCubeShader.setUniform("projection", captureProjection);
+
+	gl::Viewport(0, 0, 2024, 2024);
+	captureFBO.bind();
+
+	auto cube = Mesh::generateCube(glm::vec3(1));
+
+	for (uint8_t i = 0; i < 6; i++) {
+		equiToCubeShader.setUniform("view", captureViews[i]);
+		captureFBO.attach(gl::COLOR_ATTACHMENT0, gl::TEXTURE_CUBE_MAP_POSITIVE_X + i, *this);
+
+		gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
+		cube.draw();
+	}
+	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
 }
 
 

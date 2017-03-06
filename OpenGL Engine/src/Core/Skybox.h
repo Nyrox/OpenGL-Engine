@@ -24,10 +24,12 @@ public:
 
 
 	void render(glm::mat4 view, glm::mat4 projection);
+
+	std::optional<Texture3D> convolutedCubemap;
 private:
 	Mesh skyboxMesh;
 	Shader shader;
 
 	Texture3D cubemap;
-	std::optional<Texture3D> convolutedCubemap;
+	
 };

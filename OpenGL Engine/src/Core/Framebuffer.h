@@ -44,7 +44,7 @@ namespace Refactor {
 		~Framebuffer();
 
 		void attach(GLenum attach, const Texture2D& texture);
-		void attach(GLenum attach, const Texture3D& textur);
+		void attach(GLenum attach, GLenum target, const Texture3D& texture);
 
 		void bind();
 
