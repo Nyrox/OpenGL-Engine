@@ -153,6 +153,7 @@ void Renderer::render_new() {
 	geometryPassShader.setUniform("projection", camera.projection);
 	for (auto& it : opagues) {
 		geometryPassShader.setUniform("model", it->transform.getModelMatrix());
+		geometryPassShader.setUniform("uvScale", it->material.uvScale);
 
 		Shader& shader = geometryPassShader;
 		shader.setUniform("material.roughness", 4);
@@ -170,6 +171,7 @@ void Renderer::render_new() {
 			gl::BindTextureUnit(4, 0);
 			gl::BindTextureUnit(5, 0);
 			gl::BindTextureUnit(6, 0);
+			gl::BindTextureUnit(7, 0);
 		}
 
 		it->mesh->draw();
@@ -231,12 +233,12 @@ void Renderer::render_new() {
 	lightingPrepassShader.bind();
 	//setRenderSettings(lightingPrepassShader);
 	setUniforms(lightingPrepassShader);
-	lightingPrepassShader.setUniform("tex2D_geoPositions", 0);
+	lightingPrepassShader.setUniform("tex2D_geoPositions", 9);
 	lightingPrepassShader.setUniform("tex2D_geoNormals", 1);
 	lightingPrepassShader.setUniform("tex2D_geoRoughnessMetal", 2);
 	lightingPrepassShader.setUniform("tex2D_geoAlbedo", 3);
 
-	geometryPositions.bind(0);
+	geometryPositions.bind(9);
 	geometryNormals.bind(1);
 	geometryRoughnessMetal.bind(2);
 	geometryAlbedo.bind(3);

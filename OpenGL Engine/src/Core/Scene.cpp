@@ -37,6 +37,7 @@ void Scene::render(glm::mat4 view, glm::mat4 projection) {
 	shader.bind();
 
 	gl::Disable(gl::DEPTH_TEST);
+	gl::Enable(gl::CULL_FACE);
 	gl::PolygonMode(gl::FRONT_AND_BACK, gl::LINE);
 
 	shader.setUniform("view", view);

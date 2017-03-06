@@ -242,6 +242,7 @@ int main() {
 	Texture2D blackrockNormal("assets/blackrock-normal.png", gl::RGB8, highQualityTextureSettings);
 
 	Material terrainMaterial(terrainShader);
+	terrainMaterial.uvScale = 8;
 	terrainMaterial["albedo"] = &blackrockAlbedo;
 	terrainMaterial["roughness"] = &blackrockRoughness;
 	terrainMaterial["normal"] = &blackrockNormal;
@@ -264,7 +265,7 @@ int main() {
 	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
 	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
 
-	//renderer.addPointLight(light1);
+	renderer.addPointLight(light1);
 	renderer.addPointLight(light2);
 
 

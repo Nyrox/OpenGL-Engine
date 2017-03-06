@@ -78,7 +78,7 @@ float getPointShadow(samplerCube shadowMap, vec3 fragPos, vec3 lightPos, float s
 }
 
 void main() {
-	vec3 fragPos = normalize(texture(tex2D_geoPositions, fs_in.uv).rgb);
+	vec3 fragPos = texture(tex2D_geoPositions, fs_in.uv).rgb;
 	vec3 N = normalize(texture(tex2D_geoNormals, fs_in.uv).rgb);
 	vec3 V = normalize(camera_position - fragPos);
 
@@ -128,7 +128,8 @@ void main() {
 		float shadow = 0;
 		if(i == 0) shadow = getPointShadow(shadow_map_0, fragPos, point_lights[i].position, shadow_far_plane);
 		if(i == 1) shadow = getPointShadow(shadow_map_1, fragPos, point_lights[i].position, shadow_far_plane);
-
+		
+		radiance = radiance * (1.0 - shadow);
 		//radTotal += radiance * NdotL;
 		//brdfTotal += brdf;
 		//kdTotal += (kD * albedo / PI);
@@ -137,6 +138,6 @@ void main() {
 
 	outRadiance = radTotal;
 	//outKd = kdTotal;
-	outKd = N;
-	outBrdf = brdfTotal;
+	outKd = V;
+	outBrdf = fragPos;
 }

@@ -23,6 +23,6 @@ struct Material {
 		return textures[id];
 	}
 
-	
+	float uvScale = 1.0;
 	
 };
