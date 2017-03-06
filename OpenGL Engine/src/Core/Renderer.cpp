@@ -12,14 +12,16 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	lightingPrepassShader.loadFromFile("shaders/deferred/lighting_prepass.vert", "shaders/deferred/lighting_prepass.frag");
 	lightingPassShader.loadFromFile("shaders/deferred/lighting_pass.vert", "shaders/deferred/lighting_pass.frag");
 
-	skybox.loadFromFiles({
-		"assets/skybox/blue_rt.tga",
-		"assets/skybox/blue_lf.tga",
-		"assets/skybox/blue_up.tga",
-		"assets/skybox/blue_dn.tga",
-		"assets/skybox/blue_bk.tga",
-		"assets/skybox/blue_ft.tga"
-	});
+	//skybox.loadFromFiles({
+	//	"assets/skybox/blue_rt.tga",
+	//	"assets/skybox/blue_lf.tga",
+	//	"assets/skybox/blue_up.tga",
+	//	"assets/skybox/blue_dn.tga",
+	//	"assets/skybox/blue_bk.tga",
+	//	"assets/skybox/blue_ft.tga"
+	//});
+
+	skybox.loadFromHDRFile("assets/skybox/Ice_Lake_Env.hdr");
 
 	postProcessTexture.allocate(gl::RGB16F, 1280, 720);
 	postProcessDepthTexture.allocate(gl::DEPTH24_STENCIL8, 1280, 720);

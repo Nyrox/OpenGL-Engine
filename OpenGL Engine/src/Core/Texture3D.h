@@ -13,20 +13,24 @@ public:
 	Texture3D(TextureSettings settings = TextureSettings());
 
 	// Constructs a texture and loads a texture from file in one call
-	// Essentially equal to creating a texture and calling 'allocate' and 'loadFromFiles'.
 	Texture3D(std::array<std::string, 6> files, GLenum internalFormat, TextureSettings settings = TextureSettings());
+	Texture3D(const std::string& file, GLenum internalFormat);
 
 	// Allocates space for a texture, ready to be used with a framebuffer or to be loaded in to from memory
-	void allocate(GLenum format, glm::vec2 size);
-
+	// INFO: When loading from file, you should not call this method
+	void allocate(GLenum internalFormat, glm::vec2 size);
+	
 	// Update texture parameters
 	void updateParameters();
 
-	// Loads a texture from file in to space allocated with 'allocate'
-	void loadFromFile(std::array<std::string, 6> files, GLenum pixelFormat = 0);
+	// Load textures from file
+	// If pixelFormat is not provided, it will attempt to guess it 
+	void loadFromFiles(std::array<std::string, 6> files, GLenum internalFormat, GLenum pixelFormat = 0);
 
+	// Loads an HDR Image from file and renders it to a cubemap
+	void loadFromHDRFile(const std::string& file, GLenum internalFormat);
 
 	int32_t width, height;
 private:
-
+	static uint32_t impl_getMipmapLevels(bool useMipmap, uint32_t width, uint32_t height) noexcept;
 };

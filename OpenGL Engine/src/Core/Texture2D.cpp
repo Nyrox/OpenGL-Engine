@@ -12,11 +12,23 @@ Texture2D::Texture2D(TextureSettings settings) : TextureBase(gl::TEXTURE_2D, set
 
 Texture2D::Texture2D(const std::string& textureFile, GLenum internalFormat, TextureSettings settings) : Texture2D(settings) {
 	int32_t width, height, n;
-	uint8_t* data = impl_loadFile(textureFile, width, height, n);
+	
+	if (internalFormat == gl::RGB16F || internalFormat == gl::RGB32F) {
+		float* data = stbi_loadf(textureFile.c_str(), &width, &height, &n, 0);
+		allocate(internalFormat, width, height);
+		gl::TextureSubImage2D(handle, 0, 0, 0, width, height, TextureBase::pixelFormats[n], gl::FLOAT, data);
+		gl::GenerateTextureMipmap(handle);
+		stbi_image_free(data);
+		return;
+	}
 
-	allocate(internalFormat, width, height);
+	uint8_t* data = impl_loadFile(textureFile, width, height, n);
+	
+	allocate(internalFormat, width, height);	
 	gl::TextureSubImage2D(handle, 0, 0, 0, width, height, TextureBase::pixelFormats[n], gl::UNSIGNED_BYTE, data);
 	gl::GenerateTextureMipmap(handle);
+	stbi_image_free(data);
+	return;
 }
 
 void Texture2D::updateParameters() {

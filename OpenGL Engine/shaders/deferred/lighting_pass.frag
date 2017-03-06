@@ -19,6 +19,6 @@ void main() {
 
 	//vec3 color = texture(tex2D_radiance, screenSpaceUv).rgb * (texture(tex2D_Kd, screenSpaceUv).rgb + texture(tex2D_brdf, screenSpaceUv).rgb);
 	vec3 color = texture(tex2D_radiance, screenSpaceUv).rgb;
-
+	color += texture(material.albedo, fs_in.uv).rgb * vec3(0.005),
 	fragColor = vec4(color, 1.0);
 }

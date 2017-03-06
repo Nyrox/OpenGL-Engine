@@ -22,9 +22,13 @@ public:
 	
 	// Loads a texture from file in to space allocated with 'allocate'
 	void loadFromFile(const std::string& file, GLenum pixelFormat = 0);
+
+	int32_t width, height;
 private:
 	uint8_t* impl_loadFile(const std::string& file, int32_t& width, int32_t& height, int32_t& n) const;
 	static uint32_t impl_getMipmapLevels(bool useMipmap, uint32_t width, uint32_t height) noexcept;
+
+	
 };
 
 

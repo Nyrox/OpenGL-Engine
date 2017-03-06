@@ -31,6 +31,7 @@ protected:
 	TextureBase& operator=(const TextureBase& other) = delete;
 
 	GLenum target;
+	GLenum internalFormat;
 
 	static constexpr GLenum pixelFormats[] = { 0, gl::RED, gl::RG, gl::RGB, gl::RGBA };
 };

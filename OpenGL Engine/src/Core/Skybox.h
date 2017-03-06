@@ -1,12 +1,13 @@
 #pragma once
 #include <Core/Shader.h>
 #include <Core/Mesh.h>
-
 #include <array>
 
+#include <Core/Texture3D.h>
+#include <optional>
 
 /*
-	Renders a skybox from a cubemap
+	A skybox which can be used both for IBL and for skybox rendering
 */
 class Skybox {
 public:
@@ -19,6 +20,7 @@ public:
 				Cubemap ordering follows OpenGL conventions.
 	*/
 	void loadFromFiles(const std::array<std::string, 6>& paths);
+	void loadFromHDRFile(const std::string& file);
 
 
 	void render(glm::mat4 view, glm::mat4 projection);
@@ -26,5 +28,6 @@ private:
 	Mesh skyboxMesh;
 	Shader shader;
 
-	GLuint id;
+	Texture3D cubemap;
+	std::optional<Texture3D> convolutedCubemap;
 };
