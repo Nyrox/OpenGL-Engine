@@ -25,6 +25,9 @@
 #include <iostream>
 #include <functional>
 
+#include <Game\Village.h>
+#include <Game\House.h>
+
 constexpr float CAMERA_NEAR_PLANE = 0.1f;
 constexpr float CAMERA_FAR_PLANE = 500;
 
@@ -102,24 +105,17 @@ void __stdcall ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum sever
 
 #include <Core\Physics\AABB.h>
 
+#define _PROJECT_GUI
 
 
-class House : public SceneNode {
-public:
-	House(Model& t_model) : model(t_model) { }
-
-	virtual Physics::AABB getSceneBoundingBox() const override {
-		return collision;
-	}
-
-	Model& model;
-	Physics::AABB collision;
-};
-
+#include <Projects/GUI/guimain.h>
 
 int main() {
-
 	srand(time(0));
+#ifdef	_PROJECT_GUI 
+	GUI::_main();
+#elif	_PROJECT_GAME
+
 
 	// GLFW
 	glfwInit();
@@ -152,12 +148,10 @@ int main() {
 
 	glfwTerminate();
 	return EXIT_SUCCESS;
-#else
-
 #endif
+
 	Font arial("assets/fonts/arial.ttf", 48);
-	Text fpsCounter;
-	fpsCounter.setFont(&arial);
+	Text fpsCounter(&arial);
 	gl::Viewport(0, 0, 1280, 720);
 
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), 1280.f / 720.f, CAMERA_NEAR_PLANE, CAMERA_FAR_PLANE);
@@ -190,7 +184,7 @@ int main() {
 	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>("assets/cube.ply");
 	std::shared_ptr<Mesh> cross_mesh = std::make_shared<Mesh>("assets/cross.ply");
 	
-	Material brickwallMaterial(blinnPhongShader);
+	Material brickwallMaterial(Material::ShadingModel::PBR);
 	brickwallMaterial["albedo"] = &brickwallAlbedo;
 	brickwallMaterial["roughness"] = &brickwallRoughness;
 	brickwallMaterial["metal"] = &brickwallMetal;
@@ -202,29 +196,21 @@ int main() {
 	renderer.insert(&cube);
 	renderer.insert(&betterCube);
 
-	Material woodMaterial(blinnPhongShader);
+	Material woodMaterial(Material::ShadingModel::PBR);
 	woodMaterial["diffuse"] = &texture;
 	woodMaterial["specular"] = &specular;
 
 	Model cross(woodMaterial, cross_mesh, Transform(glm::vec3(-1.25, 0, 6)));
 	
-	Material glassMaterial(blinnPhongShader, Material::ShadingModel::Transparent);
+	Material glassMaterial(Material::ShadingModel::Transparent);
 	glassMaterial["diffuse"] = &transparent;
 
 	Model reflectiveCube(glassMaterial, cube_mesh, Transform(glm::vec3(3, 0, 2)));
 	Model reflectiveSphere(glassMaterial, std::make_shared<Mesh>("assets/sphere.ply"), Transform(glm::vec3(-4, 0, 3)));
 
-	
 	renderer.insert(&cross);
 	renderer.insert(&reflectiveSphere);
 	renderer.insert(&reflectiveCube);
-
-	std::shared_ptr<Mesh> house_mesh = std::make_shared<Mesh>("assets/house.ply");
-	Model houseModel(woodMaterial, house_mesh, Transform(glm::vec3(20, 0, 0)));
-
-	House house(houseModel);
-
-	renderer.insert(&house.model);
 
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
@@ -241,7 +227,7 @@ int main() {
 	Texture2D blackrockMetal("assets/blackrock-metalness.png", gl::R8, highQualityTextureSettings);
 	Texture2D blackrockNormal("assets/blackrock-normal.png", gl::RGB8, highQualityTextureSettings);
 
-	Material terrainMaterial(terrainShader);
+	Material terrainMaterial(Material::ShadingModel::PBR);
 	terrainMaterial.uvScale = 8;
 	terrainMaterial["albedo"] = &blackrockAlbedo;
 	terrainMaterial["roughness"] = &blackrockRoughness;
@@ -250,20 +236,20 @@ int main() {
 		
 
 	Terrain terrain(terrainMaterial, 400, 400);
-	terrain.generateMeshFromHeightmap(heightmap, 0.008);
+	terrain.generateMeshFromHeightmap(heightmap, 0.000);
 
-	terrain.model.transform.position = glm::vec3(-200, 0, -200);
+	terrain.model.transform.position = glm::vec3(-200, -1, -200);
 
 	renderer.insert(&terrain.model);
 
 	Scene scene;
-	House* myHouse = scene.emplace<House>(houseModel);
+	House* myHouse = scene.emplace<House>(renderer);
 	myHouse->model.transform.position.x = 25;
 
 	renderer.insert(&myHouse->model);
 
-	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 3);
-	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 3);
+	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 6);
+	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 6);
 
 	renderer.addPointLight(light1);
 	renderer.addPointLight(light2);
@@ -290,9 +276,14 @@ int main() {
 		exit(EXIT_SUCCESS);
 	};
 
-	Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 1), [&](double val) {
-	});
+	//Slider* lightSlider = gui_context.createWidget<Slider>(glm::vec2(200, 25), glm::vec2(0, 1), [&](double val) {
+	//});
 
+
+	Village village(renderer);
+	village.name = "Sample Town";
+
+	Text villageName(&arial, village.name);
 
 
 	auto physics_update = [&]() {
@@ -434,10 +425,13 @@ int main() {
 		gui_context.render();
 		scene.render(camera.getViewMatrix(), camera.projection);
 
+		villageName.render();
+
 		fpsCounter.render();
 
 		glfwSwapBuffers(window);
 	}
 
 	glfwTerminate();
+#endif
 }

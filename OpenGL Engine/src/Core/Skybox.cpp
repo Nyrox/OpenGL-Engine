@@ -73,6 +73,7 @@ void Skybox::render(glm::mat4 view, glm::mat4 projection) {
 
 	shader.setUniform("skybox", 0);
 	cubemap.bind(0);
+	//convolutedCubemap->bind(0);
 
 	skyboxMesh.draw();
 	

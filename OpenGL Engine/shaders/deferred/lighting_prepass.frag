@@ -143,7 +143,7 @@ void main() {
 	vec3 a_kD = 1.0 - a_kS;
 	vec3 irradiance = texture(tex2D_ambientIrradiance, N).rgb;
 	vec3 diffuse    = irradiance * albedo;
-	vec3 ambient    = (a_kD * diffuse); // * ao 
+	vec3 ambient    = (a_kD * diffuse) * 0.5; // * ao 
 
 	outRadiance = radTotal + ambient;
 	//outKd = kdTotal;

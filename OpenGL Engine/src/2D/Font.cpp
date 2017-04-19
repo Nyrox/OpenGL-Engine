@@ -40,8 +40,8 @@ void Font::loadFromFile(const std::string& file, uint8_t fontSize) {
 		gl::TextureStorage2D(texture, 1, gl::R8, face->glyph->bitmap.width, face->glyph->bitmap.rows);
 		gl::TextureSubImage2D(texture, 0, 0, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows, gl::RED, gl::UNSIGNED_BYTE, face->glyph->bitmap.buffer);
 
-		gl::TextureParameteri(texture, gl::TEXTURE_WRAP_S, gl::CLAMP_TO_EDGE);
-		gl::TextureParameteri(texture, gl::TEXTURE_WRAP_T, gl::CLAMP_TO_EDGE);
+		gl::TextureParameteri(texture, gl::TEXTURE_WRAP_S, gl::REPEAT);
+		gl::TextureParameteri(texture, gl::TEXTURE_WRAP_T, gl::REPEAT);
 		gl::TextureParameteri(texture, gl::TEXTURE_MIN_FILTER, gl::LINEAR);
 		gl::TextureParameteri(texture, gl::TEXTURE_MAG_FILTER, gl::LINEAR);
 

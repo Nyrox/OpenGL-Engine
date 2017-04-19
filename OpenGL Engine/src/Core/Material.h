@@ -7,15 +7,13 @@ class Shader;
 
 struct Material {
 	enum class ShadingModel {
-		Opague, Transparent
+		PBR, Transparent
 	} const shadingModel;
 
 
-	Material(Shader& t_shader, ShadingModel t_shadingModel = ShadingModel::Opague) : shader(t_shader), shadingModel(t_shadingModel) {
+	Material(ShadingModel t_shadingModel) : shadingModel(t_shadingModel) {
 
 	}
-
-	Shader& shader;
 
 	std::unordered_map<std::string, Texture2D*> textures;
 

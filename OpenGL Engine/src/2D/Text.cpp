@@ -1,9 +1,8 @@
 #include "Text.h"
 #include <glm\gtx\transform.hpp>
 
-Text::Text() {
+Text::Text(Font* t_font, std::string t_string) {
 	shader.loadFromFile("shaders/text.vert", "shaders/text.frag");
-
 
 	gl::CreateVertexArrays(1, &vao);
 	gl::CreateBuffers(1, &vbo);
@@ -18,6 +17,9 @@ Text::Text() {
 	gl::EnableVertexAttribArray(1);
 
 	gl::BindVertexArray(0);
+
+	setFont(t_font);
+	setString(t_string);
 }
 
 void Text::setFont(Font* t_font) {
@@ -41,8 +43,8 @@ void Text::render() {
 
 	gl::BindVertexArray(vao);
 
-	float xPosition = 350;
-	float yPosition = 50;
+	float xPosition = position.x;
+	float yPosition = position.y;
 
 	for (auto& it : buffer) {
 		Glyph& character = font->getGlyph(it);
@@ -51,18 +53,18 @@ void Text::render() {
 
 
 		float xFinal = xPosition + character.bearing.x;
-		float yFinal = yPosition - (float)(character.size.y - character.bearing.y);
+		float yFinal = (yPosition - character.bearing.y) + 14;
 		float width = character.size.x;
 		float height = character.size.y;
 
 		GLfloat vertices[6][4] = {
-			{ xFinal, yFinal - height,			0.0, 0.0 },
-			{ xFinal, yFinal,					0.0, 1.0 },
-			{ xFinal + width, yFinal,			1.0, 1.0 },
+			{ xFinal, yFinal + height,			0.0, 1.0 },
+			{ xFinal, yFinal,					0.0, 0.0 },
+			{ xFinal + width, yFinal,			1.0, 0.0 },
 
-			{ xFinal, yFinal - height,			0.0, 0.0 },
-			{ xFinal + width, yFinal,			1.0, 1.0 },
-			{ xFinal + width, yFinal - height,	1.0, 0.0 }
+			{ xFinal, yFinal + height,			0.0, 1.0 },
+			{ xFinal + width, yFinal,			1.0, 0.0 },
+			{ xFinal + width, yFinal + height,	1.0, 1.0 }
 		};
 		
 		gl::BindBuffer(gl::ARRAY_BUFFER, vbo);

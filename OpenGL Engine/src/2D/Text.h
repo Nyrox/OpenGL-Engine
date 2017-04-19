@@ -4,12 +4,13 @@
 
 class Text {
 public:
-	Text();
+	explicit Text(Font* font, std::string string = std::string());
 
 	void setString(const std::string& string);
 	void setFont(Font* font);
 	void render();
 
+	glm::vec2 position;
 private:
 	Shader shader;
 	Font* font = nullptr;

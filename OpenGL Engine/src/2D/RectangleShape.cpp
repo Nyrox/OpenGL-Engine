@@ -1,6 +1,6 @@
 #include "RectangleShape.h"
 
-RectangleShape::RectangleShape(glm::vec2 t_size) : size(t_size) {
+RectangleShape::RectangleShape(glm::vec2 t_size, glm::vec2 t_position) : size(t_size), position(t_position) {
 	update();
 }
 

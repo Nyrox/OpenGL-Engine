@@ -7,7 +7,7 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
-	
+
 	geometryPassShader.loadFromFile("shaders/deferred/geometry_pass.vert", "shaders/deferred/geometry_pass.frag");
 	lightingPrepassShader.loadFromFile("shaders/deferred/lighting_prepass.vert", "shaders/deferred/lighting_prepass.frag");
 	lightingPassShader.loadFromFile("shaders/deferred/lighting_pass.vert", "shaders/deferred/lighting_pass.frag");
@@ -59,9 +59,9 @@ void Renderer::setRenderSettings(const Shader& shader) {
 }
 
 void Renderer::insert(Model* model) {
-	if (model->material.shadingModel == Material::ShadingModel::Opague) {
+	if (model->material.shadingModel == Material::ShadingModel::PBR) {
 		this->opagues.push_back(model);
-	} 
+	}
 	else if (model->material.shadingModel == Material::ShadingModel::Transparent) {
 		this->transparents.push_back(model);
 	}
@@ -80,7 +80,7 @@ void Renderer::addDirectionalLight(DirectionalLight light) {
 
 // Far and near planes for point lights.
 constexpr float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
-constexpr float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 100.f;
+constexpr float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 15.f;
 
 constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_NEAR_PLANE = 10.f;
 constexpr float DIRECTIONAL_LIGHT_DEPTH_MAP_FAR_PLANE = 300.f;
@@ -92,7 +92,7 @@ void Renderer::buildSSAOTexture() {
 }
 
 void Renderer::buildShadowMaps() {
-	
+
 	gl::Disable(gl::BLEND);
 	gl::Enable(gl::DEPTH_TEST);
 	gl::DepthFunc(gl::LESS);
@@ -184,8 +184,8 @@ void Renderer::render_new() {
 	if (settings.enableSSAO) buildSSAOTexture();
 
 
-	
-	
+
+
 	auto setUniforms = [&](Shader& shader) {
 		shader.bind();
 		shader.setUniform("camera_position", camera.transform.position);
@@ -253,7 +253,7 @@ void Renderer::render_new() {
 	// Main lighting pass
 	gl::Enable(gl::DEPTH_TEST);
 	gl::DepthFunc(gl::LEQUAL);
-	
+
 	mainFramebuffer.bind();
 
 	gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -264,7 +264,7 @@ void Renderer::render_new() {
 	lightingPassShader.setUniform("tex2D_radiance", 4);
 	lightingPassShader.setUniform("tex2D_brdf", 5);
 	lightingPassShader.setUniform("tex2D_Kd", 6);
-	
+
 	lightingRadiance.bind(4);
 	lightingBrdf.bind(5);
 	lightingKd.bind(6);
@@ -314,23 +314,23 @@ void Renderer::render_new() {
 
 		it->mesh->draw();
 	}
-*/
+	*/
 
 	// Post processing
 	gl::Disable(gl::DEPTH_TEST);
 	gl::DepthFunc(gl::LESS);
 
-	
+
 	gl::BindFramebuffer(gl::FRAMEBUFFER, 0);
-	
+
 	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	gl::Clear(gl::COLOR_BUFFER_BIT);
-	
+
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
 	mainFramebufferTexture.bind(0);
 
-	
+
 	canvas.draw();
 }
 

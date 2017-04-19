@@ -34,7 +34,7 @@ namespace MeshLoaders {
 		@haystack: The string to split
 		@delim: The character on which to split. The character if found will be discarded.
 	*/
-	std::vector<std::string> string_split (const std::string& haystack, char delim) {
+	std::vector<std::string> string_split(const std::string& haystack, char delim) {
 		std::vector<std::string> tokens;
 
 		uint32_t prev = 0, pos = 0;
@@ -50,7 +50,7 @@ namespace MeshLoaders {
 	}
 
 	/* */
-	void loadFromFile (Mesh& mesh, const std::string& file, void(*loader)(Mesh&, const std::string&)) {
+	void loadFromFile(Mesh& mesh, const std::string& file, void(*loader)(Mesh&, const std::string&)) {
 		std::stringstream string_stream;
 		string_stream << std::ifstream(file).rdbuf();
 
@@ -58,7 +58,7 @@ namespace MeshLoaders {
 	}
 
 	/* */
-	void loadPly (Mesh& mesh, const std::string& ply) {
+	void loadPly(Mesh& mesh, const std::string& ply) {
 		std::stringstream stream;
 		stream << ply;
 
@@ -73,7 +73,7 @@ namespace MeshLoaders {
 			if (tokens[0] == "element") {
 				if (tokens[1] == "vertex") {
 					mesh.vertex_count = std::stoi(tokens[2]);
-				} 
+				}
 				continue;
 			}
 
@@ -98,7 +98,7 @@ namespace MeshLoaders {
 				values.push_back(std::stof(tokens[i]));
 			}
 
-			Vertex vertex { glm::vec3(values[0], values[1], values[2]), // Position
+			Vertex vertex{ glm::vec3(values[0], values[1], values[2]), // Position
 							glm::vec3(values[3], values[4], values[5]), // Normal
 							glm::vec2(values[6], values[7]) };			// UV
 
@@ -156,7 +156,7 @@ namespace MeshLoaders {
 					indices.insert(indices.end(), it);
 				break;
 			}
-			
+
 			face_index++;
 		}
 
