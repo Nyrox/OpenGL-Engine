@@ -9,6 +9,7 @@
 #include <Core/Shader.h>
 #include <glm/gtx/transform.hpp>
 #include <2D/Text.h>
+#include <algorithm>
 
 namespace GUI {
 	constexpr float AUTO = 0;
@@ -19,12 +20,8 @@ namespace GUI {
 
 	
 	struct Style {
-		struct Padding {
-			Padding() = default;
-			Padding(float t) : left(t), top(t), right(t), bottom(t) { }
-			Padding(float l, float t, float r, float b) : left(l), top(t), right(r), bottom(b) { }
-
-			float left = 0, top = 0, right = 0, bottom = 0;
+		struct {
+			float top = 0, right = 0, bottom = 0, left = 0;
 		} padding;
 
 		
@@ -34,9 +31,16 @@ namespace GUI {
 			} w = Unit::PIXEL, h = Unit::PIXEL;
 		} unitInfo;
 
+		struct Position {
+			enum {
+				Auto, Absolute
+			} x = Auto, y = Auto;
+		} position;
+		
+
 		glm::vec3 textColor;
 		glm::vec3 fillColor;
-		glm::vec2 position;
+		float top = 0, left = 0;
 		glm::vec2 size;
 	};
 
@@ -51,22 +55,34 @@ namespace GUI {
 			children.back().parent = this;
 		}
 
-		void reflow() {
+		void reflow(glm::vec2 position) {
 			if (!this->parent) {
 				goto END;
 			}
 
-			// Percentage widths
-			if (this->style.unitInfo.w == Style::UnitInfo::Unit::PERCENT) this->processed.size.x = this->parent->processed.size.x;
-			else this->processed.size.x = this->style.size.x - this->style.padding.left - this->style.padding.right;
-			// Percentage heights
-			if (this->style.unitInfo.h == Style::UnitInfo::Unit::PERCENT) this->processed.size.y = this->parent->processed.size.y;
-			else this->processed.size.y = this->style.size.y - this->style.padding.top - this->style.padding.bottom;
+			processed.top = style.position.y == Style::Position::Absolute ? style.top : position.y;
+			position.x = style.position.x == Style::Position::Absolute ? style.left : position.x;
+			processed.left = position.x;
+
+			// Calculate own widths
+			float availableWidth = parent->processed.size.x - parent->processed.padding.left - parent->processed.padding.right;
+			availableWidth = std::max(availableWidth, 0.f);
+			float desiredWidth = style.unitInfo.w == Style::UnitInfo::Unit::PERCENT ? availableWidth / 100 * style.size.x : style.size.x;
+			processed.size.x = std::clamp(desiredWidth, 0.f, availableWidth);
 
 			END:
+			float lowestY = INFINITY;
+			float highestY = 0;
+			
+			// Let children calculate their widths and heights
 			for (auto& it : children) {
-				it.reflow();
+				it.reflow({ position.x + style.padding.left, position.y + style.padding.top });
+				if (it.processed.top < lowestY) { lowestY = it.processed.top; }
+				if (it.processed.top + it.processed.size.y) { highestY = it.processed.top + it.processed.size.y; }
 			}
+
+			processed.size.y = style.padding.top + style.padding.bottom + std::max(14.f, highestY - lowestY);
+			
 		}
 
 		const std::vector<Element>& getChildren() const { return children; }
@@ -97,15 +113,17 @@ namespace GUI {
 			
 			gl::Disable(gl::CULL_FACE);
 
-			renderElement(rootNode, elementShader, this);
+			for (auto& it : rootNode.getChildren()) {
+				renderElement(it, elementShader, this);
+			}
 		}
 
 		void reflow() {
-			rootNode.reflow();
+			rootNode.processed.size = size;
+			rootNode.reflow({ 0, 0 });
 		}
-
+	
 		glm::vec2 size;
-
 		Font font;
 
 		Shader elementShader;
@@ -114,15 +132,15 @@ namespace GUI {
 
 	void renderElement(const Element& element, Shader& shader, GUISurface* surface) {
 		const Style& style = element.processed;
-		RectangleShape shape(style.size,style.position);
+		RectangleShape shape(style.size, { style.left, style.top });
 		shape.fillColor = style.fillColor;
-		shape.transform = Transform({ style.position.x, style.position.y, 0 });
+		shape.transform = Transform({ style.left, style.top, 0 });
 
 		shape.render(shader);
 
-		if (!element.text.empty()) {
+		if (!element.text.empty() && element.text != "") {
 			Text text(&surface->font, element.text);
-			text.position = style.position;
+			text.position = { style.left + style.padding.left, style.top + style.padding.top };
 
 			text.render();
 		}
@@ -139,22 +157,34 @@ namespace GUI {
 
 		Style inspectorStyle;
 		inspectorStyle.size = { 400, 720 };
-		inspectorStyle.position = { 1280 - 400, 0 };
+		inspectorStyle.position.x = Style::Position::Absolute;
+		inspectorStyle.left = 1280 - 400;
 		inspectorStyle.fillColor = { 0.25 };
-
+		inspectorStyle.padding = { 16, 32, 32, 32 };
 		Element inspector(inspectorStyle);
 
 		Style testStyle;
 		testStyle.size = { 100, 150 };
 		testStyle.unitInfo.w = Style::UnitInfo::Unit::PERCENT;
-		testStyle.position = { 1280 - 380, 20 };
-		testStyle.fillColor = { 0.4, 0.4, 0.4 };
+		testStyle.fillColor = { 0.5, 0.4, 0.4 };
+		testStyle.padding = { 8, 8, 8, 8 };
 
 		Element test(testStyle);
 		test.text = "Transform";
 		inspector.addChild(test);
 		surface.rootNode.addChild(inspector);
 		
+		Style pes;
+		pes.size = { 600, 140 };
+		pes.top = 720 - 140;
+		pes.position.y = Style::Position::Absolute;
+		pes.fillColor = { 0.35, 0.7, 0.35 };
+
+		Element projectExplorer(pes);
+		projectExplorer.text = "Project Explorer";
+		surface.rootNode.addChild(projectExplorer);
+
+
 		surface.reflow();
 
 		while (window.isOpen()) {
