@@ -5,8 +5,8 @@
 Slider::Slider(glm::vec2 t_size, glm::vec2 t_valueRange, std::function<void(double)> callback) 
 	: size(t_size), valueRange(t_valueRange), sliderCallback(callback), box(size), selector(t_size.y / 2.5, 16) {
 
-	box.fillColor = { 0.2, 0.2, 0.2 };
-	selector.fillColor = { 0.9, 0.9, 0.9 };
+	box.fillColor = glm::vec4(0.2, 0.2, 0.2, 1);
+	selector.fillColor = glm::vec4(0.9, 0.9, 0.9, 1);
 }
 
 void Slider::render(Shader& shader) {

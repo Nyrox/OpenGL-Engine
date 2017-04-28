@@ -19,7 +19,7 @@ public:
 		Be aware that this is not free. */
 	FloatRect getLocalBounds() const;
 
-	glm::vec3 fillColor;
+	glm::vec4 fillColor;
 	Transform transform;
 protected:
 	FloatRect localBounds;

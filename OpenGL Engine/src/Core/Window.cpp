@@ -16,6 +16,9 @@ Window::Window(uint32 width, uint32 height, std::string title, const ContextSett
 
 	gl::sys::LoadFunctions();
 	gl::Viewport(0, 0, width, height);
+
+	gl::BlendFunc(gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA);
+
 }
 
 Window::~Window() {

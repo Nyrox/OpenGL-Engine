@@ -11,6 +11,7 @@ public:
 	void render();
 
 	glm::vec2 position;
+	glm::vec3 fillColor;
 private:
 	Shader shader;
 	Font* font = nullptr;

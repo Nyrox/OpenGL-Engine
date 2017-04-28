@@ -39,7 +39,7 @@ void Text::render() {
 
 	shader.bind();
 	shader.setUniform("projection", projection);
-	shader.setUniform("fillColor", glm::vec3(1.0, 0.0, 0.0));
+	shader.setUniform("fillColor", fillColor);
 
 	gl::BindVertexArray(vao);
 
