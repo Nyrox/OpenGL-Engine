@@ -8,9 +8,11 @@
 #include <Core/Texture2D.h>
 #include <vector>
 
+class Engine;
+
 class Renderer {
 public:
-	Renderer(Camera& camera, float backbuffer_width, float backbuffer_height);
+	Renderer(Engine& engine, Camera& camera, float backbuffer_width, float backbuffer_height);
 	
 	void render();
 	void render_new();
@@ -30,6 +32,8 @@ public:
 
 	Camera& camera;
 private:
+	Engine& engine;
+	
 	void buildSSAOTexture();
 	void buildShadowMaps();
 

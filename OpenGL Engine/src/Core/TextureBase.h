@@ -1,17 +1,18 @@
 #pragma once
 #include <gl_core_4_3.hpp>
 #include <cinttypes>
+#include <Core/Definitions.h>
 
-enum MipmapModes { NoMipmaps = 0, GenerateMipmaps };
-enum TextureWrapModes { Repeat = gl::REPEAT, RepeatMirrored = gl::MIRRORED_REPEAT, ClampToEdge = gl::CLAMP_TO_EDGE, ClampToBorder = gl::CLAMP_TO_BORDER };
-enum FilteringModes { Nearest = gl::NEAREST, Linear = gl::LINEAR, Bilinear = gl::LINEAR_MIPMAP_LINEAR };
+enum MipmapModes : uint32 { NoMipmaps = 0, GenerateMipmaps };
+enum TextureWrapModes : uint32 { Repeat = gl::REPEAT, RepeatMirrored = gl::MIRRORED_REPEAT, ClampToEdge = gl::CLAMP_TO_EDGE, ClampToBorder = gl::CLAMP_TO_BORDER };
+enum FilteringModes : uint32 { Nearest = gl::NEAREST, Linear = gl::LINEAR, Bilinear = gl::LINEAR_MIPMAP_LINEAR };
 
 struct TextureSettings {
-	TextureSettings(MipmapModes mipmapMode = NoMipmaps, TextureWrapModes textureWrapMode = Repeat, FilteringModes filteringMode = Nearest, float anisotropicFilteringLevel = 0.f);
+	TextureSettings(uint32 mipmapMode = NoMipmaps, uint32 textureWrapMode = Repeat, uint32 filteringMode = Nearest, float anisotropicFilteringLevel = 0.f);
 
-	MipmapModes mipmapMode = NoMipmaps;
-	TextureWrapModes textureWrapMode = Repeat;
-	FilteringModes filteringMode = Nearest;
+	uint32 mipmapMode = NoMipmaps;
+	uint32 textureWrapMode = Repeat;
+	uint32 filteringMode = Nearest;
 	float anisotropicFilteringLevel = 0.f;
 };
 

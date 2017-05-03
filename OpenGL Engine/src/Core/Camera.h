@@ -4,12 +4,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-
+class asIScriptEngine;
 
 class Camera {
 public:
 	Camera(Transform transform, float viewportWidth, float viewportHeight, glm::mat4 projection, float yaw = 0, float pitch = 0);	
 	Camera(float viewportWidth, float viewportHeight, glm::mat4 projection, float yaw, float pitch);
+
+	static void __registerObjectInterface(asIScriptEngine* engine);
 
 	glm::mat4 getViewMatrix() const;	
 	glm::vec3 forwards() const;

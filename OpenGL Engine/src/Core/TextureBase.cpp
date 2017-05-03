@@ -6,7 +6,7 @@
 */
 
 
-TextureSettings::TextureSettings(MipmapModes t_mipmapMode, TextureWrapModes t_textureWrapMode, FilteringModes t_filteringMode, float t_anisotropicFilteringLevel)
+TextureSettings::TextureSettings(uint32 t_mipmapMode, uint32 t_textureWrapMode, uint32 t_filteringMode, float t_anisotropicFilteringLevel)
 	: mipmapMode(t_mipmapMode), textureWrapMode(t_textureWrapMode), filteringMode(t_filteringMode), anisotropicFilteringLevel(t_anisotropicFilteringLevel) {
 }
 

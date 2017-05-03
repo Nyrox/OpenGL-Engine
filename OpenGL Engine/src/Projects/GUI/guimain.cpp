@@ -188,8 +188,6 @@ namespace GUI {
 		surface.reflow();
 
 		while (window.isOpen()) {
-			window.pollEvents();
-
 			gl::ClearColor(0.05, 0.05, 0.05, 1.0);
 			gl::Clear(gl::COLOR_BUFFER_BIT);
 

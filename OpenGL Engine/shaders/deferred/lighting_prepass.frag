@@ -87,6 +87,7 @@ void main() {
 	float metallic = texture(tex2D_geoRoughnessMetal, fs_in.uv).g;
 	vec3 albedo = texture(tex2D_geoAlbedo, fs_in.uv).rgb;
 
+
 	// Base IOR for Dialectrics
 	vec3 F0 = vec3(0.04);
 	F0      = mix(F0, albedo, metallic);
@@ -143,7 +144,7 @@ void main() {
 	vec3 a_kD = 1.0 - a_kS;
 	vec3 irradiance = texture(tex2D_ambientIrradiance, N).rgb;
 	vec3 diffuse    = irradiance * albedo;
-	vec3 ambient    = (a_kD * diffuse) * 0.5; // * ao 
+	vec3 ambient    = (a_kD * diffuse); // * ao 
 
 	outRadiance = radTotal + ambient;
 	//outKd = kdTotal;

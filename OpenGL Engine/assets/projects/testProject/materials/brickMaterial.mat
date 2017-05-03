@@ -1,0 +1,8 @@
+{
+    "samplers": [
+        { "id": "albedo", "resource": "Stonewall-Albedo" },
+		{ "id": "normal", "resource": "Stonewall-Normal" },
+		{ "id": "roughness", "resource": "Stonewall-Roughness" },
+		{ "id": "metal", "resource": "Stonewall-Metal" }
+    ]
+}

@@ -49,6 +49,8 @@ bool Gizmo::handleEvent(const Event& event) {
 	switch (event.type) {
 	case Event::MouseDown:
 	{
+		if (sceneNode == nullptr) return true;
+
 		Ray ray = Physics::screenPositionToRay(*event.click.camera, { event.click.x, event.click.y });
 		glm::vec3 q;
 		float t;

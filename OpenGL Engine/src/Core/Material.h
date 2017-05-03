@@ -11,9 +11,10 @@ struct Material {
 	} const shadingModel;
 
 
-	Material(ShadingModel t_shadingModel) : shadingModel(t_shadingModel) {
-
-	}
+	Material() : shadingModel(ShadingModel::PBR) { }
+	Material(ShadingModel t_shadingModel) : shadingModel(t_shadingModel) { }
+	Material(const Material& other) = default;
+	Material& operator=(const Material& other) = default;
 
 	std::unordered_map<std::string, Texture2D*> textures;
 

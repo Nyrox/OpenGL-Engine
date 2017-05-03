@@ -2,8 +2,11 @@
 #include <GLFW\glfw3.h>
 #include <algorithm>
 #include <iostream>
+#include <Core/ECS/Engine.h>
+#include <Core/ECS/GameObject.h>
+#include <Core/ECS/Components/MeshRenderer.h>
 
-Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_height) : camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
+Renderer::Renderer(Engine& t_engine, Camera& t_camera, float backbuffer_width, float backbuffer_height) : engine(t_engine), camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
 	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
 	dirLightShadowPassShader.loadFromFile("shaders/directional_shadow_pass.vert", "shaders/directional_shadow_pass.frag");
 	post_process_shader.loadFromFile("shaders/post_process.vert", "shaders/post_process.frag");
@@ -29,8 +32,8 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	postProcessBuffer.attach(gl::DEPTH_STENCIL_ATTACHMENT, postProcessDepthTexture);
 
 
-	geometryPositions.allocate(gl::RGB32F, 1280, 720);
-	geometryNormals.allocate(gl::RGB32F, 1280, 720);
+	geometryPositions.allocate(gl::RGB16F, 1280, 720);
+	geometryNormals.allocate(gl::RGB16F, 1280, 720);
 	geometryDepth.allocate(gl::DEPTH24_STENCIL8, 1280, 720);
 	geometryRoughnessMetal.allocate(gl::RG16F, 1280, 720);
 	geometryAlbedo.allocate(gl::RGB16F, 1280, 720);
@@ -41,9 +44,9 @@ Renderer::Renderer(Camera& t_camera, float backbuffer_width, float backbuffer_he
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT2, geometryRoughnessMetal);
 	geometryBuffer.attach(gl::COLOR_ATTACHMENT3, geometryAlbedo);
 
-	lightingRadiance.allocate(gl::RGB32F, 1280, 720);
-	lightingBrdf.allocate(gl::RGB32F, 1280, 720);
-	lightingKd.allocate(gl::RGB32F, 1280, 720);
+	lightingRadiance.allocate(gl::RGB16F, 1280, 720);
+	lightingBrdf.allocate(gl::RGB16F, 1280, 720);
+	lightingKd.allocate(gl::RGB16F, 1280, 720);
 
 	lightingBuffer.attach(gl::COLOR_ATTACHMENT0, lightingRadiance);
 	lightingBuffer.attach(gl::COLOR_ATTACHMENT1, lightingBrdf);
@@ -153,9 +156,11 @@ void Renderer::render_new() {
 	geometryPassShader.bind();
 	geometryPassShader.setUniform("view", camera.getViewMatrix());
 	geometryPassShader.setUniform("projection", camera.projection);
-	for (auto& it : opagues) {
-		geometryPassShader.setUniform("model", it->transform.getModelMatrix());
-		geometryPassShader.setUniform("uvScale", it->material.uvScale);
+	for (auto& it : engine.getAllComponentsOfType<MeshRenderer>()) {
+		MeshRenderer& renderer = static_cast<MeshRenderer&>(*it.get());
+
+		geometryPassShader.setUniform("model", it->gameObject.transform.getModelMatrix());
+		geometryPassShader.setUniform("uvScale", renderer.material->uvScale);
 
 		Shader& shader = geometryPassShader;
 		shader.setUniform("material.roughness", 4);
@@ -163,11 +168,11 @@ void Renderer::render_new() {
 		shader.setUniform("material.albedo", 6);
 		shader.setUniform("material.normal", 7);
 
-		if (it->material.textures.find("roughness") != it->material.textures.end()) {
-			it->material["roughness"]->bind(4);
-			it->material["metal"]->bind(5);
-			it->material["albedo"]->bind(6);
-			it->material["normal"]->bind(7);
+		if (renderer.material->textures.find("roughness") != renderer.material->textures.end()) {
+			(*(renderer.material))["roughness"]->bind(4);
+			(*(renderer.material))["metal"]->bind(5);
+			(*(renderer.material))["albedo"]->bind(6);
+			(*(renderer.material))["normal"]->bind(7);
 		}
 		else {
 			gl::BindTextureUnit(4, 0);
@@ -176,7 +181,7 @@ void Renderer::render_new() {
 			gl::BindTextureUnit(7, 0);
 		}
 
-		it->mesh->draw();
+		renderer.mesh->draw();
 	}
 
 
@@ -269,17 +274,18 @@ void Renderer::render_new() {
 	lightingBrdf.bind(5);
 	lightingKd.bind(6);
 
-	for (auto& it : opagues) {
+	for (auto& it : engine.getAllComponentsOfType<MeshRenderer>()) {
 		Shader& shader = lightingPassShader;
+		MeshRenderer& renderer = static_cast<MeshRenderer&>(*it.get());
 
-		shader.setUniform("model", it->transform.getModelMatrix());
+		shader.setUniform("model", it->gameObject.transform.getModelMatrix());
 		//shader.setUniform("material", it->material);
 		shader.setUniform("material.albedo", 0);
-		if (it->material.textures.find("albedo") != it->material.textures.end()) {
-			it->material["albedo"]->bind(0);
+		if (renderer.material->textures.find("albedo") != renderer.material->textures.end()) {
+			(*renderer.material)["albedo"]->bind(0);
 		}
 
-		it->mesh->draw();
+		renderer.mesh->draw();
 	}
 
 

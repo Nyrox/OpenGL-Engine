@@ -10,7 +10,6 @@ public:
 	~Window();
 
 	bool isOpen();
-	void pollEvents();
 	void close();
 	void display();
 

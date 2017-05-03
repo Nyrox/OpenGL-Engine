@@ -1,0 +1,43 @@
+{
+    "resources": [
+        { 
+            "id": "Stonewall-Albedo",
+            "type": "Texture2D",
+            "path": "textures/stonewall-albedo.png",
+            "format": 35905
+        },
+		{
+			"id": "Stonewall-Normal",
+			"type": "Texture2D",
+			"path": "textures/stonewall-normal.png",
+			"format": 32849
+		},
+		{
+			"id": "Stonewall-Roughness",
+			"type": "Texture2D",
+			"path": "textures/stonewall-roughness.png",
+			"format": 33321
+		},
+		{
+			"id": "Stonewall-Metal",
+			"type": "Texture2D",
+			"path": "textures/stonewall-metalness.png",
+			"format": 33321
+		},
+		
+        
+        {
+			"id": "BrickMaterial",
+            "type": "Material",
+            "path": "materials/brickMaterial.mat"
+        },
+        
+        {
+            "id": "Cube",
+            "type": "Mesh",
+            "path": "meshes/cube.ply"
+        }
+    ],
+    
+    "mainScene": "scenes/scene1.json"
+}

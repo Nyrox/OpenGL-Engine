@@ -1,6 +1,7 @@
 #include "Font.h"
 
 #include <iostream>
+#include <cctype>
 
 Font::Font() {
 	if (FT_Init_FreeType(&ft)) {
@@ -28,7 +29,8 @@ void Font::loadFromFile(const std::string& file, uint8_t fontSize) {
 	FT_Set_Pixel_Sizes(face, 0, fontSize);
 	
 	for (uint8_t c = 0; c < 255; c++) {
-		std::cout << "Loading glyph: " << std::to_string(c) << "\n";
+		if (!std::isalnum(c)) continue;
+
 		// load character glyph
 		if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
 			std::cout << "ERROR::FREETYPE: Failed to load glyph: " << c << std::endl;

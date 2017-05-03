@@ -11,7 +11,7 @@ Texture2D::Texture2D(TextureSettings settings) : TextureBase(gl::TEXTURE_2D, set
 }
 
 Texture2D::Texture2D(const std::string& textureFile, GLenum internalFormat, TextureSettings settings) : Texture2D(settings) {
-	int32_t width, height, n;
+	int32_t n;
 	
 	if (internalFormat == gl::RGB16F || internalFormat == gl::RGB32F) {
 		float* data = stbi_loadf(textureFile.c_str(), &width, &height, &n, 0);
@@ -60,8 +60,11 @@ void Texture2D::loadFromFile(const std::string& file, GLenum pixelFormat) {
 /*
 	Texture 2D Implementation
 */
+#include <filesystem>
+namespace std { namespace filesystem = experimental::filesystem; }
 
 uint8_t* Texture2D::impl_loadFile(const std::string& file, int32_t& width, int32_t& height, int32_t& n) const {
+	if (!std::filesystem::exists(std::filesystem::path(file))) { throw std::exception(); }
 	return stbi_load(file.c_str(), &width, &height, &n, 0);
 }
 
