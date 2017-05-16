@@ -35,7 +35,7 @@
 #include <Core/AngelscriptAddons/ScriptSTDString/scriptstdstring.h>
 #include <Core/AngelscriptAddons/ScriptBuilder/scriptbuilder.h>
 
-#include <Core/ECS/Engine.h>
+#include <Core/Engine.h>
 #include <Core/ECS/GameObject.h>
 #include <Core/ECS/Components/MeshRenderer.h>
 
@@ -62,9 +62,7 @@ void glfw_cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
 #include <Core/JSON/json.h>
 #include <filesystem>
 
-namespace std {
-	namespace filesystem = std::experimental::filesystem;
-}
+
 
 #define _PROJECT_GAME 1
 
@@ -172,158 +170,23 @@ int main() {
 
 
 	CScriptBuilder builder;
-	r = builder.StartNewModule(engine, "CameraController");
-	r = builder.AddSectionFromFile("assets/scripts/camera.as");
-	r = builder.BuildModule();
+	builder.StartNewModule(engine, "CameraController");
+	builder.AddSectionFromFile("assets/scripts/camera.as");
+	builder.BuildModule();
 	
 	asIScriptModule* mod = engine->GetModule("CameraController");
 	asIScriptFunction* func = mod->GetFunctionByDecl("void update()");
 	asIScriptContext* ctx = engine->CreateContext();
 
-	Shader blinnPhongShader("shaders/basic.vert", "shaders/basic.frag");
-
 	TextureSettings highQualityTextureSettings(GenerateMipmaps, Repeat, Bilinear, 4.f);
 
-	Texture2D brickwallAlbedo("assets/stonewall-albedo.png", gl::SRGB8, highQualityTextureSettings);
-	Texture2D brickwallNormal("assets/stonewall-normal.png", gl::RGB8, highQualityTextureSettings);
-	Texture2D brickwallRoughness("assets/stonewall-roughness.png", gl::R8, highQualityTextureSettings);
-	Texture2D brickwallMetal("assets/stonewall-metalness.png", gl::R8, highQualityTextureSettings);
-
-
-	std::shared_ptr<Mesh> cube_mesh = std::make_shared<Mesh>("assets/cube.ply");
-	std::shared_ptr<Mesh> cross_mesh = std::make_shared<Mesh>("assets/cross.ply");
-
-	Material brickwallMaterial(Material::ShadingModel::PBR);
-	brickwallMaterial["albedo"] = &brickwallAlbedo;
-	brickwallMaterial["roughness"] = &brickwallRoughness;
-	brickwallMaterial["metal"] = &brickwallMetal;
-	brickwallMaterial["normal"] = &brickwallNormal;
-
-
 	Engine ecs;
-	GameObject object(ecs, Transform(glm::vec3(1.25, 0, 0)));
-
-	//object.addComponent<MeshRenderer>(object, cube_mesh.get(), &brickwallMaterial);
-		
 	Renderer renderer(ecs, camera, 1280, 720);
 
-
-	
-	std::unordered_map<std::string, uptr<TextureBase>> textures;
-	std::unordered_map<std::string, Mesh> meshes;
-	std::unordered_map<std::string, Material> materials;
-	std::vector<GameObject> gameObjects;
-
-	auto& loadProject = [&](std::string project) {
-		std::filesystem::path projectBasePath(project);
-		if (!std::filesystem::exists(projectBasePath)) {
-			std::cout << "Failed to load project: " << projectBasePath << "\n";
-			std::cin.get();
-		}
-
-		Json::Value root;
-		std::ifstream sceneFile(projectBasePath / std::filesystem::path("/config.json"));
-		std::stringstream ss;
-		ss << sceneFile.rdbuf();
-		ss >> root;
-
-		const Json::Value resources = root["resources"];
-		for (auto& it : resources) {
-			auto& rType = it["type"].asString();
-
-			if (rType == "Texture2D") {
-				textures.emplace(it["id"].asString(), std::make_unique<Texture2D>((projectBasePath / std::filesystem::path(it["path"].asString())).string(), it["format"].asUInt(), TextureSettings((uint32)it.get("mipmapMode", MipmapModes::GenerateMipmaps).asUInt(), (uint32)it.get("textureWrapMode", TextureWrapModes::Repeat).asUInt(), (uint32)it.get("filteringMode", FilteringModes::Bilinear).asUInt())));
-			}
-			else if (rType == "Material") {
-				auto& loadMaterial = [&](std::filesystem::path path) {
-					if (!std::filesystem::exists(path)) {
-						std::cout << "Failed to open material file: " << path << "\n";
-						throw std::exception();
-					}
-
-					
-					Json::Value root;
-					std::ifstream file(path);
-					file >> root;
-
-					Material mat;
-
-					for (auto& sampler : root["samplers"]) {
-						mat.textures[sampler["id"].asString()] = (Texture2D*)textures[sampler["resource"].asString()].get();
-					}
-
-					return mat;
-				};
-
-				materials.insert(std::make_pair(it["id"].asString(),loadMaterial(projectBasePath / std::filesystem::path(it["path"].asString()))));
-			}
-			else if (rType == "Mesh") {
-				meshes[it["id"].asString()] = Mesh((projectBasePath / std::filesystem::path(it["path"].asString())).string());
-			}
-			else {
-				std::cout << "Unrecognized resource type: " + rType << "\n";
-				continue;
-			}
-		}
-
-		auto& loadScene = [&](std::filesystem::path path) {
-			if (!std::filesystem::exists(path)) {
-				std::cout << "Can't open file: " << path << "\n";
-				return;
-			}
-			
-			Json::Value root;
-			std::ifstream file(path);
-			file >> root;
-
-			for (auto& it : root["entities"]) {
-				gameObjects.emplace_back(ecs);
-				auto& go = gameObjects.back();
-
-				const Json::Value components = it["components"];
-				for (auto& component : components) {
-					if (component["type"].asString() == "MeshRenderer") {
-						if (meshes.find(component["mesh"].asString()) == meshes.end()) { std::cout << "STAWP" << "\n"; }
-						if (materials.find(component["material"].asString()) == materials.end()) { std::cout << "STAWP" << "\n"; }
-						go.addComponent<MeshRenderer>(go, &meshes[component["mesh"].asString()], &materials[component["material"].asString()]);
-					}
-				}
-			}
-		};
-
-		std::string mainScene = root.get("mainScene", "").asString();
-
-		loadScene(projectBasePath.append(mainScene));
-	};
-
-	loadProject("./assets/projects/testProject");
-	
-	brickwallMaterial.textures["albedo"] = (Texture2D*)textures.begin()->second.get();
-
-	//object.getComponent<MeshRenderer>()->material = &materials.begin()->second;
-
-	DirectionalLight dirLight;
-	dirLight.direction = { -0.2f, -1.0f, -0.2f };
-	dirLight.ambient = { 0.15, 0.15, 0.15 };
-	dirLight.diffuse = { 1.3, 1.3, 1.3 };
-	dirLight.specular = { 0.4, 0.4, 0.4 };
-
-	renderer.addDirectionalLight(dirLight);
-
-
-	
-	Model cube(brickwallMaterial, cube_mesh, Transform(glm::vec3(1.25, 0, 0)));
-	Model betterCube(brickwallMaterial, cube_mesh, Transform(glm::vec3(-1.25, 0, 3)));
-
-	renderer.insert(&cube);
-	renderer.insert(&betterCube);
-
-	
+	ecs.loadProject("assets/projects/testProject");
 
 	Image heightmap;
 	heightmap.loadFromFile("assets/heightmap.png");
-
-	Texture2D groundDiffuse("assets/ground.png", gl::SRGB8, highQualityTextureSettings);
 
 	Shader terrainShader("shaders/terrain.vert", "shaders/basic.frag");
 	terrainShader.bind();
@@ -348,8 +211,6 @@ int main() {
 
 	terrain.model.transform.position = glm::vec3(-200, -1, -200);
 
-	renderer.insert(&terrain.model);
-
 	Scene scene;
 
 	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 6);
@@ -358,15 +219,7 @@ int main() {
 	renderer.addPointLight(light1);
 	renderer.addPointLight(light2);
 
-
-	Texture2D ironIngotAlbedo("assets/IronIngot_albedo.png", gl::SRGB8);
-	Texture2D ironIngotRoughness("assets/IronIngot_roughness.png", gl::R8);
-	Texture2D ironIngotNormal("assets/IronIngot_normal.png", gl::RGB8);
-
 	Gizmo gizmo;
-
-	
-
 
 	bool rightMouseButtonIsDown = false;
 	glm::vec2 cursorLastFrame;
@@ -460,7 +313,7 @@ int main() {
 
 		fpsCounter.setString(std::to_string(std::round(1 / deltaTime)).substr(0, 2));
 
-		renderer.render_new();
+		renderer.render();
 		gizmo.render(camera.getViewMatrix(), camera.projection);
 
 		Debug::render(camera.getViewMatrix(), camera.projection);

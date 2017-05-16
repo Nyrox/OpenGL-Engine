@@ -14,7 +14,7 @@ namespace {
 class House : public SceneNode {
 public:
 	explicit House(Renderer& renderer) : model(C_HouseMaterial, std::make_shared<Mesh>("assets/house.ply")) {
-		renderer.insert(&model);
+
 	}
 
 

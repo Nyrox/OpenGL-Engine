@@ -15,7 +15,6 @@ public:
 	Renderer(Engine& engine, Camera& camera, float backbuffer_width, float backbuffer_height);
 	
 	void render();
-	void render_new();
 
 	void addPointLight(PointLight* light);
 	void addDirectionalLight(DirectionalLight light);
@@ -27,7 +26,6 @@ public:
 	} settings;
 
 
-	void insert(Model* node);
 	std::vector<PointLight*> pointLights;
 
 	Camera& camera;
@@ -36,12 +34,8 @@ private:
 	
 	void buildSSAOTexture();
 	void buildShadowMaps();
-
-
-	// Cached containers
-	std::vector<Model*> opagues;
-	std::vector<Model*> transparents;
-
+	void geometryPass();
+	void renderPass();
 
 	Skybox skybox;
 	Refactor::Framebuffer postProcessBuffer;

@@ -2,9 +2,11 @@
 #include <GLFW\glfw3.h>
 #include <algorithm>
 #include <iostream>
-#include <Core/ECS/Engine.h>
+#include <Core/Engine.h>
 #include <Core/ECS/GameObject.h>
 #include <Core/ECS/Components/MeshRenderer.h>
+
+#include <Core/glUtil.h>
 
 Renderer::Renderer(Engine& t_engine, Camera& t_camera, float backbuffer_width, float backbuffer_height) : engine(t_engine), camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
 	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
@@ -61,14 +63,6 @@ void Renderer::setRenderSettings(const Shader& shader) {
 	shader.setUniform("enableSSAO", settings.enableSSAO);
 }
 
-void Renderer::insert(Model* model) {
-	if (model->material.shadingModel == Material::ShadingModel::PBR) {
-		this->opagues.push_back(model);
-	}
-	else if (model->material.shadingModel == Material::ShadingModel::Transparent) {
-		this->transparents.push_back(model);
-	}
-}
 
 void Renderer::addPointLight(PointLight* light) {
 	this->pointLights.push_back(light);
@@ -128,51 +122,47 @@ void Renderer::buildShadowMaps() {
 		shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
 		shader.setUniform("light_position", light.transform.position);
 
-		for (auto& it : opagues) {
-			shader.setUniform("model", it->transform.getModelMatrix());
-			shader.setUniform("material", it->material);
+		for (auto& _it : engine.getAllComponentsOfType<MeshRenderer>()) {
+			auto it = static_cast<MeshRenderer*>(_it.get());
+
+			shader.setUniform("model", it->gameObject.transform.getModelMatrix());
+			shader.setUniform("material", *it->material);
 
 			it->mesh->draw();
 		}
 	}
 }
 
-void Renderer::render_new() {
-	// Shadow pass
-	buildShadowMaps();
-
+void Renderer::geometryPass() {
 	gl::Viewport(0, 0, 1280, 720);
 
-	// Geometry Pass
 	geometryBuffer.bind();
-	GLuint attachments[] = { gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1, gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3 };
-	gl::DrawBuffers(ARRAYSIZE(attachments), attachments);
 
-	gl::ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	gl::Clear(gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
-
-	gl::Enable(gl::DEPTH_TEST);
+	glutil::setDrawBuffers({ gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1, gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3 });
+	glutil::clear({ 0, 0, 0, 1 }, gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
 	geometryPassShader.bind();
 	geometryPassShader.setUniform("view", camera.getViewMatrix());
 	geometryPassShader.setUniform("projection", camera.projection);
+
 	for (auto& it : engine.getAllComponentsOfType<MeshRenderer>()) {
-		MeshRenderer& renderer = static_cast<MeshRenderer&>(*it.get());
+		MeshRenderer* renderer = static_cast<MeshRenderer*>(it.get());
 
 		geometryPassShader.setUniform("model", it->gameObject.transform.getModelMatrix());
-		geometryPassShader.setUniform("uvScale", renderer.material->uvScale);
+		geometryPassShader.setUniform("uvScale", renderer->material->uvScale);
 
+		// To be removed
 		Shader& shader = geometryPassShader;
 		shader.setUniform("material.roughness", 4);
 		shader.setUniform("material.metal", 5);
 		shader.setUniform("material.albedo", 6);
 		shader.setUniform("material.normal", 7);
 
-		if (renderer.material->textures.find("roughness") != renderer.material->textures.end()) {
-			(*(renderer.material))["roughness"]->bind(4);
-			(*(renderer.material))["metal"]->bind(5);
-			(*(renderer.material))["albedo"]->bind(6);
-			(*(renderer.material))["normal"]->bind(7);
+		if (renderer->material->textures.find("roughness") != renderer->material->textures.end()) {
+			(*(renderer->material))["roughness"]->bind(4);
+			(*(renderer->material))["metal"]->bind(5);
+			(*(renderer->material))["albedo"]->bind(6);
+			(*(renderer->material))["normal"]->bind(7);
 		}
 		else {
 			gl::BindTextureUnit(4, 0);
@@ -181,15 +171,15 @@ void Renderer::render_new() {
 			gl::BindTextureUnit(7, 0);
 		}
 
-		renderer.mesh->draw();
+		renderer->mesh->draw();
 	}
+}
 
+void Renderer::render() {
+	buildShadowMaps();
+	geometryPass();
 
-	// SSAO
 	if (settings.enableSSAO) buildSSAOTexture();
-
-
-
 
 	auto setUniforms = [&](Shader& shader) {
 		shader.bind();
