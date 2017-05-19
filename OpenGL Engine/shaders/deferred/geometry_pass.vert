@@ -19,13 +19,19 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-#include("headers/common.glsl");
+mat3 createTBNMatrix(mat4 model, vec3 normal, vec3 tangent) {
+	vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
+	vec3 N = normalize(vec3(model * vec4(normal, 0.0)));
+	vec3 B = cross(T, N);
+
+	return mat3(T, B, N);
+}
 
 void main() {
 	gl_Position = projection * view * model * vec4(position.xyz, 1.0);
 	
 	vs_out.world_fragPos = vec3(model * vec4(position, 1.0));
 	vs_out.world_surfaceNormal = mat3(transpose(inverse(model))) * normal;
-	vs_out.uv = uv * uvScale;
+	vs_out.uv = uv;
 	vs_out.TBN = createTBNMatrix(model, normal, tangent);
 }

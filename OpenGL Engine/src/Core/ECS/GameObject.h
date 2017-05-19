@@ -1,7 +1,6 @@
 #pragma once
 #include <Core/Transform.h>
 #include <Core/ECS/Component.h>
-#include <Core/Engine.h>
 
 #include <vector>
 #include <memory>
@@ -11,6 +10,7 @@ namespace Physics {
 	class AABB;
 }
 
+class Engine;
 
 class GameObject {
 public:
@@ -22,19 +22,26 @@ public:
 
 	template<class T>
 	T* getComponent() const {
-		return static_cast<T*>(components.at(typeid(T).hash_code()));
+		for (Component* c : components) {
+			if (c->getTypeIndex() == typeid(T).hash_code()) {
+				return static_cast<T*>(c);
+			}
+		}
+
+		return nullptr;
 	}
 
-	template<class T, class... Args>
-	void addComponent(Args&&... args) {
-		components.emplace(typeid(T).hash_code(), engine.emplaceComponent<T>(args...));
-	}
 
+	void setParent(GameObject* parent);
+	void addComponent(Component* component);
+	
+	GameObject* getParent() const { return parent; }
+	
 
 	Engine& engine;
 	Transform transform;
-	std::vector<GameObject> children;
-
 private:
-	std::unordered_map<uint32, Component*> components;
+	GameObject* parent;
+	std::vector<GameObject*> children;
+	std::vector<Component*> components;
 };

@@ -1,7 +1,7 @@
 #pragma once
-#include <Core/Material.h>
 #include <Core/Light.h>
 
+class Material;
 
 /*
 	Manages a shader program

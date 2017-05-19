@@ -69,44 +69,30 @@ void glfw_cursorPositionCallback(GLFWwindow* window, double xPos, double yPos) {
 
 #include <Projects/GUI/guimain.h>
 
-void MessageCallback(const asSMessageInfo *msg, void *param)
-{
-	const char *type = "ERR ";
-	if (msg->type == asMSGTYPE_WARNING)
-		type = "WARN";
-	else if (msg->type == asMSGTYPE_INFORMATION)
-		type = "INFO";
-	printf("%s (%d, %d) : %s : %s\n", msg->section, msg->row, msg->col, type, msg->message);
-
-}
 
 void print(const std::string& m) {
 	std::cout << m << "\n";
 }
 
-void vec3Constructor(void* memory) {
-	new(memory) glm::vec3();
-}
 
-void vec3Destructor(void* memory) {
-	
-}
-
-void vec2Constructor(void* memory) {
-	new(memory) glm::vec2();
-}
-
-void vec2Destructor(void* memory) {
-
-}
 
 glm::vec3& operator+=(glm::vec3& self, const glm::vec3& other) {
 	self = other;
 	return self;
 }
 
+#define _CUSTOM_EDITOR
+
 int main() {
 	srand(time(0));
+
+#ifdef _CUSTOM_EDITOR
+	Editor editor("assets/projects/testProject");
+	editor.run();
+
+	return EXIT_SUCCESS;
+#endif
+
 #ifdef	_PROJECT_GUI 
 	GUI::_main();
 #elif _PROJECT_GAME
@@ -116,13 +102,6 @@ int main() {
 
 	glfwSetCursorPosCallback(window.handle, glfw_cursorPositionCallback);
 
-#ifdef _CUSTOM_EDITOR
-	Editor editor(window);
-	editor.run();
-
-	glfwTerminate();
-	return EXIT_SUCCESS;
-#endif
 	Font arial("assets/fonts/arial.ttf", 48);
 	Text fpsCounter(&arial);
 
@@ -130,39 +109,10 @@ int main() {
 	
 	int r;
 	asIScriptEngine* engine = asCreateScriptEngine();
-	r = engine->SetMessageCallback(asFUNCTION(MessageCallback), 0, asCALL_CDECL); assert(r >= 0);
 
 	RegisterStdString(engine);
 
-	// glm::vec3
-	engine->RegisterObjectType		("Vector3", sizeof(glm::vec3), asOBJ_VALUE | asGetTypeTraits<glm::vec3>());
-	engine->RegisterObjectBehaviour	("Vector3", asBEHAVE_CONSTRUCT, "void Vector3()", asFUNCTION(vec3Constructor), asCALL_CDECL_OBJLAST);
-	engine->RegisterObjectBehaviour	("Vector3", asBEHAVE_DESTRUCT, "void Vector3()", asFUNCTION(vec3Destructor), asCALL_CDECL_OBJLAST);
-	engine->RegisterObjectProperty	("Vector3", "float x", asOFFSET(glm::vec3, x));
-	engine->RegisterObjectProperty	("Vector3", "float y", asOFFSET(glm::vec3, y));
-	engine->RegisterObjectProperty	("Vector3", "float z", asOFFSET(glm::vec3, z));
 
-	engine->RegisterObjectMethod	("Vector3", "Vector3 opMul(float &in) const", asFUNCTIONPR(glm::operator*, (glm::vec3 const&, float const&), glm::vec3), asCALL_CDECL_OBJFIRST);
-	engine->RegisterObjectMethod	("Vector3", "Vector3& opAddAssign(Vector3 &in)", asMETHODPR(glm::vec3, operator+=, (const glm::vec3&), glm::vec3&), asCALL_THISCALL);
-	engine->RegisterObjectMethod	("Vector3", "Vector3& opSubAssign(Vector3 &in)", asMETHODPR(glm::vec3, operator-=, (const glm::vec3&), glm::vec3&), asCALL_THISCALL);
-
-	// glm::vec2
-	engine->RegisterObjectType		("Vector2", sizeof(glm::vec2), asOBJ_VALUE | asGetTypeTraits<glm::vec2>());
-	engine->RegisterObjectBehaviour	("Vector2", asBEHAVE_CONSTRUCT, "void Vector2()", asFUNCTION(vec2Constructor), asCALL_CDECL_OBJLAST);
-	engine->RegisterObjectBehaviour	("Vector2", asBEHAVE_DESTRUCT, "void Vector2()", asFUNCTION(vec2Destructor), asCALL_CDECL_OBJLAST);
-	engine->RegisterObjectProperty	("Vector2", "float x", asOFFSET(glm::vec2, x));
-	engine->RegisterObjectProperty	("Vector2", "float y", asOFFSET(glm::vec2, y));
-
-	engine->RegisterObjectMethod	("Vector2", "Vector2& opAssign(Vector2 &in)", asMETHODPR(glm::vec2, operator=, (const glm::vec2&), glm::vec2&), asCALL_THISCALL);
-
-	
-
-	Transform::__registerObjectInterface(engine);
-	Camera::__registerObjectInterface(engine);
-	Input::__registerObjectInterface(engine);
-
-	engine->RegisterGlobalProperty("Camera camera", &camera);
-	engine->RegisterGlobalProperty("Input input", &input);
 
 	GLfloat deltaTime = 0;
 	GLfloat lastFrame = 0;
@@ -198,15 +148,8 @@ int main() {
 	Texture2D blackrockMetal("assets/blackrock-metalness.png", gl::R8, highQualityTextureSettings);
 	Texture2D blackrockNormal("assets/blackrock-normal.png", gl::RGB8, highQualityTextureSettings);
 
-	Material terrainMaterial(Material::ShadingModel::PBR);
-	terrainMaterial.uvScale = 8;
-	terrainMaterial["albedo"] = &blackrockAlbedo;
-	terrainMaterial["roughness"] = &blackrockRoughness;
-	terrainMaterial["normal"] = &blackrockNormal;
-	terrainMaterial["metal"] = &blackrockMetal;
-		
 
-	Terrain terrain(terrainMaterial, 400, 400);
+	Terrain terrain(Material(), 400, 400);
 	terrain.generateMeshFromHeightmap(heightmap, 0.000);
 
 	terrain.model.transform.position = glm::vec3(-200, -1, -200);

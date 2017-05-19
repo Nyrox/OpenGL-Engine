@@ -1,8 +1,56 @@
-{
+{	
     "samplers": [
-        { "id": "albedo", "resource": "Stonewall-Albedo" },
-		{ "id": "normal", "resource": "Stonewall-Normal" },
-		{ "id": "roughness", "resource": "Stonewall-Roughness" },
-		{ "id": "metal", "resource": "Stonewall-Metal" }
-    ]
+        { "id": "albedo", 		"binding": 0 },
+		{ "id": "normal", 		"binding": 1 },
+		{ "id": "roughness", 	"binding": 2 },
+		{ "id": "metal", 		"binding": 3 }
+    ],
+	"scalars": [
+		{ "id": "uvScale", "type": "float", "uniformLocation": 201 }
+	],
+	
+	"shadingModel": "OPAGUE_PBR",
+	
+	"defaultMaterialInstance": {
+		"material": "BrickMaterial",
+		"samplers": [
+			"Stonewall-Albedo",
+			"Stonewall-Normal",
+			"Stonewall-Roughness",
+			"Stonewall-Metal"
+		],
+		"scalars": [
+			[ "1.0" ]
+		]
+	},
+	
+	"shaderCode": "
+		layout (location = 101, binding = 0) uniform sampler2D stonewall_albedo;
+		layout (location = 102, binding = 1) uniform sampler2D stonewall_normal;
+		layout (location = 103, binding = 2) uniform sampler2D stonewall_roughness;
+		layout (location = 104, binding = 3) uniform sampler2D stonewall_metal;
+		
+		
+		layout (location = 201) uniform float uvScale;
+		
+		vec2 mat_getTextureCoordinates() {
+			return fs_in.uv * uvScale * 3;
+		}
+		
+		float mat_getRoughness() {
+			return texture(stonewall_roughness, mat_getTextureCoordinates()).r;
+		}
+		
+		vec3 mat_getAlbedo() {
+			return texture(stonewall_albedo, mat_getTextureCoordinates()).rgb;
+		}
+		
+		float mat_getMetallic() {
+			return texture(stonewall_metal, mat_getTextureCoordinates()).r;
+		}
+		
+		vec3 mat_getNormal() {
+			return fs_in.world_surfaceNormal;
+		}
+	"
 }

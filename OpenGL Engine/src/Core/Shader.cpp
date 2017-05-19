@@ -6,7 +6,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-
+#include <Core/Util/FileUtil.h>
 #include <glm/gtc/type_ptr.hpp>
 
 Shader::Shader(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile) {
@@ -18,18 +18,21 @@ void Shader::bind() const {
 }
 
 void Shader::loadFromFile(const std::string& vShaderFile, const std::string& fShaderFile, const std::string& gShaderFile) {
-	compile(loadSingle(vShaderFile), loadSingle(fShaderFile), (!gShaderFile.empty() ? loadSingle(gShaderFile) : std::string()));
+	ShaderCompiler compiler;
+	compiler.addIncludeDirectory("shaders/");
+	compiler.defineMacro("__MATERIAL__", "");
+	compiler.setVertexShaderSource(FUtil::stringstream_read_file(vShaderFile).str());
+	compiler.setFragmentShaderSource(FUtil::stringstream_read_file(fShaderFile).str());
+
+	*this = compiler.compile();
 }
 
 void Shader::compile(const std::string& t_vertexSource, const std::string& t_fragmentSource, const std::string& t_geometrySource) {
 	GLuint vertex, fragment, geometry;
 
-	std::string tempv = compileShader(t_vertexSource, { "./shaders" }).c_str();
-	std::string tempf = compileShader(t_fragmentSource, { "./shaders" }).c_str();
-	std::string tempg = (t_geometrySource.empty() ? std::string() : compileShader(t_geometrySource, { "./shaders" }).c_str());
-	const char* vertexSource = tempv.c_str();
-	const char* fragmentSource = tempf.c_str();
-	const char* geometrySource = (tempg.empty() ? nullptr : tempg.c_str());
+	const char* vertexSource = t_vertexSource.c_str();
+	const char* fragmentSource = t_fragmentSource.c_str();
+	const char* geometrySource = (t_geometrySource.empty() ? nullptr : t_geometrySource.c_str());
 
 	/* Vertex */
 	vertex = gl::CreateShader(gl::VERTEX_SHADER);

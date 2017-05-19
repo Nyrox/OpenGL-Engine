@@ -3,6 +3,7 @@
 #include <Core/ECS/Components/MeshRenderer.h>
 #include <Core/ECS/Component.h>
 #include <Core/ECS/GameObject.h>
+#include <Core/NShaderCompiler/ShaderCompiler.h>
 
 #include <iostream>
 
@@ -48,7 +49,8 @@ void Engine::loadTexture2D(const Json::Value value) {
 	settings.textureWrapMode = value.get("textureWrapMode", TextureWrapModes::Repeat).asUInt();
 	settings.filteringMode = value.get("filteringMode", FilteringModes::Bilinear).asUInt();
 
-	textures.emplace(value["id"].asString(), std::make_unique<Texture2D>((projectBasePath / value["path"].asString()).string(), value["format"].asUInt(), settings));
+	texture_hash_table.emplace(value["id"].asString(), textures.size());
+	textures.emplace_back(std::make_unique<Texture2D>((projectBasePath / value["path"].asString()).string(), value["format"].asUInt(), settings));
 }
 
 void Engine::loadMesh(const Json::Value value) {
@@ -64,14 +66,53 @@ void Engine::loadMaterial(const Json::Value value) {
 	}
 
 	Json::Value root = FUtil::json_read_file(path);
+	materials.emplace(value["id"].asString(), Material());
 
-	Material material;
+	Material& material = materials.at(value["id"].asString());
+	if (root["shadingModel"].isUInt()) {
+		material.shadingModel = static_cast<ShadingModel>(root["shadingModel"].asUInt());
+	}
+	else if (root["shadingModel"].isString()) {
+		std::unordered_map<std::string, ShadingModel> mappingTable = {
+			{ "OPAGUE_PBR", ShadingModel::OPAGUE_PBR_DEFAULT }
+		};
 
-	for (auto& sampler : root["samplers"]) {
-		material.textures.emplace(sampler["id"].asString(), (Texture2D*)textures[sampler["resource"].asString()].get());
+		material.shadingModel = mappingTable.at(root["shadingModel"].asString());
 	}
 
-	materials.emplace(value["id"].asString(), material);
+	for (auto& it : root["samplers"]) {
+		material.samplers.push_back(Sampler(it["binding"].asUInt()));
+	}
+	
+	material.defaultMaterialInstance = loadMaterialInstance(root["defaultMaterialInstance"]);
+
+	// Compile the geometry shader
+	if (material.shadingModel == ShadingModel::OPAGUE_PBR_DEFAULT) {
+		ShaderCompiler compiler;
+		compiler.addIncludeDirectory("shaders/");
+
+		compiler.defineMacro("__MATERIAL__", root["shaderCode"].asString());
+		compiler.setVertexShaderSource(FUtil::stringstream_read_file("shaders/deferred/geometry_pass.vert").str());
+		compiler.setFragmentShaderSource(FUtil::stringstream_read_file("shaders/deferred/geometry_pass.frag").str());
+		material.geometryPassShader = compiler.compile();
+	}
+	else {
+		throw std::runtime_error("Unrecognized shading model: " + std::to_string(static_cast<uint32>(material.shadingModel)));
+	}
+}
+
+MaterialInstance Engine::loadMaterialInstance(const Json::Value value) {
+	MaterialInstance instance(&materials.at(value["material"].asString()));
+
+	for (auto& it : value["samplers"]) {
+		instance.samplerLocations.push_back(getTextureIndexFromName(it.asString()));
+	}
+
+	for (auto& it : value["scalars"]) {
+
+	}
+
+	return instance;
 }
 
 void Engine::loadScene(std::filesystem::path path) {
@@ -88,7 +129,7 @@ void Engine::loadScene(std::filesystem::path path) {
 
 		for (auto& component : it["components"]) {
 			if (component["type"].asString() == "MeshRenderer") {
-				go.addComponent<MeshRenderer>(go, &meshes[component["mesh"].asString()], &materials[component["material"].asString()]);
+				go.addComponent(emplaceComponent<MeshRenderer>(go, &meshes[component["mesh"].asString()], &materials[component["material"].asString()]));
 			}
 		}
 	}

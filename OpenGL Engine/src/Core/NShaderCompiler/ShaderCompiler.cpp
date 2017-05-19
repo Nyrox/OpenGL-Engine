@@ -7,50 +7,55 @@
 
 using namespace std::experimental;
 
-namespace {
-	std::string getFileContents(const std::string& t_file) {
-		std::stringstream out;
-		
-		try {
-			std::ifstream file;
-			file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-			file.open(t_file);
+#include <Core/Util/FileUtil.h>
 
-			out << file.rdbuf();
-			file.close();
-		}
-		catch (std::exception exception) {
-			std::cout << "Couldn't open file: " << t_file << std::endl;
-			std::cin.get();
-		}
-		
-		return out.str();
-	}
+Shader ShaderCompiler::compile() {
+	Shader shader;
+
+	resolveIncludes();
+	resolveMacros();
+
+	shader.compile(vertexShaderSource, fragmentShaderSource, {});
+	return shader;
 }
 
-std::string compileShader(const std::string& t_source, const std::vector<std::string>& includeDirectories) {
-	std::string source = t_source;	
+void ShaderCompiler::resolveIncludes() {
+	auto resolveFile = [&](std::string& file) {
+		std::smatch match;
+		std::regex includeRegex("#include\\(\"(.*)\"\\);");
+		while (std::regex_search(file, match, includeRegex)) {
+			bool foundFile = false;
 
-	std::smatch match;
-	std::regex includeRegex("#include\\(\"(.*)\"\\);");
-	while (std::regex_search(source, match, includeRegex)) {
-		bool couldFind = false;
-		for (int i = 0; i < includeDirectories.size(); i++) {
-			filesystem::path path = filesystem::path(includeDirectories.at(i)).append(match[1].str());
-			
-			if (filesystem::exists(path) && filesystem::is_regular_file(path)) {
-				couldFind = true;
-				source = std::regex_replace(source, includeRegex, getFileContents(path.string()));
-				break;
+			for (auto& it : includeDirectories) {
+				auto filePath = it / match[1].str();
+
+				if (std::filesystem::is_regular_file(filePath)) {
+					foundFile = true;
+					file = std::regex_replace(file, includeRegex, FUtil::stringstream_read_file(filePath).str());
+				}
+			}
+
+			if (!foundFile) {
+				throw std::runtime_error("Shader compiler| Couldn't resolve file include: " + match[1].str());
 			}
 		}
+	};
 
-		if (!couldFind) {
-			std::cout << "ERROR::SHADER_COMPILER: Could not find file: " << match[1].str() << std::endl;
-			std::cin.get();
+	resolveFile(vertexShaderSource);
+	resolveFile(fragmentShaderSource);
+}
+
+void ShaderCompiler::resolveMacros() {
+	auto resolveFile = [&](std::string& file) {
+		std::smatch match;
+		std::regex macroRegex("\\$\\((.*)\\);");
+		while (std::regex_search(file, match, macroRegex)) {
+			auto macro = macroTable.find(match[1].str());
+
+			file = std::regex_replace(file, macroRegex, macroTable.at(match[1].str()));
 		}
+	};
 
-	}
-
-	return source;
+	resolveFile(vertexShaderSource);
+	resolveFile(fragmentShaderSource);
 }

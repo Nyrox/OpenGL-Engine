@@ -7,6 +7,9 @@
 #include <Core/Material.h>
 #include <Core/JSON/json.h>
 class Component;
+#include <Core/ECS/GameObject.h>
+#include <Core/Texture2D.h>
+
 
 namespace std {
 	namespace filesystem = std::experimental::filesystem;
@@ -20,7 +23,7 @@ public:
 	void loadScene(std::filesystem::path path);
 
 	
-	
+	std::filesystem::path getProjectBasePath() { return projectBasePath; }
 	
 	
 	template<class T, class... Args>
@@ -33,13 +36,20 @@ public:
 		return components[typeid(T).hash_code()];
 	}
 	
-	std::unordered_map<std::string, uptr<TextureBase>> textures;
 	std::unordered_map<std::string, Mesh> meshes;
 	std::unordered_map<std::string, Material> materials;
+
+	TextureBase* getTexture(std::size_t i) const { return textures[i].get(); }
+	uint32 getTextureIndexFromName(std::string id) const { return texture_hash_table.at(id); }
 private:
+	std::vector<uptr<TextureBase>> textures;
+	std::unordered_map<std::string, uint32> texture_hash_table;
+	
 	void loadTexture2D(const Json::Value value);
 	void loadMaterial(const Json::Value value);
 	void loadMesh(const Json::Value value);
+
+	MaterialInstance loadMaterialInstance(const Json::Value value);
 
 	std::vector<GameObject> gameObjects;
 	std::unordered_map<uint32, plf::colony<uptr<Component>>> components;

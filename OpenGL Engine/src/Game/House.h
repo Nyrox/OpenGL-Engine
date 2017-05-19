@@ -8,7 +8,10 @@
 #include <functional>
 
 namespace {
-	Material C_HouseMaterial = Material(Material::ShadingModel::PBR);
+	Material C_HouseMaterial = []() {
+		Material out;
+		return out;
+	}();;
 }
 
 class House : public SceneNode {

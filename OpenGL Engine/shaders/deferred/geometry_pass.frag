@@ -1,6 +1,8 @@
 #version 420 core
+#extension GL_ARB_explicit_uniform_location: enable
 
 #include("headers/lighting.glsl");
+
 
 layout (location = 0) out vec3 position;
 layout (location = 1) out vec3 normal;
@@ -14,18 +16,24 @@ in VS_OUT {
 	mat3 TBN;
 } fs_in;
 
-uniform PbrMaterial material;
+$(__MATERIAL__);
+
+
+layout (location = 15, binding = 0) uniform sampler2D tex2D_albedo;
+layout (location = 16, binding = 1) uniform sampler2D tex2D_normal;
+layout (location = 17, binding = 2) uniform sampler2D tex2D_roughness;
+layout (location = 18, binding = 3) uniform sampler2D tex2D_metal;
+
+
 
 void main() {
 	position = fs_in.world_fragPos;
 	//vec3 t_normal = normalize(texture(material.normal, fs_in.uv).rgb);
 	//normal = normalize(fs_in.TBN * (t_normal));
-	normal = fs_in.world_surfaceNormal;
+	normal = mat_getNormal();
 
-	//roughnessMetal.r = texture(material.roughness, fs_in.uv).r;
-	//roughnessMetal.g = texture(material.metal, fs_in.uv).r;
-	albedo = texture(material.albedo, fs_in.uv).rgb;
+	roughnessMetal.r = mat_getRoughness();
+	roughnessMetal.g = mat_getMetallic();
+	albedo = mat_getAlbedo();
 
-	roughnessMetal.r = 0.5f;
-	roughnessMetal.g = 0.0f;
 }

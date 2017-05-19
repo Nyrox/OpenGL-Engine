@@ -6,7 +6,7 @@
 using namespace Physics;
 
 
-Scene::Scene() : wireframeShader("shaders/editor/wireframe.vert", "shaders/editor/wireframe.frag"), wireframeMaterial(Material::ShadingModel::PBR), sceneCollisionDebugModel(wireframeMaterial, std::make_shared<Mesh>(Mesh::generateCube({ 1, 1, 1 }))) {
+Scene::Scene() : wireframeShader("shaders/editor/wireframe.vert", "shaders/editor/wireframe.frag"), sceneCollisionDebugModel(wireframeMaterial, std::make_shared<Mesh>(Mesh::generateCube({ 1, 1, 1 }))) {
 
 }
 

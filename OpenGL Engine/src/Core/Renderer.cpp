@@ -141,35 +141,23 @@ void Renderer::geometryPass() {
 	glutil::setDrawBuffers({ gl::COLOR_ATTACHMENT0, gl::COLOR_ATTACHMENT1, gl::COLOR_ATTACHMENT2, gl::COLOR_ATTACHMENT3 });
 	glutil::clear({ 0, 0, 0, 1 }, gl::COLOR_BUFFER_BIT | gl::DEPTH_BUFFER_BIT);
 
-	geometryPassShader.bind();
-	geometryPassShader.setUniform("view", camera.getViewMatrix());
-	geometryPassShader.setUniform("projection", camera.projection);
-
 	for (auto& it : engine.getAllComponentsOfType<MeshRenderer>()) {
 		MeshRenderer* renderer = static_cast<MeshRenderer*>(it.get());
 
-		geometryPassShader.setUniform("model", it->gameObject.transform.getModelMatrix());
-		geometryPassShader.setUniform("uvScale", renderer->material->uvScale);
+		Material& material = *renderer->material;
+		Shader& shader = material.geometryPassShader;
+		shader.bind();
+		shader.setUniform("view", camera.getViewMatrix());
+		shader.setUniform("projection", camera.projection);
+		shader.setUniform("model", it->gameObject.transform.getModelMatrix());
 
-		// To be removed
-		Shader& shader = geometryPassShader;
-		shader.setUniform("material.roughness", 4);
-		shader.setUniform("material.metal", 5);
-		shader.setUniform("material.albedo", 6);
-		shader.setUniform("material.normal", 7);
+		MaterialInstance instance = material.defaultMaterialInstance;
 
-		if (renderer->material->textures.find("roughness") != renderer->material->textures.end()) {
-			(*(renderer->material))["roughness"]->bind(4);
-			(*(renderer->material))["metal"]->bind(5);
-			(*(renderer->material))["albedo"]->bind(6);
-			(*(renderer->material))["normal"]->bind(7);
+		for (int i = 0; i < material.samplers.size(); i++) {
+			engine.getTexture(instance.samplerLocations[i])->bind(material.samplers[i].binding);
 		}
-		else {
-			gl::BindTextureUnit(4, 0);
-			gl::BindTextureUnit(5, 0);
-			gl::BindTextureUnit(6, 0);
-			gl::BindTextureUnit(7, 0);
-		}
+
+		shader.setUniform("uvScale", 1.f);
 
 		renderer->mesh->draw();
 	}
@@ -270,10 +258,6 @@ void Renderer::render() {
 
 		shader.setUniform("model", it->gameObject.transform.getModelMatrix());
 		//shader.setUniform("material", it->material);
-		shader.setUniform("material.albedo", 0);
-		if (renderer.material->textures.find("albedo") != renderer.material->textures.end()) {
-			(*renderer.material)["albedo"]->bind(0);
-		}
 
 		renderer.mesh->draw();
 	}
@@ -325,6 +309,7 @@ void Renderer::render() {
 	post_process_shader.bind();
 	post_process_shader.setUniform("screen_capture", 0);
 	mainFramebufferTexture.bind(0);
+	//geometryAlbedo.bind(0);
 
 
 	canvas.draw();
