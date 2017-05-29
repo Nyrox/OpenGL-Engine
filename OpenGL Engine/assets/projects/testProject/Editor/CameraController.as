@@ -24,13 +24,11 @@ void update() {
 	
 	
 	if(input.isMouseButtonDown(MOUSE_BUTTON_2)) {
-		if(rightMouseButtonIsDown == false) rightMouseButtonIsDown = true;
-		else {
-			Vector2 mousePosition = input.getMousePosition();
-			Vector2 lastMousePosition = input.getLastMousePosition();
-			camera.yaw += (lastMousePosition.x - mousePosition.x) / -3;
-			camera.pitch += (lastMousePosition.y - mousePosition.y) / 4;
-		}
+		rightMouseButtonIsDown = true;
+		Vector2 mousePosition = input.getMousePosition();
+		Vector2 lastMousePosition = input.getLastMousePosition();
+		camera.yaw += (lastMousePosition.x - mousePosition.x) / -3;
+		camera.pitch += (lastMousePosition.y - mousePosition.y) / 4;
 	}
 	else {
 		rightMouseButtonIsDown = false;

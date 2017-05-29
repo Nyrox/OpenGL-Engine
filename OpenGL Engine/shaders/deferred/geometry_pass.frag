@@ -18,18 +18,8 @@ in VS_OUT {
 
 $(__MATERIAL__);
 
-
-layout (location = 15, binding = 0) uniform sampler2D tex2D_albedo;
-layout (location = 16, binding = 1) uniform sampler2D tex2D_normal;
-layout (location = 17, binding = 2) uniform sampler2D tex2D_roughness;
-layout (location = 18, binding = 3) uniform sampler2D tex2D_metal;
-
-
-
 void main() {
 	position = fs_in.world_fragPos;
-	//vec3 t_normal = normalize(texture(material.normal, fs_in.uv).rgb);
-	//normal = normalize(fs_in.TBN * (t_normal));
 	normal = mat_getNormal();
 
 	roughnessMetal.r = mat_getRoughness();

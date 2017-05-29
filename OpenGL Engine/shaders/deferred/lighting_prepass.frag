@@ -128,8 +128,8 @@ void main() {
 		//Lo += (diffuse * albedo / PI + brdf) * radiance * NdotL;
 
 		float shadow = 0;
-		if(i == 0) shadow = getPointShadow(shadow_map_0, fragPos, point_lights[i].position, shadow_far_plane);
-		if(i == 1) shadow = getPointShadow(shadow_map_1, fragPos, point_lights[i].position, shadow_far_plane);
+		//if(i == 0) shadow = getPointShadow(shadow_map_0, fragPos, point_lights[i].position, shadow_far_plane);
+		//if(i == 1) shadow = getPointShadow(shadow_map_1, fragPos, point_lights[i].position, shadow_far_plane);
 		
 		radiance = radiance * (1.0 - shadow);
 		//radTotal += radiance * NdotL;

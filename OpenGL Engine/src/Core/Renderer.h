@@ -3,7 +3,6 @@
 #include <Core/Camera.h>
 #include <Core/Shader.h>
 #include <Core/Model.h>
-#include <Core/Light.h>
 #include <Core/Skybox.h>
 #include <Core/Texture2D.h>
 #include <vector>
@@ -15,18 +14,11 @@ public:
 	Renderer(Engine& engine, Camera& camera, float backbuffer_width, float backbuffer_height);
 	
 	void render();
-
-	void addPointLight(PointLight* light);
-	void addDirectionalLight(DirectionalLight light);
-
 	void setRenderSettings(const Shader& shader);
 
 	struct RenderSettings {
 		bool enableSSAO = true;
 	} settings;
-
-
-	std::vector<PointLight*> pointLights;
 
 	Camera& camera;
 private:
@@ -47,10 +39,6 @@ private:
 	Shader dirLightShadowPassShader;
 
 	std::vector<Framebuffer> shadow_maps;
-	
-	std::vector<DirectionalLight> directional_lights;
-	std::vector<Framebuffer> directional_shadow_maps;
-
 
 	Shader geometryPassShader;
 	Refactor::Framebuffer geometryBuffer;

@@ -50,7 +50,8 @@
 		}
 		
 		vec3 mat_getNormal() {
-			return fs_in.world_surfaceNormal;
+			vec3 t_normal = normalize(texture(stonewall_normal, mat_getTextureCoordinates()).rgb * 2.0 - 1.0);
+			return normalize(fs_in.TBN * t_normal);
 		}
 	"
 }

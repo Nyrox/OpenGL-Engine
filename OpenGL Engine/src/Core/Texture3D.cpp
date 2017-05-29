@@ -7,7 +7,8 @@
 #include <stb_image.h>
 #include <iostream>
 #include <algorithm>
-
+#include <glm/glm.hpp>
+#include <glm/gtx/transform.hpp>
 
 Texture3D::Texture3D(TextureSettings settings) : TextureBase(gl::TEXTURE_CUBE_MAP, settings) {
 	updateParameters();

@@ -14,7 +14,9 @@ class Engine;
 
 class GameObject {
 public:
-	GameObject(Engine& t_engine, Transform t_transform = Transform()) : engine(t_engine), transform(t_transform) { };
+	GameObject(Engine& t_engine, Transform t_transform = Transform()) : engine(t_engine), transform(t_transform) {
+		
+	};
 	GameObject(const GameObject&) = default;
 	GameObject& operator=(const GameObject&) = default;
 	
@@ -41,7 +43,7 @@ public:
 	Engine& engine;
 	Transform transform;
 private:
-	GameObject* parent;
+	GameObject* parent = nullptr;
 	std::vector<GameObject*> children;
 	std::vector<Component*> components;
 };

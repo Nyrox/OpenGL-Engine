@@ -156,12 +156,6 @@ int main() {
 
 	Scene scene;
 
-	PointLight* light1 = scene.emplace<PointLight>(Transform(glm::vec3(2, 3, 2)), 1024, glm::vec3(1), 6);
-	PointLight* light2 = scene.emplace<PointLight>(Transform(glm::vec3(-3, 3, 1)), 1024, glm::vec3(1), 6);
-
-	renderer.addPointLight(light1);
-	renderer.addPointLight(light2);
-
 	Gizmo gizmo;
 
 	bool rightMouseButtonIsDown = false;

@@ -1,5 +1,9 @@
 #pragma once
-#include <Core/Light.h>
+#include <gl_core_4_3.hpp>
+#include <glm/glm.hpp>
+#include <string>
+
+class PointLight;
 
 class Material;
 
@@ -44,8 +48,6 @@ public:
 
 	void setUniform(std::string name, const Material& material) const;
 	void setUniform(std::string name, const PointLight& light, uint32_t index = 0) const;
-	void setUniform(std::string name, const DirectionalLight& light, uint32_t index = 0) const;
-
 
 	void setUniformArray(std::string name, glm::mat4* data, uint32_t count) const;
 	void setUniformArray(std::string name, PointLight* data, uint32_t count) const;

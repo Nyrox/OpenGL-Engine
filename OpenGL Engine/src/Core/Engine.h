@@ -10,6 +10,7 @@ class Component;
 #include <Core/ECS/GameObject.h>
 #include <Core/Texture2D.h>
 
+#include <Core/ECS/Components/MeshRenderer.h>
 
 namespace std {
 	namespace filesystem = std::experimental::filesystem;
@@ -17,6 +18,12 @@ namespace std {
 
 class Engine {	
 public:
+	Engine() {
+		components[typeid(PointLight).hash_code()] = {};
+		components[typeid(MeshRenderer).hash_code()] = {};
+	}
+
+
 	friend class GameObject;
 
 	void loadProject(std::filesystem::path path);
@@ -24,7 +31,7 @@ public:
 
 	
 	std::filesystem::path getProjectBasePath() { return projectBasePath; }
-	
+	GameObject& createGameObject() { gameObjects.emplace_back(*this); return gameObjects.back(); }
 	
 	template<class T, class... Args>
 	T* emplaceComponent(Args&&... args) {

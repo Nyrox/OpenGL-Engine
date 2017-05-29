@@ -5,7 +5,7 @@
 #include <glm\gtx\transform.hpp>
 
 #include <iostream>
-
+#include <Core/Framebuffer.h>
 
 Skybox::Skybox() : skyboxMesh(Mesh::generateCube(glm::vec3(100))), cubemap(TextureSettings(NoMipmaps, ClampToEdge, Linear)) {
 	shader.loadFromFile("shaders/skybox.vert", "shaders/skybox.frag");

@@ -7,6 +7,7 @@
 #include <Core/ECS/Components/MeshRenderer.h>
 
 #include <Core/glUtil.h>
+#include <Core/ECS/Components/PointLight.h>
 
 Renderer::Renderer(Engine& t_engine, Camera& t_camera, float backbuffer_width, float backbuffer_height) : engine(t_engine), camera(t_camera), postProcessTexture(TextureSettings(NoMipmaps, ClampToBorder, Nearest)) {
 	shadowPassShader.loadFromFile("shaders/shadow_pass.vert", "shaders/shadow_pass.frag", "shaders/shadow_pass.geom");
@@ -63,18 +64,6 @@ void Renderer::setRenderSettings(const Shader& shader) {
 	shader.setUniform("enableSSAO", settings.enableSSAO);
 }
 
-
-void Renderer::addPointLight(PointLight* light) {
-	this->pointLights.push_back(light);
-	this->shadow_maps.emplace_back(glm::vec2{ 1024, 1024 }, CUBE_DEPTH);
-
-}
-
-void Renderer::addDirectionalLight(DirectionalLight light) {
-	this->directional_lights.push_back(light);
-	this->directional_shadow_maps.emplace_back(glm::vec2(1024, 1024), DEPTH);
-}
-
 // Far and near planes for point lights.
 constexpr float POINT_LIGHT_DEPTH_MAP_NEAR_PLANE = 0.1f;
 constexpr float POINT_LIGHT_DEPTH_MAP_FAR_PLANE = 15.f;
@@ -100,10 +89,16 @@ void Renderer::buildShadowMaps() {
 	shadowPassShader.bind();
 	shadowPassShader.setUniform("far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
-	for (int i = 0; i < pointLights.size(); i++) {
-		PointLight& light = *pointLights.at(i);
-		Framebuffer& fb = shadow_maps.at(i);
+	auto& pointLights = engine.getAllComponentsOfType<PointLight>();
+	while (pointLights.size() > shadow_maps.size()) {
+		shadow_maps.emplace_back(glm::vec2(1024, 1024), CUBE_DEPTH);
+	}
+	auto& iterator = pointLights.begin();
 
+	for (int i = 0; i < pointLights.size(); i++, iterator++) {
+		Framebuffer& fb = shadow_maps.at(i);
+		PointLight& light = *static_cast<PointLight*>(iterator->get());
+		
 		fb.bind();
 		gl::Viewport(0, 0, fb.width, fb.height);
 		gl::Clear(gl::DEPTH_BUFFER_BIT);
@@ -112,15 +107,15 @@ void Renderer::buildShadowMaps() {
 		glm::mat4 shadow_projection = glm::perspective(glm::radians(90.f), 1.f, POINT_LIGHT_DEPTH_MAP_NEAR_PLANE, POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
 		std::vector<glm::mat4> shadowTransforms;
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
-		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.transform.position, light.transform.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
+		shadowTransforms.push_back(shadow_projection * glm::lookAt(light.gameObject.transform.position, light.gameObject.transform.position + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0)));
 
 		shader.setUniformArray("shadowMatrices", shadowTransforms.data(), shadowTransforms.size());
-		shader.setUniform("light_position", light.transform.position);
+		shader.setUniform("light_position", light.gameObject.transform.position);
 
 		for (auto& _it : engine.getAllComponentsOfType<MeshRenderer>()) {
 			auto it = static_cast<MeshRenderer*>(_it.get());
@@ -164,10 +159,12 @@ void Renderer::geometryPass() {
 }
 
 void Renderer::render() {
-	buildShadowMaps();
+	//buildShadowMaps();
 	geometryPass();
 
 	if (settings.enableSSAO) buildSSAOTexture();
+
+	auto& pointLights = engine.getAllComponentsOfType<PointLight>();
 
 	auto setUniforms = [&](Shader& shader) {
 		shader.bind();
@@ -176,12 +173,13 @@ void Renderer::render() {
 		shader.setUniform("projection", camera.projection);
 		shader.setUniform("shadow_far_plane", POINT_LIGHT_DEPTH_MAP_FAR_PLANE);
 
-
+		
 		shader.setUniform("point_light_count", (int)pointLights.size());
-		for (int i = 0; i < pointLights.size(); i++) {
-			shader.setUniform("point_lights[" + std::to_string(i) + "]", *pointLights.at(i));
+		auto& iterator = pointLights.begin();
+		for (int i = 0; i < pointLights.size(); i++, iterator++) {
+			shader.setUniform("point_lights[" + std::to_string(i) + "]", *static_cast<PointLight*>(iterator->get()));
 			shader.setUniform("shadow_map_" + std::to_string(i), 5 + i);
-			shadow_maps.at(i).bindTexture(5 + i);
+		//	shadow_maps.at(i).bindTexture(5 + i);
 		}
 
 		/*shader.setUniform("directional_light_count", (int)directional_lights.size());

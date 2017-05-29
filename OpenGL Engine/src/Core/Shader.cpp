@@ -1,6 +1,8 @@
 #include "Shader.h"
 #include <Core\NShaderCompiler\ShaderCompiler.h>
 #include <experimental\filesystem>
+#include <Core/ECS/Components/PointLight.h>
+#include <Core/ECS/GameObject.h>
 
 #include <exception>
 #include <sstream>
@@ -147,22 +149,13 @@ void Shader::setUniform(std::string name, const Material& material) const {
 }
 
 void Shader::setUniform(std::string name, const PointLight& light, uint32_t index) const {
-	setUniform(name + ".position", light.transform.position);
+	setUniform(name + ".position", light.gameObject.transform.position);
 	setUniform(name + ".color", light.color);
 	setUniform(name + ".intensity", light.intensity);
-	setUniform(name + ".ambientIntensity", light.ambientIntensity);
 	setUniform(name + ".constant", light.constant);
 	setUniform(name + ".linear", light.linear);
 	setUniform(name + ".quadratic", light.quadratic);
 }
-
-void Shader::setUniform(std::string name, const DirectionalLight& light, uint32_t index) const {
-	setUniform(name + ".direction", light.direction);
-	setUniform(name + ".ambient", light.ambient);
-	setUniform(name + ".diffuse", light.diffuse);
-	setUniform(name + ".specular", light.specular);
-}
-
 
 void Shader::setUniformArray(std::string name, glm::mat4* data, uint32_t count) const {
 	gl::UniformMatrix4fv(gl::GetUniformLocation(this->id, name.c_str()), count, 0, (GLfloat*)data);

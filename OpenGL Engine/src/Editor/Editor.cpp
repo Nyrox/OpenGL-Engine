@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include <Core/AngelscriptAddons/ScriptSTDString/scriptstdstring.h>
 #include <Core/Scripting/GLMInterface.h>
+#include <Core/ECS/Components/PointLight.h>
 
 void MessageCallback(const asSMessageInfo *msg, void *param)
 {
@@ -14,6 +15,8 @@ void MessageCallback(const asSMessageInfo *msg, void *param)
 }
 
 Editor::Editor(std::filesystem::path project) : window(1280, 720, "CloudEngine Editor"), input(window), camera(Transform({ 0, 0, 20 }), 1280, 720, glm::perspective(glm::radians(60.0f), 1280.f / 720.f, 0.1f, 500.f), -90, 0), renderer(engine, camera, 1280, 720) {
+	gl::Enable(gl::TEXTURE_CUBE_MAP_SEAMLESS);
+	
 	engine.loadProject(project);
 
 	scriptEngine = asCreateScriptEngine();
@@ -33,6 +36,10 @@ Editor::Editor(std::filesystem::path project) : window(1280, 720, "CloudEngine E
 
 
 	editorScripts.emplace_back(scriptEngine, scriptBuilder, engine.getProjectBasePath() / "Editor/CameraController.as");
+
+	GameObject& light = engine.createGameObject();
+	light.transform.position = { 0, 0, -1.2 };
+	light.addComponent(engine.emplaceComponent<PointLight>(light));
 }
 
 Editor::~Editor() {
